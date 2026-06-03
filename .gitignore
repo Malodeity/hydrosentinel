@@ -1,0 +1,44 @@
+# environment
+.env
+.env.local
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# build artefacts
+dist/
+build/
+
+# Node / frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# backend test coverage
+backend/.coverage
+backend/htmlcov/
+
+# data files — PDFs and uploads are never committed
+backend/data/raw/*.pdf
+backend/data/raw/*.csv
+backend/data/raw/*.xlsx
+backend/data/uploads/*
+!backend/data/uploads/.gitkeep
+!backend/data/raw/.gitkeep
+
+# ML model
+backend/ai/model.pkl
+
+# skills cache
+skills-lock.json
