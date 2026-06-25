@@ -43,3 +43,4 @@ backend/ai/model.pkl
 # skills cache
 skills-lock.json
 forge-workspace/
+graphify-out/
