@@ -5,7 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, computed_field
 
-from app.models import BDCertification, CAPStatus, DWSCAPStatus, IssueType, NDPerformance, RiskLevel, UserRole
+from app.models import AlertType, AuditAction, BDCertification, CAPStatus, DWSCAPStatus, IssueType, ModelSource, NDPerformance, RiskLevel, UserRole
 
 
 class WSARead(BaseModel):
@@ -18,7 +18,6 @@ class WSARead(BaseModel):
     maint_pct: float | None = None
     risk_level: RiskLevel
     summary: str | None = None
-    # regulatory data fields
     green_drop_score: float | None = None
     dws_cap_status: DWSCAPStatus
     bd_certification: BDCertification
@@ -36,8 +35,6 @@ class WSARead(BaseModel):
     @computed_field
     @property
     def maint_gap_pct(self) -> float | None:
-        # this shows how far the municipality's maintenance spend is from the recommended 8% of asset value
-        # positive means spending above 8% (good), negative means shortfall
         if self.maint_pct is None:
             return None
         return round(self.maint_pct - 8.0, 2)
@@ -62,6 +59,10 @@ class CitizenReportRead(BaseModel):
     description: str | None
     case_status: Literal["open", "in_review", "resolved"]
     admin_comment: str | None
+    reviewed_by: UUID | None = None
+    resolved_by: UUID | None = None
+    reviewed_at: datetime | None = None
+    resolved_at: datetime | None = None
     lat: float
     lng: float
     created_at: datetime
@@ -79,6 +80,8 @@ class UserRead(BaseModel):
     id: UUID
     email: EmailStr
     role: UserRole
+    is_active: bool
+    last_login_at: datetime | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -91,8 +94,13 @@ class LoginRequest(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     user: UserRead
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
 
 
 class RiskScoreResponse(BaseModel):
@@ -100,12 +108,53 @@ class RiskScoreResponse(BaseModel):
     name: str
     risk_level: RiskLevel
     probability: float
+    model_source: ModelSource
 
 
 class RiskScoreListItem(BaseModel):
     wsa_id: UUID
     name: str
     risk_level: RiskLevel
+
+
+class RiskScoreHistoryRead(BaseModel):
+    id: UUID
+    wsa_id: UUID
+    risk_level: RiskLevel
+    probability: float
+    model_source: ModelSource
+    model_version: str | None
+    scored_by: UUID | None
+    scored_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AuditLogRead(BaseModel):
+    id: UUID
+    user_id: UUID
+    action: AuditAction
+    table_name: str
+    record_id: UUID
+    old_value: dict | None
+    new_value: dict | None
+    ip_address: str | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AlertRead(BaseModel):
+    id: UUID
+    wsa_id: UUID
+    wsa_name: str
+    alert_type: AlertType
+    message: str
+    acknowledged_by: UUID | None
+    acknowledged_at: datetime | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AITextResponse(BaseModel):

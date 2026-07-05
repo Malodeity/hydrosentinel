@@ -44,3 +44,19 @@ export async function fetchRiskScores() {
   const { data } = await apiClient.get<RiskScore[]>("/risk/scores");
   return data;
 }
+
+export interface RiskScoreHistoryEntry {
+  id: string;
+  wsa_id: string;
+  risk_level: RiskLevel;
+  probability: number;
+  model_source: "xgboost" | "heuristic";
+  model_version: string | null;
+  scored_by: string | null;
+  scored_at: string;
+}
+
+export async function fetchRiskHistory(wsaId: string): Promise<RiskScoreHistoryEntry[]> {
+  const { data } = await apiClient.get<RiskScoreHistoryEntry[]>(`/risk/history/${wsaId}`);
+  return data;
+}

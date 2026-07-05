@@ -1,10 +1,13 @@
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app import auth, models, schemas
+from app.alert_helpers import raise_report_volume_spike_alert
+from app.audit_helpers import write_audit
 from app.database import get_db
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -12,7 +15,6 @@ UPLOAD_ROOT = Path(__file__).resolve().parents[2] / "data" / "uploads"
 
 
 def build_report_response(report: models.CitizenReport) -> schemas.CitizenReportRead:
-    # this reads any saved photo files for the report and returns them with the normal report fields
     report_directory = UPLOAD_ROOT / str(report.id)
     photo_urls: list[str] = []
     if report_directory.exists():
@@ -25,6 +27,10 @@ def build_report_response(report: models.CitizenReport) -> schemas.CitizenReport
         description=report.description,
         case_status=report.case_status,
         admin_comment=report.admin_comment,
+        reviewed_by=report.reviewed_by,
+        resolved_by=report.resolved_by,
+        reviewed_at=report.reviewed_at,
+        resolved_at=report.resolved_at,
         lat=report.lat,
         lng=report.lng,
         created_at=report.created_at,
@@ -42,7 +48,6 @@ async def create_report(
     photos: list[UploadFile] = File(default=[]),
     db: Session = Depends(get_db),
 ) -> models.CitizenReport:
-    # this creates one citizen report after checking that the chosen wsa exists
     wsa = db.query(models.WSA).filter(models.WSA.id == wsa_id).first()
     if not wsa:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="WSA not found")
@@ -59,6 +64,9 @@ async def create_report(
     db.commit()
     db.refresh(report)
 
+    raise_report_volume_spike_alert(wsa, db)
+    db.commit()
+
     if photos:
         report_directory = UPLOAD_ROOT / str(report.id)
         report_directory.mkdir(parents=True, exist_ok=True)
@@ -66,7 +74,6 @@ async def create_report(
             suffix = Path(photo.filename or "").suffix.lower()
             if suffix not in {".jpg", ".jpeg", ".png", ".webp", ".gif"}:
                 continue
-
             target_path = report_directory / f"{uuid.uuid4()}{suffix}"
             with target_path.open("wb") as target_file:
                 target_file.write(await photo.read())
@@ -79,7 +86,6 @@ def list_reports(
     db: Session = Depends(get_db),
     _: models.User = Depends(auth.get_current_admin_user),
 ) -> list[schemas.CitizenReportRead]:
-    # this returns all reports for admins so they can review submissions in one table
     reports = db.query(models.CitizenReport).order_by(models.CitizenReport.created_at.desc()).all()
     return [build_report_response(report) for report in reports]
 
@@ -88,16 +94,45 @@ def list_reports(
 def update_report(
     report_id: uuid.UUID,
     payload: schemas.CitizenReportAdminUpdate,
+    request: Request,
     db: Session = Depends(get_db),
-    _: models.User = Depends(auth.get_current_admin_user),
+    current_user: models.User = Depends(auth.get_current_admin_user),
 ) -> schemas.CitizenReportRead:
-    # this lets an admin track the case stage and keep one saved response on the report
     report = db.query(models.CitizenReport).filter(models.CitizenReport.id == report_id).first()
     if not report:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
 
+    old_status = report.case_status
+    old_comment = report.admin_comment
+    now = datetime.now(timezone.utc)
+
     report.case_status = payload.case_status
     report.admin_comment = payload.admin_comment.strip() if payload.admin_comment else None
+
+    if payload.case_status == "in_review" and old_status != "in_review":
+        report.reviewed_by = current_user.id
+        report.reviewed_at = now
+
+    if payload.case_status == "resolved" and old_status != "resolved":
+        report.resolved_by = current_user.id
+        report.resolved_at = now
+
+    action = (
+        models.AuditAction.report_comment_updated
+        if payload.case_status == old_status
+        else models.AuditAction.report_status_updated
+    )
+    write_audit(
+        db=db,
+        user_id=current_user.id,
+        action=action,
+        table_name="citizen_reports",
+        record_id=report.id,
+        old_value={"case_status": old_status, "admin_comment": old_comment},
+        new_value={"case_status": payload.case_status, "admin_comment": report.admin_comment},
+        ip_address=request.client.host if request.client else None,
+    )
+
     db.add(report)
     db.commit()
     db.refresh(report)

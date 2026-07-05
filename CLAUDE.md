@@ -50,7 +50,7 @@ Monitors South African Water Service Authorities (WSAs). Three user surfaces:
 |---|---|
 | Frontend | React 18, TypeScript, Vite, Tailwind, shadcn/ui, Leaflet, axios |
 | Backend | FastAPI, SQLAlchemy (mapped_column style), PostgreSQL, JWT (jose), bcrypt |
-| AI | Anthropic SDK (`claude-sonnet-4-20250514`), XGBoost fallback heuristic |
+| AI | OpenAI SDK (`gpt-4o`), XGBoost fallback heuristic |
 | Infra | Docker Compose — frontend :5173, backend :8000 |
 
 ---
@@ -64,19 +64,27 @@ backend/
   app/
     config.py              # Settings (pydantic-settings, lru_cache) — env vars live here
     database.py            # engine, SessionLocal, Base, get_db()
-    models.py              # SQLAlchemy models: WSA, CitizenReport, User, Summary
-                           # Enums: CAPStatus, RiskLevel, IssueType, UserRole
+    models.py              # SQLAlchemy models: WSA, CitizenReport, User, Summary,
+                           #   RefreshToken, RiskScoreHistory, AuditLog, Alert
+                           # Enums: CAPStatus, RiskLevel, IssueType, UserRole,
+                           #   AlertType, ModelSource, AuditAction
     schemas.py             # Pydantic I/O: WSARead/Update, CitizenReportCreate/Read,
-                           #   CitizenReportAdminUpdate, LoginRequest, TokenResponse,
-                           #   RiskScore*, AITextResponse, AIRecommendationsResponse
+                           #   CitizenReportAdminUpdate, LoginRequest, TokenResponse (+ refresh_token),
+                           #   RefreshRequest, RiskScore*, RiskScoreHistoryRead, AuditLogRead,
+                           #   AlertRead, AITextResponse, AIRecommendationsResponse
     auth.py                # verify_password, get_password_hash, create_access_token,
                            #   get_current_user, get_current_admin_user
+    alert_helpers.py       # raise_high_risk_alert, raise_report_volume_spike_alert
+    audit_helpers.py       # write_audit(db, user_id, action, table_name, record_id, ...)
     routes/
-      auth.py              # POST /auth/login, GET /auth/me
+      auth.py              # POST /auth/login, POST /auth/refresh, POST /auth/logout, GET /auth/me
       wsa.py               # GET /wsa, GET /wsa/{id}, PATCH /wsa/{id} (admin, CAP only)
       reports.py           # POST /reports (multipart+photos), GET /reports (admin),
                            #   PATCH /reports/{id} (admin — case_status + comment)
-      risk.py              # POST /risk/score/{wsa_id} (admin), GET /risk/scores
+      risk.py              # POST /risk/score/{wsa_id} (admin), GET /risk/scores,
+                           #   GET /risk/history/{wsa_id} (admin)
+      alerts.py            # GET /alerts (admin), PATCH /alerts/{id}/acknowledge (admin)
+      audit.py             # GET /audit-log (admin)
       ai.py                # GET /ai/wsa/{id}/summary, /recommendations (admin),
                            #   /ai/digest (cached 24h in Summary table),
                            #   /ai/reports/{id}/comment (admin)
@@ -102,10 +110,13 @@ frontend/src/
   App.tsx                  # AppShell — nav, hero, Routes (/, /reports, /admin, /login)
   api/
     client.ts              # axios instance (VITE_API_URL), authStorage (localStorage),
+                           #   REFRESH_TOKEN_KEY, 401 interceptor (refresh + retry),
                            #   authApi.login / .me — TOKEN_KEY / USER_KEY
-    wsa.ts                 # fetchWsas, fetchWsa, updateWsaCapStatus, fetchRiskScores
+    wsa.ts                 # fetchWsas, fetchWsa, updateWsaCapStatus, fetchRiskScores,
+                           #   fetchRiskHistory
     reports.ts             # createCitizenReport (FormData), fetchCitizenReports,
                            #   updateCitizenReport
+    alerts.ts              # fetchAlerts, acknowledgeAlert
     ai.ts                  # fetchAiDigest, fetchWsaSummary, fetchWsaRecommendations,
                            #   generateReportComment
   pages/
@@ -141,17 +152,20 @@ frontend/src/
 ---
 
 ## Auth flow
-- JWT in `localStorage` under `hydrosentinel_token`
-- axios interceptor auto-attaches `Authorization: Bearer …` to every request
+- Short-lived JWT (`hydrosentinel_token`) + long-lived refresh token (`hydrosentinel_refresh_token`) in `localStorage`
+- axios request interceptor auto-attaches `Authorization: Bearer …` to every request
+- axios response interceptor: on 401 tries `POST /auth/refresh`, retries original request; on failure clears session and redirects to `/login`
+- Refresh tokens stored SHA-256 hashed in `refresh_tokens` table; single-use rotation; 7-day TTL
+- `POST /auth/logout` revokes the refresh token server-side
 - `get_current_admin_user` FastAPI dependency blocks non-admins (403)
 - `ProtectedRoute` on `/admin` redirects to `/login` when no token / not admin role
 
 ---
 
 ## AI integration (backend/app/routes/ai.py)
-- Single `call_claude(system, user, max_tokens)` helper wraps all Anthropic calls
-- Model: `claude-sonnet-4-20250514`, temperature 0.3
-- `ANTHROPIC_API_KEY` must be set in `.env` — returns 503 if missing
+- Single `call_openai(system, user, max_tokens)` helper wraps all OpenAI calls
+- Model: `gpt-4o`, temperature 0.3
+- `OPENAI_API_KEY` must be set in `.env` — returns 503 if missing
 - Endpoints: summary (public), recommendations (admin), digest (public, 24 h cache), report comment (admin)
 
 ---
@@ -165,7 +179,7 @@ ADMIN_EMAIL
 ADMIN_PASSWORD
 ADMIN_PASSWORD_HASH   # optional — overrides hashing ADMIN_PASSWORD at startup
 MODEL_PATH            # default: ai/model.pkl
-ANTHROPIC_API_KEY
+OPENAI_API_KEY        # used ONLY for this project — do not reuse
 FRONTEND_URL
 ```
 
@@ -173,7 +187,10 @@ FRONTEND_URL
 
 ## Gotchas
 - `AdminPage.tsx` has many interdependent `useEffect` hooks — read all of them before editing any
-- `apply_ai_schema_changes()` in `main.py` adds `summary`, `case_status`, `admin_comment` columns via `ALTER TABLE … IF NOT EXISTS` — safe to run repeatedly
+- `apply_ai_schema_changes()` in `main.py` adds all schema migrations via `ALTER TABLE … IF NOT EXISTS` — safe to run repeatedly; guarded by `TESTING=1` in test suite to prevent deadlocks
 - Photos are saved to `data/uploads/{report_id}/` on disk, served via `StaticFiles`; not stored in DB
 - There is a stale `AdminPage 2.tsx` in pages/ — it is not imported anywhere, ignore it
 - `model.pkl` is not committed; missing model falls back to deterministic heuristic in `predict.py`
+- Tests live in `backend/tests/` — run with `cd backend && .venv/bin/pytest tests/ -v`; set `TESTING=1` is handled by conftest.py
+- Alert auto-generation: `alert_helpers.py` fires on high risk score (deduped) and on 5+ reports in 24 h per WSA
+- Audit log: `audit_helpers.py` `write_audit()` is called from risk.py, reports.py, wsa.py — immutable JSONB rows, never updated

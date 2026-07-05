@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { CircleMarker, MapContainer, TileLayer } from "react-leaflet";
-import { Camera, Search } from "lucide-react";
+import { AlertTriangle, Bell, Camera, Search } from "lucide-react";
 
 import { fetchReportsSummary, fetchWsaRecommendations, fetchWsaSummary, generateReportComment } from "@/api/ai";
+import { acknowledgeAlert, fetchAlerts, type Alert } from "@/api/alerts";
 import { fetchCitizenReports, type CaseStatus, type CitizenReport, type IssueType, updateCitizenReport } from "@/api/reports";
-import { fetchWsas, type CapStatus, type RiskLevel, type WSA, updateWsaCapStatus } from "@/api/wsa";
+import { fetchWsas, type CapStatus, type RiskLevel, type WSA, updateWsaCapStatus, fetchRiskHistory, type RiskScoreHistoryEntry } from "@/api/wsa";
 import { AITextBlock } from "@/components/AITextBlock";
 import { RiskBadge } from "@/components/RiskBadge";
 import { Badge } from "@/components/ui/badge";
@@ -12,10 +13,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 
 const capOptions: CapStatus[] = ["none", "submitted", "in_progress", "completed"];
+const alertBadgeClasses: Record<string, string> = {
+  risk_level_high: "border-rose-200 bg-rose-100 text-rose-800",
+  risk_level_increased: "border-orange-200 bg-orange-100 text-orange-800",
+  report_volume_spike: "border-amber-200 bg-amber-100 text-amber-800",
+  cap_overdue: "border-purple-200 bg-purple-100 text-purple-800",
+};
+const alertTypeLabel: Record<string, string> = {
+  risk_level_high: "High risk",
+  risk_level_increased: "Risk increased",
+  report_volume_spike: "Report spike",
+  cap_overdue: "CAP overdue",
+};
 const issueBadgeClasses: Record<IssueType, string> = {
   leak: "border-sky-200 bg-sky-100 text-sky-800",
   outage: "border-rose-200 bg-rose-100 text-rose-800",
@@ -70,6 +84,8 @@ export function AdminPage() {
   const [reportAdminComment, setReportAdminComment] = useState("");
   const [isGeneratingReportComment, setIsGeneratingReportComment] = useState(false);
   const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [riskHistory, setRiskHistory] = useState<RiskScoreHistoryEntry[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -133,9 +149,14 @@ export function AdminPage() {
 
   const loadData = async () => {
     try {
-      const [reportData, wsaData] = await Promise.all([fetchCitizenReports(), fetchWsas()]);
+      const [reportData, wsaData, alertData] = await Promise.all([
+        fetchCitizenReports(),
+        fetchWsas(),
+        fetchAlerts(),
+      ]);
       setReports(reportData);
       setWsas(wsaData);
+      setAlerts(alertData);
       setPendingCapStatus(Object.fromEntries(wsaData.map((item) => [item.id, item.cap_status])) as Record<string, CapStatus>);
 
       const provinceOptions = [...new Set(wsaData.map((item) => item.province))].sort((a, b) => a.localeCompare(b));
@@ -206,6 +227,7 @@ export function AdminPage() {
     if (!selectedWsa) {
       setSelectedWsaSummary(null);
       setSelectedWsaReportsSummary(null);
+      setRiskHistory([]);
       return;
     }
 
@@ -216,7 +238,13 @@ export function AdminPage() {
     fetchReportsSummary(selectedWsa.id)
       .then((data) => setSelectedWsaReportsSummary(data.content))
       .catch(() => setSelectedWsaReportsSummary(null));
+
+    fetchRiskHistory(selectedWsa.id)
+      .then((data) => setRiskHistory(data))
+      .catch(() => setRiskHistory([]));
   }, [selectedWsa]);
+
+  const unacknowledgedAlerts = alerts.filter((a) => !a.acknowledged_at);
 
   return (
     <div className="space-y-6">
@@ -226,6 +254,67 @@ export function AdminPage() {
       {successMessage ? (
         <div className="rounded-3xl border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-800">{successMessage}</div>
       ) : null}
+
+      {/* System alerts */}
+      <Card>
+        <CardHeader className="border-b border-border/60 pb-4">
+          <div className="flex items-center gap-3">
+            <Bell className="h-5 w-5 text-primary" />
+            <CardTitle>System alerts</CardTitle>
+            {unacknowledgedAlerts.length > 0 && (
+              <span className="inline-flex items-center justify-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-800">
+                {unacknowledgedAlerts.length} new
+              </span>
+            )}
+          </div>
+          <CardDescription>Auto-generated alerts for high risk scores and report volume spikes. Acknowledge to clear.</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-4">
+          {alerts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No alerts have been generated yet.</p>
+          ) : (
+            <ScrollArea className="max-h-72">
+              <div className="space-y-2 pr-4">
+                {alerts.map((alert) => (
+                  <div
+                    key={alert.id}
+                    className={`flex items-start justify-between gap-4 rounded-2xl border p-4 ${alert.acknowledged_at ? "opacity-50" : "border-border"}`}
+                  >
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+                        <Badge className={alertBadgeClasses[alert.alert_type]} variant="outline">
+                          {alertTypeLabel[alert.alert_type]}
+                        </Badge>
+                        <span className="text-sm font-medium">{alert.wsa_name}</span>
+                      </div>
+                      <p className="pl-6 text-sm text-muted-foreground">{alert.message}</p>
+                      <p className="pl-6 text-xs text-muted-foreground">{new Date(alert.created_at).toLocaleString()}</p>
+                    </div>
+                    {!alert.acknowledged_at && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="shrink-0"
+                        onClick={async () => {
+                          try {
+                            const updated = await acknowledgeAlert(alert.id);
+                            setAlerts((current) => current.map((a) => (a.id === updated.id ? updated : a)));
+                          } catch {
+                            setError("Could not acknowledge alert.");
+                          }
+                        }}
+                      >
+                        Acknowledge
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -552,6 +641,33 @@ export function AdminPage() {
                 </div>
                 <AITextBlock content={selectedWsaSummary} label="AI risk summary" />
                 <AITextBlock content={selectedWsaReportsSummary} label="AI open reports summary" />
+                {riskHistory.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-sm font-medium">Risk score history</p>
+                    <ScrollArea className="max-h-48">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Risk</TableHead>
+                            <TableHead>Probability</TableHead>
+                            <TableHead>Source</TableHead>
+                            <TableHead>Scored at</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {riskHistory.map((entry) => (
+                            <TableRow key={entry.id}>
+                              <TableCell><RiskBadge riskLevel={entry.risk_level} /></TableCell>
+                              <TableCell>{(entry.probability * 100).toFixed(1)}%</TableCell>
+                              <TableCell className="capitalize">{entry.model_source}</TableCell>
+                              <TableCell className="text-muted-foreground">{new Date(entry.scored_at).toLocaleString()}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </ScrollArea>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ) : null}

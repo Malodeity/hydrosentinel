@@ -12,7 +12,7 @@ from app.auth import get_password_hash
 from app.config import settings
 from app.database import Base, SessionLocal, engine
 from app.models import CAPStatus, RiskLevel, User, UserRole, WSA
-from app.routes import ai, auth, reports, risk, wsa
+from app.routes import ai, alerts, audit, auth, reports, risk, wsa
 
 
 def seed_default_admin() -> None:
@@ -122,13 +122,107 @@ def apply_ai_schema_changes() -> None:
         # citizen_reports columns added in earlier releases
         connection.execute(text("ALTER TABLE citizen_reports ADD COLUMN IF NOT EXISTS case_status VARCHAR(50) NOT NULL DEFAULT 'open';"))
         connection.execute(text("ALTER TABLE citizen_reports ADD COLUMN IF NOT EXISTS admin_comment TEXT;"))
+        # alerts table
+        connection.execute(text("""
+            DO $$ BEGIN
+                CREATE TYPE alert_type_enum AS ENUM (
+                    'risk_level_high', 'risk_level_increased', 'report_volume_spike', 'cap_overdue'
+                );
+            EXCEPTION WHEN duplicate_object THEN null;
+            END $$;
+        """))
+        connection.execute(text("""
+            CREATE TABLE IF NOT EXISTS alerts (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                wsa_id UUID NOT NULL REFERENCES wsa(id) ON DELETE CASCADE,
+                alert_type alert_type_enum NOT NULL,
+                message TEXT NOT NULL,
+                acknowledged_by UUID REFERENCES users(id) ON DELETE SET NULL,
+                acknowledged_at TIMESTAMPTZ,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+        """))
+        connection.execute(text("CREATE INDEX IF NOT EXISTS ix_alerts_wsa_id ON alerts(wsa_id);"))
+        connection.execute(text("CREATE INDEX IF NOT EXISTS ix_alerts_acknowledged_at ON alerts(acknowledged_at);"))
+        # users — new columns
+        connection.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;"))
+        connection.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;"))
+        # refresh_tokens table
+        connection.execute(text("""
+            CREATE TABLE IF NOT EXISTS refresh_tokens (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                token_hash VARCHAR(255) NOT NULL UNIQUE,
+                expires_at TIMESTAMPTZ NOT NULL,
+                revoked_at TIMESTAMPTZ,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+        """))
+        connection.execute(text("CREATE INDEX IF NOT EXISTS ix_refresh_tokens_user_id ON refresh_tokens(user_id);"))
+        # citizen_reports — traceability columns
+        connection.execute(text("ALTER TABLE citizen_reports ADD COLUMN IF NOT EXISTS reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL;"))
+        connection.execute(text("ALTER TABLE citizen_reports ADD COLUMN IF NOT EXISTS resolved_by UUID REFERENCES users(id) ON DELETE SET NULL;"))
+        connection.execute(text("ALTER TABLE citizen_reports ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;"))
+        connection.execute(text("ALTER TABLE citizen_reports ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ;"))
+        # risk_score_history table
+        connection.execute(text("""
+            DO $$ BEGIN
+                CREATE TYPE model_source_enum AS ENUM ('xgboost', 'heuristic');
+            EXCEPTION WHEN duplicate_object THEN null;
+            END $$;
+        """))
+        connection.execute(text("""
+            CREATE TABLE IF NOT EXISTS risk_score_history (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                wsa_id UUID NOT NULL REFERENCES wsa(id) ON DELETE CASCADE,
+                risk_level risk_level_enum NOT NULL,
+                probability NUMERIC(6,4) NOT NULL,
+                model_source model_source_enum NOT NULL,
+                model_version VARCHAR(50),
+                scored_by UUID REFERENCES users(id) ON DELETE SET NULL,
+                scored_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+        """))
+        connection.execute(text("CREATE INDEX IF NOT EXISTS ix_risk_score_history_wsa_id ON risk_score_history(wsa_id);"))
+        connection.execute(text("CREATE INDEX IF NOT EXISTS ix_risk_score_history_scored_at ON risk_score_history(scored_at);"))
+        # summaries — generated_by column
+        connection.execute(text("ALTER TABLE summaries ADD COLUMN IF NOT EXISTS generated_by UUID REFERENCES users(id) ON DELETE SET NULL;"))
+        # audit_log table
+        connection.execute(text("""
+            DO $$ BEGIN
+                CREATE TYPE audit_action_enum AS ENUM (
+                    'cap_status_updated', 'report_status_updated', 'report_comment_updated',
+                    'risk_score_run', 'wsa_updated', 'user_created', 'summary_generated'
+                );
+            EXCEPTION WHEN duplicate_object THEN null;
+            END $$;
+        """))
+        connection.execute(text("""
+            CREATE TABLE IF NOT EXISTS audit_log (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+                action audit_action_enum NOT NULL,
+                table_name VARCHAR(100) NOT NULL,
+                record_id UUID NOT NULL,
+                old_value JSONB,
+                new_value JSONB,
+                ip_address VARCHAR(45),
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+        """))
+        connection.execute(text("CREATE INDEX IF NOT EXISTS ix_audit_log_user_id ON audit_log(user_id);"))
+        connection.execute(text("CREATE INDEX IF NOT EXISTS ix_audit_log_record_id ON audit_log(record_id);"))
+        connection.execute(text("CREATE INDEX IF NOT EXISTS ix_audit_log_created_at ON audit_log(created_at);"))
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # this runs startup setup once so tables, seed data, and the risk model are ready before requests start
-    create_database_extensions()
-    apply_ai_schema_changes()
+    # schema migrations are skipped in the test suite (TESTING=1) because they run once in conftest.ensure_schema
+    import os as _os
+    if not _os.getenv("TESTING"):
+        create_database_extensions()
+        apply_ai_schema_changes()
     Base.metadata.create_all(bind=engine)
     seed_default_admin()
     seed_wsas()
@@ -152,6 +246,8 @@ app.include_router(wsa.router)
 app.include_router(reports.router)
 app.include_router(risk.router)
 app.include_router(ai.router)
+app.include_router(alerts.router)
+app.include_router(audit.router)
 app.mount("/uploads", StaticFiles(directory=str(Path(__file__).resolve().parent / "data" / "uploads")), name="uploads")
 
 
