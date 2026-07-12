@@ -20,6 +20,14 @@ def merge_sources(
     merged = frames[0]
     for frame in frames[1:]:
         merged = merged.merge(frame, on="name", how="outer")
+
+    # When multiple sources both carry a "province" column pandas suffixes them
+    # (_x, _y). Coalesce them back into a single "province" column.
+    province_cols = [c for c in merged.columns if c.startswith("province")]
+    if len(province_cols) > 1:
+        merged["province"] = merged[province_cols].bfill(axis=1).iloc[:, 0]
+        merged.drop(columns=[c for c in province_cols if c != "province"], inplace=True)
+
     return merged
 
 

@@ -21,39 +21,61 @@ def _classify_nd(score: float | None) -> str:
 
 
 _SCORE_RE = re.compile(r"score of (\d+(?:\.\d+)?)\s*%", re.IGNORECASE)
+_PROVINCE_RE = re.compile(r"(?:\d+\s+)?([A-Z\s\-]+):\s*NO DROP REPORT", re.IGNORECASE)
 _SKIP_PREFIXES = ("CHAPTER", "SECTION", "FIGURE", "TABLE", "APPENDIX", "PROVINCE", "NATIONAL")
+
+# Map from the headings in the PDF to the province names used in the DB
+_PROVINCE_MAP = {
+    "EASTERN CAPE": "Eastern Cape",
+    "FREE STATE": "Free State",
+    "GAUTENG": "Gauteng",
+    "KWAZULU NATAL": "KwaZulu-Natal",
+    "LIMPOPO": "Limpopo",
+    "MPUMALANGA": "Mpumalanga",
+    "NORTH WEST": "North West",
+    "NORTHERN CAPE": "Northern Cape",
+    "WESTERN CAPE": "Western Cape",
+}
 
 
 def parse_no_drop(pdf_path: str | Path) -> pd.DataFrame:
     """
     Extracts per-WSA No Drop scores from the 2023 No Drop Report PDF.
 
-    The report gives each WSA a section: one page with just the WSA name (and
-    sometimes a page-number), followed immediately by a page containing
-    "score of X%" in the regulatory impression text.
+    The report is organised into provincial sections ("X PROVINCE: NO DROP REPORT")
+    followed by individual WSA pages: a short header page (WSA name only) then a
+    regulatory-impression page containing "score of X%".
 
-    Returns columns: name, nd_performance
+    Returns columns: name, province, nd_performance
     (nrw_percent is not available in this PDF — it lives in the companion
     "Status of Water Loss" report which must be loaded separately).
     """
-    records: dict[str, float] = {}
+    records: list[dict] = []
+    current_province: str | None = None
 
     with pdfplumber.open(pdf_path) as pdf:
         pages = pdf.pages
         n = len(pages)
 
-        # scan from page ~60 onward where provincial/WSA sections begin
         for i in range(50, n - 1):
             txt = (pages[i].extract_text() or "").strip()
             lines = [ln.strip() for ln in txt.splitlines() if ln.strip()]
 
-            # WSA header pages are very short (1–3 lines) — a name plus maybe a page number
+            if not lines:
+                continue
+
+            # Detect provincial section header
+            m_prov = _PROVINCE_RE.match(lines[0])
+            if m_prov:
+                raw = m_prov.group(1).strip().upper()
+                current_province = _PROVINCE_MAP.get(raw)
+                continue
+
+            # WSA header pages are very short (1–3 lines)
             if not (1 <= len(lines) <= 3):
                 continue
 
             name = lines[0]
-
-            # skip obvious non-WSA pages
             if len(name) <= 3:
                 continue
             if any(name.upper().startswith(prefix) for prefix in _SKIP_PREFIXES):
@@ -61,22 +83,18 @@ def parse_no_drop(pdf_path: str | Path) -> pd.DataFrame:
             if name[0].isdigit():
                 continue
 
-            # look for "score of X%" in the immediately following page
+            # look for "score of X%" on the immediately following page
             next_txt = pages[i + 1].extract_text() or ""
-            m = _SCORE_RE.search(next_txt)
-            if not m:
+            m_score = _SCORE_RE.search(next_txt)
+            if not m_score:
                 continue
 
-            score = float(m.group(1))
-            # title-case the name for consistent matching against DB rows
-            records.setdefault(name.title(), score)
+            score = float(m_score.group(1))
+            records.append({
+                "name": name.title(),
+                "province": current_province,
+                "nd_performance": _classify_nd(score),
+            })
 
-    rows = [
-        {
-            "name": name,
-            "nd_performance": _classify_nd(score),
-        }
-        for name, score in records.items()
-    ]
-
-    return pd.DataFrame(rows).drop_duplicates(subset=["name"])
+    df = pd.DataFrame(records).drop_duplicates(subset=["name"])
+    return df
