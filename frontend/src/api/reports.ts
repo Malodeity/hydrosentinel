@@ -10,6 +10,10 @@ export interface CitizenReport {
   description: string | null;
   case_status: CaseStatus;
   admin_comment: string | null;
+  reviewed_by: string | null;
+  resolved_by: string | null;
+  reviewed_at: string | null;
+  resolved_at: string | null;
   lat: number;
   lng: number;
   created_at: string;

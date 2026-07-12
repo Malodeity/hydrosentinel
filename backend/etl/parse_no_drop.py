@@ -5,16 +5,6 @@ import pandas as pd
 import pdfplumber
 
 
-_PCT_RE = re.compile(r"(\d{1,3}(?:\.\d+)?)\s*%")
-
-
-def _extract_pct(raw: str | None) -> float | None:
-    if not raw:
-        return None
-    m = _PCT_RE.search(str(raw))
-    return float(m.group(1)) if m else None
-
-
 def _classify_nd(score: float | None) -> str:
     # thresholds from the 2023 No Drop report performance categories
     if score is None:
@@ -30,103 +20,63 @@ def _classify_nd(score: float | None) -> str:
     return "critical"
 
 
-def _is_wsa_name(value: str | None) -> bool:
-    if not value:
-        return False
-    v = value.strip()
-    return len(v) > 3 and not v.upper().startswith("TOTAL") and not v.upper().startswith("WSA") and not v.upper().startswith("PROVINCE")
+_SCORE_RE = re.compile(r"score of (\d+(?:\.\d+)?)\s*%", re.IGNORECASE)
+_SKIP_PREFIXES = ("CHAPTER", "SECTION", "FIGURE", "TABLE", "APPENDIX", "PROVINCE", "NATIONAL")
 
 
 def parse_no_drop(pdf_path: str | Path) -> pd.DataFrame:
     """
-    Extracts per-WSA NRW percent and No Drop performance category from the 2023
-    No Drop Report PDF.
+    Extracts per-WSA No Drop scores from the 2023 No Drop Report PDF.
 
-    Scans all pages for tables that contain:
-      - A WSA / municipality name column
-      - A score or NRW column expressed as a percentage
+    The report gives each WSA a section: one page with just the WSA name (and
+    sometimes a page-number), followed immediately by a page containing
+    "score of X%" in the regulatory impression text.
 
-    The No Drop overall score is used to derive nd_performance. NRW % is stored
-    directly as nrw_percent when found in a separate NRW-labelled column.
+    Returns columns: name, nd_performance
+    (nrw_percent is not available in this PDF — it lives in the companion
+    "Status of Water Loss" report which must be loaded separately).
     """
-    score_records: dict[str, float] = {}
-    nrw_records: dict[str, float] = {}
+    records: dict[str, float] = {}
 
     with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            tables = page.extract_tables()
-            if not tables:
+        pages = pdf.pages
+        n = len(pages)
+
+        # scan from page ~60 onward where provincial/WSA sections begin
+        for i in range(50, n - 1):
+            txt = (pages[i].extract_text() or "").strip()
+            lines = [ln.strip() for ln in txt.splitlines() if ln.strip()]
+
+            # WSA header pages are very short (1–3 lines) — a name plus maybe a page number
+            if not (1 <= len(lines) <= 3):
                 continue
 
-            for table in tables:
-                if not table or len(table) < 2:
-                    continue
+            name = lines[0]
 
-                header = table[0]
-                header_text = " ".join(str(c or "").upper() for c in header)
+            # skip obvious non-WSA pages
+            if len(name) <= 3:
+                continue
+            if any(name.upper().startswith(prefix) for prefix in _SKIP_PREFIXES):
+                continue
+            if name[0].isdigit():
+                continue
 
-                has_wsa_col = "WSA" in header_text or "MUNICIPALITY" in header_text or "NAME" in header_text
-                if not has_wsa_col:
-                    continue
+            # look for "score of X%" in the immediately following page
+            next_txt = pages[i + 1].extract_text() or ""
+            m = _SCORE_RE.search(next_txt)
+            if not m:
+                continue
 
-                name_col = next(
-                    (i for i, c in enumerate(header) if "WSA" in str(c or "").upper() or "MUNICIPALITY" in str(c or "").upper() or "NAME" in str(c or "").upper()),
-                    0,
-                )
+            score = float(m.group(1))
+            # title-case the name for consistent matching against DB rows
+            records.setdefault(name.title(), score)
 
-                # skip a second header row if present
-                data_start = 1
-                if len(table) > 1:
-                    first_data = table[1]
-                    has_digits = any(
-                        c and re.search(r"\d", str(c))
-                        for c in first_data[1:]
-                    )
-                    if not has_digits:
-                        data_start = 2
-
-                # --- NRW column ---
-                nrw_col = next(
-                    (i for i, c in enumerate(header) if "NRW" in str(c or "").upper() or "NON-REVENUE" in str(c or "").upper() or "WATER LOSS" in str(c or "").upper()),
-                    None,
-                )
-
-                # --- No Drop score column ---
-                score_col = next(
-                    (
-                        i for i, c in enumerate(header)
-                        if ("NO DROP" in str(c or "").upper() or "SCORE" in str(c or "").upper() or "CRITERIA" in str(c or "").upper())
-                        and i != name_col
-                    ),
-                    None,
-                )
-
-                for row in table[data_start:]:
-                    if not row or len(row) <= name_col:
-                        continue
-                    name = str(row[name_col] or "").strip()
-                    if not _is_wsa_name(name):
-                        continue
-
-                    if nrw_col is not None and len(row) > nrw_col:
-                        nrw = _extract_pct(str(row[nrw_col] or ""))
-                        if nrw is not None:
-                            nrw_records.setdefault(name, nrw)
-
-                    if score_col is not None and len(row) > score_col:
-                        score = _extract_pct(str(row[score_col] or ""))
-                        if score is not None:
-                            score_records.setdefault(name, score)
-
-    # merge: prefer explicit NRW column; fall back to overall score as nrw proxy
-    all_names = set(score_records) | set(nrw_records)
-    records = [
+    rows = [
         {
             "name": name,
-            "nrw_percent": nrw_records.get(name),
-            "nd_performance": _classify_nd(score_records.get(name)),
+            "nd_performance": _classify_nd(score),
         }
-        for name in all_names
+        for name, score in records.items()
     ]
 
-    return pd.DataFrame(records).drop_duplicates(subset=["name"])
+    return pd.DataFrame(rows).drop_duplicates(subset=["name"])

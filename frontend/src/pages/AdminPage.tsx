@@ -4,6 +4,7 @@ import { AlertTriangle, Bell, Camera, Search } from "lucide-react";
 
 import { fetchReportsSummary, fetchWsaRecommendations, fetchWsaSummary, generateReportComment } from "@/api/ai";
 import { acknowledgeAlert, fetchAlerts, type Alert } from "@/api/alerts";
+import { fetchAuditLog, type AuditLogEntry } from "@/api/audit";
 import { fetchCitizenReports, type CaseStatus, type CitizenReport, type IssueType, updateCitizenReport } from "@/api/reports";
 import { fetchWsas, type CapStatus, type RiskLevel, type WSA, updateWsaCapStatus, fetchRiskHistory, type RiskScoreHistoryEntry } from "@/api/wsa";
 import { AITextBlock } from "@/components/AITextBlock";
@@ -86,6 +87,7 @@ export function AdminPage() {
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [riskHistory, setRiskHistory] = useState<RiskScoreHistoryEntry[]>([]);
+  const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -149,14 +151,16 @@ export function AdminPage() {
 
   const loadData = async () => {
     try {
-      const [reportData, wsaData, alertData] = await Promise.all([
+      const [reportData, wsaData, alertData, auditData] = await Promise.all([
         fetchCitizenReports(),
         fetchWsas(),
         fetchAlerts(),
+        fetchAuditLog(),
       ]);
       setReports(reportData);
       setWsas(wsaData);
       setAlerts(alertData);
+      setAuditLog(auditData);
       setPendingCapStatus(Object.fromEntries(wsaData.map((item) => [item.id, item.cap_status])) as Record<string, CapStatus>);
 
       const provinceOptions = [...new Set(wsaData.map((item) => item.province))].sort((a, b) => a.localeCompare(b));
@@ -410,6 +414,18 @@ export function AdminPage() {
                         {selectedReport.lat.toFixed(5)}, {selectedReport.lng.toFixed(5)}
                       </p>
                     </div>
+                    {selectedReport.reviewed_at && (
+                      <div className="rounded-2xl bg-secondary/60 p-4">
+                        <p className="text-sm text-muted-foreground">Reviewed at</p>
+                        <p className="mt-1 font-medium">{new Date(selectedReport.reviewed_at).toLocaleString()}</p>
+                      </div>
+                    )}
+                    {selectedReport.resolved_at && (
+                      <div className="rounded-2xl bg-secondary/60 p-4">
+                        <p className="text-sm text-muted-foreground">Resolved at</p>
+                        <p className="mt-1 font-medium">{new Date(selectedReport.resolved_at).toLocaleString()}</p>
+                      </div>
+                    )}
                     <div className="rounded-2xl bg-secondary/60 p-4 sm:col-span-2">
                       <p className="text-sm text-muted-foreground">Photos</p>
                       <p className="mt-1 font-medium">{selectedReport.photo_urls.length}</p>
@@ -752,6 +768,48 @@ export function AdminPage() {
               ) : null}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      {/* Audit log */}
+      <Card>
+        <CardHeader className="border-b border-border/60 pb-4">
+          <CardTitle>Audit log</CardTitle>
+          <CardDescription>Immutable record of all admin actions — CAP updates, report triage, and risk scoring.</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-4">
+          {auditLog.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No audit entries yet.</p>
+          ) : (
+            <ScrollArea className="max-h-96">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Table</TableHead>
+                    <TableHead>Before</TableHead>
+                    <TableHead>After</TableHead>
+                    <TableHead>When</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {auditLog.map((entry) => (
+                    <TableRow key={entry.id}>
+                      <TableCell className="capitalize">{entry.action.replace(/_/g, " ")}</TableCell>
+                      <TableCell className="text-muted-foreground">{entry.table_name}</TableCell>
+                      <TableCell className="max-w-[200px] truncate text-muted-foreground font-mono text-xs">
+                        {entry.old_value ? JSON.stringify(entry.old_value) : "—"}
+                      </TableCell>
+                      <TableCell className="max-w-[200px] truncate font-mono text-xs">
+                        {entry.new_value ? JSON.stringify(entry.new_value) : "—"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{new Date(entry.created_at).toLocaleString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          )}
         </CardContent>
       </Card>
     </div>
