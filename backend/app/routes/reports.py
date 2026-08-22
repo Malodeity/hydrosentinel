@@ -1,3 +1,4 @@
+import secrets
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,6 +15,12 @@ router = APIRouter(prefix="/reports", tags=["reports"])
 UPLOAD_ROOT = Path(__file__).resolve().parents[2] / "data" / "uploads"
 
 
+def _generate_reference_code() -> str:
+    # 4 random hex bytes = 8 hex chars, ~4 billion combinations — no collision
+    # handling needed at this table's scale
+    return f"HS-{secrets.token_hex(4).upper()}"
+
+
 def build_report_response(report: models.CitizenReport) -> schemas.CitizenReportRead:
     report_directory = UPLOAD_ROOT / str(report.id)
     photo_urls: list[str] = []
@@ -25,6 +32,7 @@ def build_report_response(report: models.CitizenReport) -> schemas.CitizenReport
         wsa_id=report.wsa_id,
         issue_type=report.issue_type,
         description=report.description,
+        reference_code=report.reference_code,
         case_status=report.case_status,
         admin_comment=report.admin_comment,
         reviewed_by=report.reviewed_by,
@@ -56,6 +64,7 @@ async def create_report(
         wsa_id=wsa_id,
         issue_type=issue_type,
         description=description,
+        reference_code=_generate_reference_code(),
         case_status="open",
         lat=lat,
         lng=lng,
@@ -79,6 +88,14 @@ async def create_report(
                 target_file.write(await photo.read())
 
     return build_report_response(report)
+
+
+@router.get("/track/{reference_code}", response_model=schemas.CitizenReportTrackRead)
+def track_report(reference_code: str, db: Session = Depends(get_db)) -> models.CitizenReport:
+    report = db.query(models.CitizenReport).filter(models.CitizenReport.reference_code == reference_code).first()
+    if not report:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
+    return report
 
 
 @router.get("", response_model=list[schemas.CitizenReportRead])

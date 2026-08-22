@@ -398,7 +398,9 @@ export function AdminPage() {
                       {selectedReport.issue_type}
                     </Badge>
                   </div>
-                  <CardDescription>{wsaById[selectedReport.wsa_id]?.province ?? "Unknown province"}</CardDescription>
+                  <CardDescription>
+                    {wsaById[selectedReport.wsa_id]?.province ?? "Unknown province"} · <span className="font-mono">{selectedReport.reference_code}</span>
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-sm leading-6 text-foreground">{selectedReport.description ?? "No description provided"}</p>

@@ -57,6 +57,7 @@ class CitizenReportRead(BaseModel):
     wsa_id: UUID
     issue_type: IssueType
     description: str | None
+    reference_code: str
     case_status: Literal["open", "in_review", "resolved"]
     admin_comment: str | None
     reviewed_by: UUID | None = None
@@ -67,6 +68,16 @@ class CitizenReportRead(BaseModel):
     lng: float
     created_at: datetime
     photo_urls: list[str] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CitizenReportTrackRead(BaseModel):
+    reference_code: str
+    issue_type: IssueType
+    case_status: Literal["open", "in_review", "resolved"]
+    admin_comment: str | None
+    created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 

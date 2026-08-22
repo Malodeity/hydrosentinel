@@ -8,6 +8,7 @@ export interface CitizenReport {
   wsa_id: string;
   issue_type: IssueType;
   description: string | null;
+  reference_code: string;
   case_status: CaseStatus;
   admin_comment: string | null;
   reviewed_by: string | null;
@@ -52,5 +53,18 @@ export async function fetchCitizenReports() {
 
 export async function updateCitizenReport(reportId: string, payload: { case_status: CaseStatus; admin_comment: string }) {
   const { data } = await apiClient.patch<CitizenReport>(`/reports/${reportId}`, payload);
+  return data;
+}
+
+export interface CitizenReportTrackStatus {
+  reference_code: string;
+  issue_type: IssueType;
+  case_status: CaseStatus;
+  admin_comment: string | null;
+  created_at: string;
+}
+
+export async function trackCitizenReport(referenceCode: string) {
+  const { data } = await apiClient.get<CitizenReportTrackStatus>(`/reports/track/${referenceCode}`);
   return data;
 }

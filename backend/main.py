@@ -164,6 +164,15 @@ def apply_ai_schema_changes() -> None:
         connection.execute(text("ALTER TABLE citizen_reports ADD COLUMN IF NOT EXISTS resolved_by UUID REFERENCES users(id) ON DELETE SET NULL;"))
         connection.execute(text("ALTER TABLE citizen_reports ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;"))
         connection.execute(text("ALTER TABLE citizen_reports ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ;"))
+        # citizen_reports — public tracking reference code
+        connection.execute(text("ALTER TABLE citizen_reports ADD COLUMN IF NOT EXISTS reference_code VARCHAR(12);"))
+        connection.execute(text("""
+            UPDATE citizen_reports
+            SET reference_code = 'HS-' || upper(substr(md5(id::text), 1, 8))
+            WHERE reference_code IS NULL;
+        """))
+        connection.execute(text("ALTER TABLE citizen_reports ALTER COLUMN reference_code SET NOT NULL;"))
+        connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_citizen_reports_reference_code ON citizen_reports(reference_code);"))
         # risk_score_history table
         connection.execute(text("""
             DO $$ BEGIN

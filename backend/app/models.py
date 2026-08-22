@@ -202,6 +202,7 @@ class CitizenReport(Base):
     wsa_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("wsa.id", ondelete="CASCADE"), nullable=False, index=True)
     issue_type: Mapped[IssueType] = mapped_column(SAEnum(IssueType, name="issue_type_enum"), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reference_code: Mapped[str] = mapped_column(String(12), nullable=False, unique=True, index=True)
     case_status: Mapped[str] = mapped_column(String(50), nullable=False, default="open", server_default=text("'open'"))
     admin_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     reviewed_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
