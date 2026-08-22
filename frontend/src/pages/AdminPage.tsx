@@ -9,6 +9,7 @@ import { fetchCitizenReports, type CaseStatus, type CitizenReport, type IssueTyp
 import { fetchWsas, type CapStatus, type RiskLevel, type WSA, updateWsaCapStatus, fetchRiskHistory, type RiskScoreHistoryEntry } from "@/api/wsa";
 import { AITextBlock } from "@/components/AITextBlock";
 import { RiskBadge } from "@/components/RiskBadge";
+import { dataCompleteness } from "@/components/WSACard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -66,6 +67,26 @@ function isReportInsideRange(report: CitizenReport, range: string) {
   const cutoff = new Date(now);
   cutoff.setDate(now.getDate() - days);
   return reportDate >= cutoff;
+}
+
+function RiskTrendSparkline({ entries }: { entries: RiskScoreHistoryEntry[] }) {
+  if (entries.length < 2) {
+    return null;
+  }
+  const chronological = [...entries].reverse();
+  const width = 120;
+  const height = 28;
+  const step = width / (chronological.length - 1);
+  const points = chronological
+    .map((entry, index) => `${index * step},${height - entry.probability * height}`)
+    .join(" ");
+  const trendingUp = chronological[chronological.length - 1].probability > chronological[0].probability;
+
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className={trendingUp ? "text-rose-500" : "text-emerald-500"}>
+      <polyline points={points} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 }
 
 export function AdminPage() {
@@ -640,10 +661,14 @@ export function AdminPage() {
                 <CardDescription>{selectedWsa.province}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
                   <div className="rounded-2xl bg-secondary/60 p-4">
                     <p className="text-sm text-muted-foreground">Blue Drop</p>
                     <p className="mt-1 text-xl font-semibold">{formatPercent(selectedWsa.blue_drop_score)}</p>
+                  </div>
+                  <div className="rounded-2xl bg-secondary/60 p-4">
+                    <p className="text-sm text-muted-foreground">Green Drop</p>
+                    <p className="mt-1 text-xl font-semibold">{formatPercent(selectedWsa.green_drop_score)}</p>
                   </div>
                   <div className="rounded-2xl bg-secondary/60 p-4">
                     <p className="text-sm text-muted-foreground">NRW</p>
@@ -662,7 +687,10 @@ export function AdminPage() {
                 <AITextBlock content={selectedWsaReportsSummary} label="AI open reports summary" />
                 {riskHistory.length > 0 && (
                   <div>
-                    <p className="mb-2 text-sm font-medium">Risk score history</p>
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-sm font-medium">Risk score history</p>
+                      <RiskTrendSparkline entries={riskHistory} />
+                    </div>
                     <ScrollArea className="max-h-48">
                       <Table>
                         <TableHeader>
@@ -712,7 +740,14 @@ export function AdminPage() {
                     setSuccessMessage(null);
                   }}
                 >
-                  <TableCell className="font-medium">{wsa.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {wsa.name}
+                    {dataCompleteness(wsa).filled < dataCompleteness(wsa).total ? (
+                      <Badge variant="outline" className="ml-2 text-xs text-muted-foreground">
+                        {dataCompleteness(wsa).filled}/{dataCompleteness(wsa).total}
+                      </Badge>
+                    ) : null}
+                  </TableCell>
                   <TableCell>{wsa.province}</TableCell>
                   <TableCell>
                     <RiskBadge riskLevel={wsa.risk_level} />

@@ -8,6 +8,7 @@ export interface WSA {
   name: string;
   province: string;
   blue_drop_score: number | null;
+  green_drop_score: number | null;
   nrw_percent: number | null;
   cap_status: CapStatus;
   cap_due_date: string | null;

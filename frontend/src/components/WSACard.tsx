@@ -13,6 +13,11 @@ function formatValue(value: number | null, suffix = "%") {
   return value === null ? "Not available" : `${value}${suffix}`;
 }
 
+export function dataCompleteness(wsa: WSA): { filled: number; total: number } {
+  const fields = [wsa.blue_drop_score, wsa.green_drop_score, wsa.nrw_percent, wsa.maint_pct];
+  return { filled: fields.filter((v) => v !== null).length, total: fields.length };
+}
+
 export function WSACard({ wsa }: WSACardProps) {
   if (!wsa) {
     return (
@@ -33,7 +38,12 @@ export function WSACard({ wsa }: WSACardProps) {
             <CardTitle>{wsa.name}</CardTitle>
             <CardDescription>{wsa.province}</CardDescription>
           </div>
-          <RiskBadge riskLevel={wsa.risk_level} />
+          <div className="flex flex-col items-end gap-2">
+            <RiskBadge riskLevel={wsa.risk_level} />
+            <Badge variant="outline" className="text-xs text-muted-foreground">
+              {dataCompleteness(wsa).filled}/{dataCompleteness(wsa).total} data fields
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -44,6 +54,13 @@ export function WSACard({ wsa }: WSACardProps) {
               Blue Drop
             </div>
             <p className="mt-2 text-2xl font-semibold">{formatValue(wsa.blue_drop_score)}</p>
+          </div>
+          <div className="rounded-3xl bg-secondary/60 p-4">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Droplets className="h-4 w-4 text-primary" />
+              Green Drop
+            </div>
+            <p className="mt-2 text-2xl font-semibold">{formatValue(wsa.green_drop_score)}</p>
           </div>
           <div className="rounded-3xl bg-secondary/60 p-4">
             <div className="flex items-center gap-2 text-sm font-medium">
