@@ -4,6 +4,20 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import BDCertification, CAPStatus, DWSCAPStatus, NDPerformance, RiskLevel, WSA
 
+# same centroids used to seed demo WSAs in main.py — reused here as a fallback
+# for real WSAs whose source PDFs carry no GPS coordinates
+PROVINCE_CENTROIDS: dict[str, tuple[float, float]] = {
+    "Eastern Cape": (-32.0, 26.5),
+    "Free State": (-28.6, 27.3),
+    "Gauteng": (-26.2, 28.1),
+    "KwaZulu-Natal": (-29.7, 30.7),
+    "Limpopo": (-23.9, 29.5),
+    "Mpumalanga": (-25.5, 30.9),
+    "Northern Cape": (-29.0, 22.8),
+    "North West": (-26.5, 25.6),
+    "Western Cape": (-33.8, 19.9),
+}
+
 
 def merge_sources(
     blue_drop: pd.DataFrame,
@@ -31,26 +45,31 @@ def merge_sources(
     return merged
 
 
-def upsert_wsa_rows(frame: pd.DataFrame) -> int:
+def upsert_wsa_rows(frame: pd.DataFrame, session: Session | None = None) -> int:
     # this writes one row per WSA, creating it when absent and updating fields when present
     inserted_or_updated = 0
-    db: Session = SessionLocal()
+    db: Session = session or SessionLocal()
     try:
         for row in frame.to_dict(orient="records"):
             wsa = db.query(WSA).filter(WSA.name == row["name"]).first()
             province = row.get("province")
+            province = province if province and str(province) != "nan" else None
             if not wsa:
+                lat, lng = PROVINCE_CENTROIDS.get(province, (0.0, 0.0))
                 wsa = WSA(
                     name=row["name"],
-                    province=province if province and str(province) != "nan" else "Unknown",
+                    province=province or "Unknown",
                     cap_status=CAPStatus.none,
                     dws_cap_status=DWSCAPStatus.none,
                     risk_level=RiskLevel.low,
-                    lat=0.0,
-                    lng=0.0,
+                    lat=lat,
+                    lng=lng,
                 )
-            elif province and str(province) != "nan" and wsa.province == "Unknown":
-                wsa.province = province
+            else:
+                if province and wsa.province == "Unknown":
+                    wsa.province = province
+                if (wsa.lat, wsa.lng) == (0.0, 0.0) and province in PROVINCE_CENTROIDS:
+                    wsa.lat, wsa.lng = PROVINCE_CENTROIDS[province]
 
             # numeric scores — None stays None (not zeroed out) so missing data is visible
             wsa.blue_drop_score = _float_or_none(row.get("blue_drop_score"))
@@ -75,7 +94,8 @@ def upsert_wsa_rows(frame: pd.DataFrame) -> int:
         db.commit()
         return inserted_or_updated
     finally:
-        db.close()
+        if session is None:
+            db.close()
 
 
 def _float_or_none(value) -> float | None:
