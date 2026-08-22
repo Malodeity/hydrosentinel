@@ -100,6 +100,16 @@ class UserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8)
+    role: UserRole = UserRole.viewer
+
+
+class UserStatusUpdate(BaseModel):
+    is_active: bool
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8)

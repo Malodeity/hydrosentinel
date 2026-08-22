@@ -12,7 +12,7 @@ Update the row when a feature starts/finishes. One feature per cycle.
 | 5 | Risk trend sparkline (frontend, uses existing history data) | no | done |
 | 6 | Green Drop score display on WSA card | no | done |
 | 7 | Data completeness badge (frontend, null-check existing fields) | no | done |
-| 8 | Multi-admin management (create/deactivate users) | yes | pending |
+| 8 | Multi-admin management (create/deactivate users) | yes | done |
 | 9 | CSV export (WSA + reports) | yes | pending |
 
 Statuses: pending / in_progress / done / blocked (note reason)

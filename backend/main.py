@@ -12,7 +12,7 @@ from app.auth import get_password_hash
 from app.config import settings
 from app.database import Base, SessionLocal, engine
 from app.models import CAPStatus, RiskLevel, User, UserRole, WSA
-from app.routes import ai, alerts, audit, auth, reports, risk, wsa
+from app.routes import ai, alerts, audit, auth, reports, risk, users, wsa
 
 
 def seed_default_admin() -> None:
@@ -259,6 +259,7 @@ app.include_router(risk.router)
 app.include_router(ai.router)
 app.include_router(alerts.router)
 app.include_router(audit.router)
+app.include_router(users.router)
 app.mount("/uploads", StaticFiles(directory=str(Path(__file__).resolve().parent / "data" / "uploads")), name="uploads")
 
 

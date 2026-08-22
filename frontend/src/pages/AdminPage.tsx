@@ -5,6 +5,7 @@ import { AlertTriangle, Bell, Camera, Search } from "lucide-react";
 import { fetchReportsSummary, fetchWsaRecommendations, fetchWsaSummary, generateReportComment } from "@/api/ai";
 import { acknowledgeAlert, fetchAlerts, type Alert } from "@/api/alerts";
 import { fetchAuditLog, type AuditLogEntry } from "@/api/audit";
+import { createUser, fetchUsers, setUserActive, type AdminUser, type UserRole as AdminUserRole } from "@/api/users";
 import { fetchCitizenReports, type CaseStatus, type CitizenReport, type IssueType, updateCitizenReport } from "@/api/reports";
 import { fetchWsas, type CapStatus, type RiskLevel, type WSA, updateWsaCapStatus, fetchRiskHistory, type RiskScoreHistoryEntry } from "@/api/wsa";
 import { AITextBlock } from "@/components/AITextBlock";
@@ -110,6 +111,11 @@ export function AdminPage() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [riskHistory, setRiskHistory] = useState<RiskScoreHistoryEntry[]>([]);
   const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [newUserRole, setNewUserRole] = useState<AdminUserRole>("viewer");
+  const [userManagementError, setUserManagementError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -173,16 +179,18 @@ export function AdminPage() {
 
   const loadData = async () => {
     try {
-      const [reportData, wsaData, alertData, auditData] = await Promise.all([
+      const [reportData, wsaData, alertData, auditData, userData] = await Promise.all([
         fetchCitizenReports(),
         fetchWsas(),
         fetchAlerts(),
         fetchAuditLog(),
+        fetchUsers(),
       ]);
       setReports(reportData);
       setWsas(wsaData);
       setAlerts(alertData);
       setAuditLog(auditData);
+      setAdminUsers(userData);
       setPendingCapStatus(Object.fromEntries(wsaData.map((item) => [item.id, item.cap_status])) as Record<string, CapStatus>);
 
       const provinceOptions = [...new Set(wsaData.map((item) => item.province))].sort((a, b) => a.localeCompare(b));
@@ -823,6 +831,95 @@ export function AdminPage() {
                   </TableCell>
                 </TableRow>
               ) : null}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* User management */}
+      <Card>
+        <CardHeader className="border-b border-border/60 pb-4">
+          <CardTitle>Admin users</CardTitle>
+          <CardDescription>Create additional admin or viewer accounts, or deactivate one that should no longer sign in.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-4">
+          {userManagementError ? <p className="text-sm text-destructive">{userManagementError}</p> : null}
+          <div className="grid gap-3 sm:grid-cols-[1fr_1fr_140px_auto]">
+            <Input placeholder="email@example.com" value={newUserEmail} onChange={(event) => setNewUserEmail(event.target.value)} />
+            <Input
+              type="password"
+              placeholder="Password (min 8 chars)"
+              value={newUserPassword}
+              onChange={(event) => setNewUserPassword(event.target.value)}
+            />
+            <Select value={newUserRole} onValueChange={(value) => setNewUserRole(value as AdminUserRole)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="viewer">Viewer</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={async () => {
+                setUserManagementError(null);
+                try {
+                  await createUser({ email: newUserEmail, password: newUserPassword, role: newUserRole });
+                  setNewUserEmail("");
+                  setNewUserPassword("");
+                  setNewUserRole("viewer");
+                  await loadData();
+                } catch {
+                  setUserManagementError("Could not create user. Check the email is unique and the password is at least 8 characters.");
+                }
+              }}
+              disabled={!newUserEmail.trim() || newUserPassword.length < 8}
+            >
+              Add user
+            </Button>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Last login</TableHead>
+                <TableHead>Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {adminUsers.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell className="font-medium">{user.email}</TableCell>
+                  <TableCell className="capitalize">{user.role}</TableCell>
+                  <TableCell>
+                    <Badge variant={user.is_active ? "outline" : "secondary"} className={user.is_active ? "" : "text-muted-foreground"}>
+                      {user.is_active ? "active" : "deactivated"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {user.last_login_at ? new Date(user.last_login_at).toLocaleString() : "Never"}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        try {
+                          const updated = await setUserActive(user.id, !user.is_active);
+                          setAdminUsers((current) => current.map((u) => (u.id === updated.id ? updated : u)));
+                        } catch {
+                          setUserManagementError("Could not update that user.");
+                        }
+                      }}
+                    >
+                      {user.is_active ? "Deactivate" : "Reactivate"}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </CardContent>
