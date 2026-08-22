@@ -1,9 +1,12 @@
+import csv
+import io
 import secrets
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app import auth, models, schemas
@@ -105,6 +108,30 @@ def list_reports(
 ) -> list[schemas.CitizenReportRead]:
     reports = db.query(models.CitizenReport).order_by(models.CitizenReport.created_at.desc()).all()
     return [build_report_response(report) for report in reports]
+
+
+_EXPORT_COLUMNS = ["reference_code", "issue_type", "case_status", "description", "created_at", "reviewed_at", "resolved_at"]
+
+
+@router.get("/export.csv")
+def export_reports_csv(
+    db: Session = Depends(get_db),
+    _: models.User = Depends(auth.get_current_admin_user),
+) -> StreamingResponse:
+    reports = db.query(models.CitizenReport).order_by(models.CitizenReport.created_at.desc()).all()
+
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(_EXPORT_COLUMNS)
+    for report in reports:
+        writer.writerow([getattr(report, col) for col in _EXPORT_COLUMNS])
+
+    buffer.seek(0)
+    return StreamingResponse(
+        iter([buffer.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=reports_export.csv"},
+    )
 
 
 @router.patch("/{report_id}", response_model=schemas.CitizenReportRead)

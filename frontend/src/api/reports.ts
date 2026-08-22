@@ -68,3 +68,13 @@ export async function trackCitizenReport(referenceCode: string) {
   const { data } = await apiClient.get<CitizenReportTrackStatus>(`/reports/track/${referenceCode}`);
   return data;
 }
+
+export async function downloadReportsCsv() {
+  const { data } = await apiClient.get("/reports/export.csv", { responseType: "blob" });
+  const url = URL.createObjectURL(new Blob([data], { type: "text/csv" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "reports_export.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+}

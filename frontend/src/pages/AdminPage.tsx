@@ -6,8 +6,8 @@ import { fetchReportsSummary, fetchWsaRecommendations, fetchWsaSummary, generate
 import { acknowledgeAlert, fetchAlerts, type Alert } from "@/api/alerts";
 import { fetchAuditLog, type AuditLogEntry } from "@/api/audit";
 import { createUser, fetchUsers, setUserActive, type AdminUser, type UserRole as AdminUserRole } from "@/api/users";
-import { fetchCitizenReports, type CaseStatus, type CitizenReport, type IssueType, updateCitizenReport } from "@/api/reports";
-import { fetchWsas, type CapStatus, type RiskLevel, type WSA, updateWsaCapStatus, fetchRiskHistory, type RiskScoreHistoryEntry } from "@/api/wsa";
+import { downloadReportsCsv, fetchCitizenReports, type CaseStatus, type CitizenReport, type IssueType, updateCitizenReport } from "@/api/reports";
+import { downloadWsaCsv, fetchWsas, type CapStatus, type RiskLevel, type WSA, updateWsaCapStatus, fetchRiskHistory, type RiskScoreHistoryEntry } from "@/api/wsa";
 import { AITextBlock } from "@/components/AITextBlock";
 import { RiskBadge } from "@/components/RiskBadge";
 import { dataCompleteness } from "@/components/WSACard";
@@ -366,7 +366,12 @@ export function AdminPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Citizen reports</CardTitle>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <CardTitle>Citizen reports</CardTitle>
+            <Button variant="outline" size="sm" onClick={() => downloadReportsCsv()}>
+              Export CSV
+            </Button>
+          </div>
           <CardDescription>Filter reports by province, WSA, and timeframe, then open one report to inspect its location and photos.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -611,7 +616,12 @@ export function AdminPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>CAP status updates</CardTitle>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <CardTitle>CAP status updates</CardTitle>
+            <Button variant="outline" size="sm" onClick={() => downloadWsaCsv()}>
+              Export CSV
+            </Button>
+          </div>
           <CardDescription>Choose a province first, then focus on a smaller WSA list, see province totals, and open one WSA for detail.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

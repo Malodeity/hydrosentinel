@@ -62,3 +62,13 @@ export async function fetchRiskHistory(wsaId: string): Promise<RiskScoreHistoryE
   const { data } = await apiClient.get<RiskScoreHistoryEntry[]>(`/risk/history/${wsaId}`);
   return data;
 }
+
+export async function downloadWsaCsv() {
+  const { data } = await apiClient.get("/wsa/export.csv", { responseType: "blob" });
+  const url = URL.createObjectURL(new Blob([data], { type: "text/csv" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "wsa_export.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+}
