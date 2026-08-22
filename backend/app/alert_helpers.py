@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -62,3 +62,37 @@ def raise_report_volume_spike_alert(wsa: models.WSA, db: Session) -> None:
         ),
     )
     db.add(alert)
+
+
+def raise_cap_overdue_alerts(db: Session) -> None:
+    # checked lazily on read (no scheduler in this app) — ponytail: scan is
+    # O(active WSAs), fine at this table size; move to a cron job if that changes
+    today = date.today()
+    overdue_wsas = (
+        db.query(models.WSA)
+        .filter(
+            models.WSA.cap_due_date.isnot(None),
+            models.WSA.cap_due_date < today,
+            models.WSA.cap_status != models.CAPStatus.completed,
+        )
+        .all()
+    )
+    for wsa in overdue_wsas:
+        existing = (
+            db.query(models.Alert)
+            .filter(
+                models.Alert.wsa_id == wsa.id,
+                models.Alert.alert_type == models.AlertType.cap_overdue,
+                models.Alert.acknowledged_at.is_(None),
+            )
+            .first()
+        )
+        if existing:
+            continue
+
+        alert = models.Alert(
+            wsa_id=wsa.id,
+            alert_type=models.AlertType.cap_overdue,
+            message=f"{wsa.name} ({wsa.province}) has a CAP due date of {wsa.cap_due_date.isoformat()} that has passed without completion.",
+        )
+        db.add(alert)

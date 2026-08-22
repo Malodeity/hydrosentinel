@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app import auth, models, schemas
+from app.alert_helpers import raise_cap_overdue_alerts
 from app.database import get_db
 
 router = APIRouter(prefix="/alerts", tags=["alerts"])
@@ -29,6 +30,9 @@ def list_alerts(
     db: Session = Depends(get_db),
     _: models.User = Depends(auth.get_current_admin_user),
 ) -> list[schemas.AlertRead]:
+    raise_cap_overdue_alerts(db)
+    db.commit()
+
     query = db.query(models.Alert).join(models.WSA)
     if unacknowledged_only:
         query = query.filter(models.Alert.acknowledged_at.is_(None))

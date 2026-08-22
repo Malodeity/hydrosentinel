@@ -72,6 +72,7 @@ export function AdminPage() {
   const [reports, setReports] = useState<CitizenReport[]>([]);
   const [wsas, setWsas] = useState<WSA[]>([]);
   const [pendingCapStatus, setPendingCapStatus] = useState<Record<string, CapStatus>>({});
+  const [pendingCapDueDate, setPendingCapDueDate] = useState<Record<string, string>>({});
   const [selectedProvince, setSelectedProvince] = useState("");
   const [capSearch, setCapSearch] = useState("");
   const [selectedWsaId, setSelectedWsaId] = useState<string>("");
@@ -697,6 +698,7 @@ export function AdminPage() {
                 <TableHead>Province</TableHead>
                 <TableHead>Risk</TableHead>
                 <TableHead>Current CAP</TableHead>
+                <TableHead>Due date</TableHead>
                 <TableHead>Update</TableHead>
               </TableRow>
             </TableHeader>
@@ -715,37 +717,55 @@ export function AdminPage() {
                   <TableCell>
                     <RiskBadge riskLevel={wsa.risk_level} />
                   </TableCell>
-                  <TableCell className="capitalize">{wsa.cap_status.replace("_", " ")}</TableCell>
+                  <TableCell className="capitalize">
+                    {wsa.cap_status.replace("_", " ")}
+                    {wsa.cap_due_date && wsa.cap_status !== "completed" && wsa.cap_due_date < new Date().toISOString().slice(0, 10) ? (
+                      <Badge variant="outline" className="ml-2 border-rose-200 bg-rose-100 text-rose-800">
+                        overdue
+                      </Badge>
+                    ) : null}
+                  </TableCell>
+                  <TableCell>{wsa.cap_due_date ?? "—"}</TableCell>
                   <TableCell className="min-w-[280px]">
-                    <div className="flex flex-col gap-3 md:flex-row">
-                      <div className="flex-1">
-                        <Select
-                          value={pendingCapStatus[wsa.id] ?? wsa.cap_status}
-                          onValueChange={(value) =>
-                            setPendingCapStatus((current) => ({
-                              ...current,
-                              [wsa.id]: value as CapStatus,
-                            }))
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="CAP status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {capOptions.map((option) => (
-                              <SelectItem key={option} value={option}>
-                                {option.replace("_", " ")}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div className="flex flex-col gap-3">
+                      <Select
+                        value={pendingCapStatus[wsa.id] ?? wsa.cap_status}
+                        onValueChange={(value) =>
+                          setPendingCapStatus((current) => ({
+                            ...current,
+                            [wsa.id]: value as CapStatus,
+                          }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="CAP status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {capOptions.map((option) => (
+                            <SelectItem key={option} value={option}>
+                              {option.replace("_", " ")}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="date"
+                        value={pendingCapDueDate[wsa.id] ?? wsa.cap_due_date ?? ""}
+                        onChange={(event) =>
+                          setPendingCapDueDate((current) => ({
+                            ...current,
+                            [wsa.id]: event.target.value,
+                          }))
+                        }
+                        onClick={(event) => event.stopPropagation()}
+                      />
                       <Button
                         variant="secondary"
                         onClick={async (event) => {
                           event.stopPropagation();
                           try {
-                            const updatedWsa = await updateWsaCapStatus(wsa.id, pendingCapStatus[wsa.id] ?? wsa.cap_status);
+                            const dueDate = pendingCapDueDate[wsa.id] ?? wsa.cap_due_date ?? null;
+                            const updatedWsa = await updateWsaCapStatus(wsa.id, pendingCapStatus[wsa.id] ?? wsa.cap_status, dueDate || null);
                             setSuccessMessage(`Saved CAP status for ${updatedWsa.name}.`);
                             setError(null);
                             await loadData();
@@ -763,7 +783,7 @@ export function AdminPage() {
               ))}
               {visibleWsas.length === 0 ? (
                 <TableRow>
-                  <TableCell className="text-muted-foreground" colSpan={5}>
+                  <TableCell className="text-muted-foreground" colSpan={6}>
                     No WSA rows match the selected province and search.
                   </TableCell>
                 </TableRow>

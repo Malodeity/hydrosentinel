@@ -10,6 +10,7 @@ export interface WSA {
   blue_drop_score: number | null;
   nrw_percent: number | null;
   cap_status: CapStatus;
+  cap_due_date: string | null;
   maint_pct: number | null;
   risk_level: RiskLevel;
   summary?: string | null;
@@ -35,8 +36,8 @@ export async function fetchWsa(wsaId: string) {
   return data;
 }
 
-export async function updateWsaCapStatus(wsaId: string, capStatus: CapStatus) {
-  const { data } = await apiClient.patch<WSA>(`/wsa/${wsaId}`, { cap_status: capStatus });
+export async function updateWsaCapStatus(wsaId: string, capStatus: CapStatus, capDueDate: string | null = null) {
+  const { data } = await apiClient.patch<WSA>(`/wsa/${wsaId}`, { cap_status: capStatus, cap_due_date: capDueDate });
   return data;
 }
 

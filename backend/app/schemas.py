@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from typing import Literal
@@ -15,6 +15,7 @@ class WSARead(BaseModel):
     blue_drop_score: float | None = None
     nrw_percent: float | None = None
     cap_status: CAPStatus
+    cap_due_date: date | None = None
     maint_pct: float | None = None
     risk_level: RiskLevel
     summary: str | None = None
@@ -42,6 +43,7 @@ class WSARead(BaseModel):
 
 class WSAUpdate(BaseModel):
     cap_status: CAPStatus
+    cap_due_date: date | None = None
 
 
 class CitizenReportCreate(BaseModel):

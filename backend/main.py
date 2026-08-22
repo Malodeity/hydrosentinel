@@ -173,6 +173,8 @@ def apply_ai_schema_changes() -> None:
         """))
         connection.execute(text("ALTER TABLE citizen_reports ALTER COLUMN reference_code SET NOT NULL;"))
         connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_citizen_reports_reference_code ON citizen_reports(reference_code);"))
+        # wsa — CAP due date, used to raise cap_overdue alerts
+        connection.execute(text("ALTER TABLE wsa ADD COLUMN IF NOT EXISTS cap_due_date DATE;"))
         # risk_score_history table
         connection.execute(text("""
             DO $$ BEGIN

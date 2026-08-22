@@ -1,8 +1,8 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Enum as SAEnum, ForeignKey, Integer, Numeric, String, Text, func, text
+from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, Enum as SAEnum, ForeignKey, Integer, Numeric, String, Text, func, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -146,6 +146,7 @@ class WSA(Base):
         nullable=False,
     )
     maint_pct: Mapped[float | None] = mapped_column(Numeric(5, 2, asdecimal=False), nullable=True)
+    cap_due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     risk_level: Mapped[RiskLevel] = mapped_column(
         SAEnum(RiskLevel, name="risk_level_enum"),
         default=RiskLevel.low,

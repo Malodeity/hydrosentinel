@@ -37,6 +37,7 @@ def update_wsa_cap_status(
 
     old_status = wsa.cap_status
     wsa.cap_status = payload.cap_status
+    wsa.cap_due_date = payload.cap_due_date
 
     write_audit(
         db=db,
