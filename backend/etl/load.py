@@ -24,13 +24,15 @@ def merge_sources(
     no_drop: pd.DataFrame,
     green_drop: pd.DataFrame,
     money: pd.DataFrame,
+    bdrr: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
-    # this outer-joins all four sources on WSA name so partial data is never lost
-    frames = [f for f in [blue_drop, no_drop, green_drop, money] if not f.empty]
+    # this outer-joins all sources on WSA name so partial data is never lost
+    frames = [f for f in [blue_drop, no_drop, green_drop, money, bdrr] if f is not None and not f.empty]
     if not frames:
         return pd.DataFrame(columns=["name", "blue_drop_score", "nrw_percent", "green_drop_score",
                                      "bd_certification", "nd_performance", "num_water_supply_systems",
-                                     "maint_pct", "maint_expenditure", "asset_value"])
+                                     "maint_pct", "maint_expenditure", "asset_value",
+                                     "bdrr_score_2023", "bdrr_risk_level"])
     merged = frames[0]
     for frame in frames[1:]:
         merged = merged.merge(frame, on="name", how="outer")
@@ -79,6 +81,7 @@ def upsert_wsa_rows(frame: pd.DataFrame, session: Session | None = None) -> int:
             wsa.maint_expenditure = _float_or_none(row.get("maint_expenditure"))
             wsa.asset_value = _float_or_none(row.get("asset_value"))
             wsa.num_water_supply_systems = _int_or_none(row.get("num_water_supply_systems"))
+            wsa.bdrr_score = _float_or_none(row.get("bdrr_score_2023"))
 
             # enum fields — keep existing value when source has no data for this row
             bd = row.get("bd_certification")
@@ -87,6 +90,9 @@ def upsert_wsa_rows(frame: pd.DataFrame, session: Session | None = None) -> int:
             nd = row.get("nd_performance")
             if nd and str(nd) != "nan":
                 wsa.nd_performance = NDPerformance(nd)
+            bdrr_risk = row.get("bdrr_risk_level")
+            if bdrr_risk and str(bdrr_risk) != "nan":
+                wsa.bdrr_risk_level = RiskLevel(bdrr_risk)
 
             db.add(wsa)
             inserted_or_updated += 1

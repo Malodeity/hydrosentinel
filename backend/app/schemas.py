@@ -26,6 +26,8 @@ class WSARead(BaseModel):
     num_water_supply_systems: int | None = None
     maint_expenditure: float | None = None
     asset_value: float | None = None
+    bdrr_score: float | None = None
+    bdrr_risk_level: RiskLevel | None = None
     lat: float
     lng: float
     created_at: datetime

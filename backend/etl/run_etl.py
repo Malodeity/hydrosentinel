@@ -4,6 +4,7 @@ import pandas as pd
 
 from etl.load import merge_sources, upsert_wsa_rows
 from etl.municipal_money import load_municipal_money
+from etl.parse_bdrr import parse_bdrr
 from etl.parse_blue_drop import parse_blue_drop
 from etl.parse_green_drop import parse_green_drop
 from etl.parse_no_drop import parse_no_drop
@@ -31,7 +32,11 @@ def main() -> None:
     money_source = next(iter(sorted(RAW_DIR.glob("municipal_money.*"))), None)
     money = load_municipal_money(money_source) if money_source else pd.DataFrame()
 
-    merged = merge_sources(blue_drop, no_drop, green_drop, money)
+    # BDRR: DWS-audited ground-truth risk label, from the full national Blue
+    # Drop report (not the smaller per-province summary already parsed above)
+    bdrr = parse_first_matching("*bdn*.pdf", parse_bdrr)
+
+    merged = merge_sources(blue_drop, no_drop, green_drop, money, bdrr)
     if merged.empty:
         print("ETL complete: no source files found in data/raw/ — nothing to upsert")
         return

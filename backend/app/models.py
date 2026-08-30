@@ -127,6 +127,7 @@ class WSA(Base):
         CheckConstraint("nrw_percent BETWEEN 0 AND 100", name="wsa_nrw_percent_check"),
         CheckConstraint("maint_pct BETWEEN 0 AND 100", name="wsa_maint_pct_check"),
         CheckConstraint("green_drop_score BETWEEN 0 AND 100", name="wsa_green_drop_score_check"),
+        CheckConstraint("bdrr_score BETWEEN 0 AND 100", name="wsa_bdrr_score_check"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -176,6 +177,10 @@ class WSA(Base):
     num_water_supply_systems: Mapped[int | None] = mapped_column(Integer, nullable=True)
     maint_expenditure: Mapped[float | None] = mapped_column(Numeric(15, 2, asdecimal=False), nullable=True)
     asset_value: Mapped[float | None] = mapped_column(Numeric(18, 2, asdecimal=False), nullable=True)
+    # DWS-audited Blue Drop Risk Rating — independent ground-truth label for
+    # model training, kept separate from risk_level (our own heuristic/XGBoost output)
+    bdrr_score: Mapped[float | None] = mapped_column(Numeric(5, 2, asdecimal=False), nullable=True)
+    bdrr_risk_level: Mapped[RiskLevel | None] = mapped_column(SAEnum(RiskLevel, name="risk_level_enum"), nullable=True)
     lat: Mapped[float] = mapped_column(Numeric(9, 6, asdecimal=False), nullable=False, default=0.0, server_default=text("0"))
     lng: Mapped[float] = mapped_column(Numeric(9, 6, asdecimal=False), nullable=False, default=0.0, server_default=text("0"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
