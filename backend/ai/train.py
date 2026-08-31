@@ -12,6 +12,22 @@ from ai.features import FEATURE_COLUMNS
 RISK_TO_TARGET = {"low": 0, "medium": 1, "high": 2}
 
 
+def build_classifier() -> XGBClassifier:
+    # shared hyperparameters — kept here as the single source of truth so
+    # any script training or re-evaluating this model uses the same config
+    return XGBClassifier(
+        objective="multi:softprob",
+        num_class=3,
+        eval_metric="mlogloss",
+        n_estimators=150,
+        max_depth=4,
+        learning_rate=0.08,
+        subsample=0.9,
+        colsample_bytree=0.9,
+        random_state=42,
+    )
+
+
 def train_model_from_dataframe(frame: pd.DataFrame) -> XGBClassifier:
     missing_columns = set(FEATURE_COLUMNS + ["risk_level"]) - set(frame.columns)
     if missing_columns:
@@ -28,17 +44,7 @@ def train_model_from_dataframe(frame: pd.DataFrame) -> XGBClassifier:
         stratify=y,
     )
 
-    model = XGBClassifier(
-        objective="multi:softprob",
-        num_class=3,
-        eval_metric="mlogloss",
-        n_estimators=150,
-        max_depth=4,
-        learning_rate=0.08,
-        subsample=0.9,
-        colsample_bytree=0.9,
-        random_state=42,
-    )
+    model = build_classifier()
     model.fit(x_train, y_train)
 
     predictions = model.predict(x_test)
