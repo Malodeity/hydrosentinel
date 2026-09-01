@@ -5,10 +5,10 @@ import { fetchWsas, type WSA } from "@/api/wsa";
 import { AITextBlock } from "@/components/AITextBlock";
 import { WSACard } from "@/components/WSACard";
 import { WSAMap } from "@/components/WSAMap";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type AiTab = "national" | "province" | "insight" | "comparison";
 
@@ -23,6 +23,7 @@ export function DashboardPage() {
   const [wsas, setWsas] = useState<WSA[]>([]);
   const [selectedWsa, setSelectedWsa] = useState<WSA | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isLoadingWsas, setIsLoadingWsas] = useState(true);
 
   // ai section state
   const [activeTab, setActiveTab] = useState<AiTab>("national");
@@ -39,7 +40,8 @@ export function DashboardPage() {
         setWsas(data);
         setSelectedWsa(data[0] ?? null);
       })
-      .catch(() => setError("Unable to load WSA data right now."));
+      .catch(() => setError("Unable to load WSA data right now."))
+      .finally(() => setIsLoadingWsas(false));
 
     // pre-load national digest into cache
     fetchAiDigest()
@@ -147,9 +149,15 @@ export function DashboardPage() {
         </CardHeader>
         <CardContent className="pt-4">
           {aiLoading ? (
-            <p className="text-sm text-muted-foreground animate-pulse">Generating AI analysis…</p>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-11/12" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
           ) : aiContent ? (
-            <AITextBlock content={aiContent} label={TAB_LABELS[activeTab]} />
+            <div className="max-w-3xl">
+              <AITextBlock content={aiContent} label={TAB_LABELS[activeTab]} />
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground">
               {wsaSpecificTabs.includes(activeTab) && !selectedWsa
@@ -164,18 +172,13 @@ export function DashboardPage() {
       <div className="grid gap-6 xl:grid-cols-[1.7fr_0.95fr]">
         <Card className="overflow-hidden">
           <CardHeader className="border-b border-border/60 bg-card/70">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <CardTitle>Risk map</CardTitle>
-              <div className="flex flex-wrap gap-2">
-                <Badge className="border-emerald-200 bg-emerald-100 text-emerald-800" variant="outline">Low</Badge>
-                <Badge className="border-amber-200 bg-amber-100 text-amber-800" variant="outline">Medium</Badge>
-                <Badge className="border-rose-200 bg-rose-100 text-rose-800" variant="outline">High</Badge>
-              </div>
-            </div>
+            <CardTitle>Risk map</CardTitle>
           </CardHeader>
           <CardContent className="p-4">
             {error ? (
               <div className="rounded-3xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">{error}</div>
+            ) : isLoadingWsas ? (
+              <Skeleton className="h-[580px] w-full" />
             ) : (
               <WSAMap wsas={wsas} selectedWsaId={selectedWsa?.id ?? null} onSelect={setSelectedWsa} />
             )}
@@ -190,18 +193,28 @@ export function DashboardPage() {
                 <CardTitle>Snapshot</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                <div className="rounded-3xl bg-secondary/60 p-4">
-                  <p className="text-sm text-muted-foreground">Total WSAs</p>
-                  <p className="text-3xl font-semibold">{wsas.length}</p>
-                </div>
-                <div className="rounded-3xl bg-secondary/60 p-4">
-                  <p className="text-sm text-muted-foreground">High risk</p>
-                  <p className="text-3xl font-semibold">{wsas.filter((item) => item.risk_level === "high").length}</p>
-                </div>
-                <div className="rounded-3xl bg-secondary/60 p-4">
-                  <p className="text-sm text-muted-foreground">CAP completed</p>
-                  <p className="text-3xl font-semibold">{wsas.filter((item) => item.cap_status === "completed").length}</p>
-                </div>
+                {isLoadingWsas ? (
+                  <>
+                    <Skeleton className="h-[76px]" />
+                    <Skeleton className="h-[76px]" />
+                    <Skeleton className="h-[76px]" />
+                  </>
+                ) : (
+                  <>
+                    <div className="rounded-3xl border border-primary/15 bg-primary/5 p-4">
+                      <p className="text-sm text-muted-foreground">Total WSAs</p>
+                      <p className="text-3xl font-semibold text-primary">{wsas.length}</p>
+                    </div>
+                    <div className="rounded-3xl border border-rose-200 bg-rose-50 p-4">
+                      <p className="text-sm text-muted-foreground">High risk</p>
+                      <p className="text-3xl font-semibold text-rose-700">{wsas.filter((item) => item.risk_level === "high").length}</p>
+                    </div>
+                    <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4">
+                      <p className="text-sm text-muted-foreground">CAP completed</p>
+                      <p className="text-3xl font-semibold text-emerald-700">{wsas.filter((item) => item.cap_status === "completed").length}</p>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>

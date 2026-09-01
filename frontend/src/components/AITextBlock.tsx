@@ -8,7 +8,7 @@ const aiBlockStyle = {
   borderLeft: "3px solid #7F77DD",
   background: "var(--color-background-secondary, rgba(226, 232, 240, 0.55))",
   borderRadius: "var(--border-radius-md, 0.75rem)",
-  padding: "10px 12px",
+  padding: "16px 18px",
 } as const;
 
 export function AITextBlock({ label, content, items }: AITextBlockProps) {
@@ -28,7 +28,7 @@ export function AITextBlock({ label, content, items }: AITextBlockProps) {
           ))}
         </ol>
       ) : (
-        <p className="text-sm leading-6 text-foreground">{content}</p>
+        <p className="text-sm leading-7 text-foreground">{content}</p>
       )}
     </div>
   );

@@ -43,3 +43,7 @@
     @apply min-h-screen;
   }
 }
+
+.wsa-marker-selected {
+  filter: drop-shadow(0 0 6px rgba(17, 24, 39, 0.55));
+}
