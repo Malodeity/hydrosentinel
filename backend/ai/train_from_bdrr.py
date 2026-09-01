@@ -6,21 +6,26 @@ heuristic" is answered by a number, not a guess.
 
 Usage:
     cd backend
-    PYTHONPATH=. .venv/bin/python ai/train_from_bdrr.py
+    PYTHONPATH=. .venv/bin/python ai/train_from_bdrr.py            # evaluate only
+    PYTHONPATH=. .venv/bin/python ai/train_from_bdrr.py --deploy   # evaluate, then
+                                                                    # retrain on all
+                                                                    # labeled rows and
+                                                                    # write ai/model.pkl
 
-Does NOT overwrite ai/model.pkl. Prints both classification reports and a
-head-to-head accuracy comparison; saving the model is a separate, explicit
-decision once the numbers are seen.
+Evaluation is a single 80/20 holdout (used for the direct heuristic
+comparison) plus 5-fold stratified cross-validation, since 144 rows makes a
+single split's accuracy noisy on its own — the CV mean/std is the number to
+trust more.
 """
 import sys
 
 import pandas as pd
 from sklearn.metrics import accuracy_score, classification_report
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
 
 from ai.features import FEATURE_COLUMNS, wsa_to_feature_dict
 from ai.predict import _heuristic_probability, _probability_to_risk
-from ai.train import RISK_TO_TARGET, build_classifier
+from ai.train import RISK_TO_TARGET, build_classifier, persist_model
 from app.database import SessionLocal
 from app.models import WSA
 
@@ -77,6 +82,21 @@ def main() -> None:
     print(f"XGBoost accuracy:   {accuracy_score(y_test_labels, xgb_preds):.1%}")
     print(f"Heuristic accuracy: {accuracy_score(y_test_labels, heuristic_preds):.1%}")
     print(f"Test set size: {len(y_test_labels)} (train set: {len(y_train)})")
+    print()
+
+    print("=== 5-fold stratified cross-validation (more robust than one 80/20 split) ===")
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    cv_scores = cross_val_score(build_classifier(), x, y_target, cv=cv, scoring="accuracy")
+    print(f"Fold accuracies: {[round(s, 3) for s in cv_scores]}")
+    print(f"Mean: {cv_scores.mean():.1%}  Std: {cv_scores.std():.1%}")
+
+    if "--deploy" in sys.argv:
+        print()
+        print("=== Deploying: retraining on all labeled rows ===")
+        final_model = build_classifier()
+        final_model.fit(x, y_target)
+        saved_path = persist_model(final_model, "ai/model.pkl")
+        print(f"Model saved to {saved_path}")
 
 
 if __name__ == "__main__":

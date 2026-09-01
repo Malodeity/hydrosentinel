@@ -26,8 +26,8 @@ def score_wsa_risk(
     model = getattr(request.app.state, "risk_model", None)
     prediction = predict_wsa_risk(wsa, model)
 
-    model_source = models.ModelSource.xgboost if model is not None else models.ModelSource.heuristic
-    model_version = "xgboost_v1" if model is not None else "heuristic_v1"
+    model_source = prediction["model_source"]
+    model_version = "xgboost_v1" if model_source == models.ModelSource.xgboost else "heuristic_v1"
 
     old_level = wsa.risk_level
     wsa.risk_level = prediction["risk_level"]

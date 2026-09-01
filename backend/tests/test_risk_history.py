@@ -15,7 +15,9 @@ def test_risk_score_saves_to_history(client, auth_headers, sample_wsa, db):
 
 
 def test_risk_score_records_heuristic_source_when_no_model(client, auth_headers, sample_wsa, db):
-    # model.pkl never exists in the test environment — fallback is always heuristic
+    # force the no-model path explicitly rather than relying on ai/model.pkl
+    # being absent on disk — it exists once a real model has been trained
+    client.app.state.risk_model = None
     resp = client.post(f"/risk/score/{sample_wsa.id}", headers=auth_headers)
     assert resp.status_code == 200
     assert resp.json()["model_source"] == "heuristic"

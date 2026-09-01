@@ -4,7 +4,14 @@ from typing import Any
 import joblib
 
 from ai.features import build_feature_frame
-from app.models import RiskLevel, WSA
+from ai.train import RISK_TO_TARGET
+from app.models import ModelSource, RiskLevel, WSA
+
+_TARGET_TO_RISK = {v: RiskLevel(k) for k, v in RISK_TO_TARGET.items()}
+
+# below this confidence in the model's top predicted class, prefer the
+# heuristic over a prediction the model itself isn't sure about
+_CONFIDENCE_FLOOR = 0.5
 
 
 def load_serialized_model(model_path: str | Path) -> Any | None:
@@ -33,18 +40,30 @@ def _probability_to_risk(probability: float) -> RiskLevel:
     return RiskLevel.low
 
 
-def predict_wsa_risk(wsa: WSA, model: Any | None) -> dict[str, RiskLevel | float]:
-    # this uses the trained model when it exists and falls back to the simple heuristic when it does not
-    if model is None:
-        probability = _heuristic_probability(wsa)
-        return {"risk_level": _probability_to_risk(probability), "probability": probability}
+def _heuristic_result(wsa: WSA) -> dict[str, RiskLevel | float | ModelSource]:
+    probability = _heuristic_probability(wsa)
+    return {"risk_level": _probability_to_risk(probability), "probability": probability, "model_source": ModelSource.heuristic}
+
+
+def predict_wsa_risk(wsa: WSA, model: Any | None) -> dict[str, RiskLevel | float | ModelSource]:
+    # falls back to the heuristic when there's no model, when a feature the
+    # model actually relies on is missing (a model trained on real data
+    # shouldn't be trusted on an all-defaulted feature row), or when the
+    # model itself isn't confident in its top prediction
+    if model is None or wsa.blue_drop_score is None:
+        return _heuristic_result(wsa)
 
     features = build_feature_frame(wsa)
-    if hasattr(model, "predict_proba"):
-        probabilities = model.predict_proba(features)[0]
-        probability = float(probabilities[-1])
-    else:
-        probability = float(model.predict(features)[0])
+    probabilities = model.predict_proba(features)[0]
+    predicted_index = int(probabilities.argmax())
+    confidence = float(probabilities[predicted_index])
 
-    probability = max(0.0, min(probability, 0.99))
-    return {"risk_level": _probability_to_risk(probability), "probability": round(probability, 4)}
+    if confidence < _CONFIDENCE_FLOOR:
+        return _heuristic_result(wsa)
+
+    confidence = min(confidence, 0.99)
+    return {
+        "risk_level": _TARGET_TO_RISK[predicted_index],
+        "probability": round(confidence, 4),
+        "model_source": ModelSource.xgboost,
+    }
