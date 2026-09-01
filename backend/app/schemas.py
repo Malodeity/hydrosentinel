@@ -223,3 +223,18 @@ class RegulatorySource(BaseModel):
 class RegulatoryContextResponse(BaseModel):
     answer: str
     sources: list[RegulatorySource]
+
+
+class AIQueryRequest(BaseModel):
+    question: str = Field(min_length=3, max_length=500)
+
+
+class AIQueryToolCall(BaseModel):
+    tool: str
+    arguments: dict
+    result: str
+
+
+class AIQueryResponse(BaseModel):
+    answer: str
+    tool_calls: list[AIQueryToolCall]

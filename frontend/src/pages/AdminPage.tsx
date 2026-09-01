@@ -1,8 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { CircleMarker, MapContainer, TileLayer } from "react-leaflet";
-import { AlertTriangle, Bell, Camera, Search } from "lucide-react";
+import { AlertTriangle, Bell, Camera, Loader2, Search, Sparkles, TrendingUp } from "lucide-react";
 
-import { fetchReportsSummary, fetchWsaRecommendations, fetchWsaSummary, generateReportComment } from "@/api/ai";
+import {
+  askAiQuery,
+  fetchCapDraft,
+  fetchReportsSummary,
+  fetchRegulatoryContext,
+  fetchTrendingWsas,
+  fetchWsaRecommendations,
+  fetchWsaSummary,
+  generateReportComment,
+  type AIQueryResponse,
+  type CapDraftItem,
+  type RegulatoryContextResponse,
+  type RiskTrajectory,
+} from "@/api/ai";
 import { acknowledgeAlert, fetchAlerts, type Alert } from "@/api/alerts";
 import { fetchAuditLog, type AuditLogEntry } from "@/api/audit";
 import { createUser, fetchUsers, setUserActive, type AdminUser, type UserRole as AdminUserRole } from "@/api/users";
@@ -26,12 +39,14 @@ const alertBadgeClasses: Record<string, string> = {
   risk_level_increased: "border-orange-200 bg-orange-100 text-orange-800",
   report_volume_spike: "border-amber-200 bg-amber-100 text-amber-800",
   cap_overdue: "border-purple-200 bg-purple-100 text-purple-800",
+  geo_cluster_incident: "border-red-300 bg-red-100 text-red-900",
 };
 const alertTypeLabel: Record<string, string> = {
   risk_level_high: "High risk",
   risk_level_increased: "Risk increased",
   report_volume_spike: "Report spike",
   cap_overdue: "CAP overdue",
+  geo_cluster_incident: "Localized incident",
 };
 const issueBadgeClasses: Record<IssueType, string> = {
   leak: "border-sky-200 bg-sky-100 text-sky-800",
@@ -119,6 +134,20 @@ export function AdminPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [trendingWsas, setTrendingWsas] = useState<RiskTrajectory[]>([]);
+
+  const [dataQuestion, setDataQuestion] = useState("");
+  const [dataAnswer, setDataAnswer] = useState<AIQueryResponse | null>(null);
+  const [isAskingData, setIsAskingData] = useState(false);
+
+  const [regulatoryQuestion, setRegulatoryQuestion] = useState("");
+  const [regulatoryAnswer, setRegulatoryAnswer] = useState<RegulatoryContextResponse | null>(null);
+  const [isAskingRegulatory, setIsAskingRegulatory] = useState(false);
+  const [assistantError, setAssistantError] = useState<string | null>(null);
+
+  const [capDraftItems, setCapDraftItems] = useState<CapDraftItem[] | null>(null);
+  const [isDraftingCap, setIsDraftingCap] = useState(false);
+
   const wsaById = useMemo(
     () =>
       Object.fromEntries(wsas.map((wsa) => [wsa.id, wsa])) as Record<string, WSA>,
@@ -203,7 +232,34 @@ export function AdminPage() {
 
   useEffect(() => {
     loadData().catch(() => setError("Unable to load admin data."));
+    fetchTrendingWsas().then(setTrendingWsas).catch(() => setTrendingWsas([]));
   }, []);
+
+  async function runDataQuestion() {
+    setAssistantError(null);
+    setIsAskingData(true);
+    try {
+      const result = await askAiQuery(dataQuestion.trim());
+      setDataAnswer(result);
+    } catch {
+      setAssistantError("Could not answer that question right now.");
+    } finally {
+      setIsAskingData(false);
+    }
+  }
+
+  async function runRegulatoryQuestion() {
+    setAssistantError(null);
+    setIsAskingRegulatory(true);
+    try {
+      const result = await fetchRegulatoryContext(regulatoryQuestion.trim());
+      setRegulatoryAnswer(result);
+    } catch {
+      setAssistantError("No relevant excerpts found, or the request failed.");
+    } finally {
+      setIsAskingRegulatory(false);
+    }
+  }
 
   useEffect(() => {
     if (!selectedProvince) {
@@ -258,6 +314,8 @@ export function AdminPage() {
   }, [recommendationTarget]);
 
   useEffect(() => {
+    setCapDraftItems(null);
+
     if (!selectedWsa) {
       setSelectedWsaSummary(null);
       setSelectedWsaReportsSummary(null);
@@ -347,6 +405,109 @@ export function AdminPage() {
               </div>
             </ScrollArea>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Early-warning risk trends */}
+      {trendingWsas.length > 0 ? (
+        <Card>
+          <CardHeader className="border-b border-border/60 pb-4">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              <CardTitle>Trending toward higher risk</CardTitle>
+            </div>
+            <CardDescription>Projected to cross into a worse risk tier based on recent scoring trend</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="space-y-2">
+              {trendingWsas.map((item) => (
+                <div key={item.wsa_id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                  <div>
+                    <p className="font-medium">{item.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.current_risk_level} ({((item.current_probability ?? 0) * 100).toFixed(0)}%) trending toward {item.projected_risk_level} (
+                      {((item.projected_probability ?? 0) * 100).toFixed(0)}%)
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="border-amber-300 bg-amber-100 text-amber-900">
+                    Worsening
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* AI assistant — natural-language query over live data + regulatory citations */}
+      <Card>
+        <CardHeader className="border-b border-border/60 pb-4">
+          <div className="flex items-center gap-3">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <CardTitle>AI assistant</CardTitle>
+          </div>
+          <CardDescription>Ask a question about live data, or about the regulatory reports</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6 pt-4">
+          {assistantError ? <p className="text-sm text-destructive">{assistantError}</p> : null}
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Ask the data</label>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Input
+                placeholder="e.g. which Eastern Cape WSAs have no CAP and are high risk?"
+                value={dataQuestion}
+                onChange={(event) => setDataQuestion(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && dataQuestion.trim().length >= 3) {
+                    event.preventDefault();
+                    void runDataQuestion();
+                  }
+                }}
+              />
+              <Button disabled={isAskingData || dataQuestion.trim().length < 3} onClick={() => void runDataQuestion()}>
+                {isAskingData ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ask"}
+              </Button>
+            </div>
+            {dataAnswer ? (
+              <div className="rounded-2xl bg-secondary/60 p-4 text-sm">
+                <p>{dataAnswer.answer}</p>
+                {dataAnswer.tool_calls.length > 0 ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Checked: {dataAnswer.tool_calls.map((t) => t.tool).join(", ")}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Ask the regulations</label>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Input
+                placeholder="e.g. how often must a water safety plan be reviewed?"
+                value={regulatoryQuestion}
+                onChange={(event) => setRegulatoryQuestion(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && regulatoryQuestion.trim().length >= 3) {
+                    event.preventDefault();
+                    void runRegulatoryQuestion();
+                  }
+                }}
+              />
+              <Button disabled={isAskingRegulatory || regulatoryQuestion.trim().length < 3} onClick={() => void runRegulatoryQuestion()}>
+                {isAskingRegulatory ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ask"}
+              </Button>
+            </div>
+            {regulatoryAnswer ? (
+              <div className="rounded-2xl bg-secondary/60 p-4 text-sm">
+                <p>{regulatoryAnswer.answer}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Sources: {regulatoryAnswer.sources.map((s) => `${s.source} p.${s.page}`).join(", ")}
+                </p>
+              </div>
+            ) : null}
+          </div>
         </CardContent>
       </Card>
 
@@ -733,6 +894,60 @@ export function AdminPage() {
                     </ScrollArea>
                   </div>
                 )}
+
+                <div className="space-y-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={isDraftingCap}
+                    onClick={async () => {
+                      setIsDraftingCap(true);
+                      setCapDraftItems(null);
+                      try {
+                        const draft = await fetchCapDraft(selectedWsa.id);
+                        setCapDraftItems(draft.items);
+                      } catch {
+                        setError("Could not generate a CAP draft for this WSA.");
+                      } finally {
+                        setIsDraftingCap(false);
+                      }
+                    }}
+                  >
+                    {isDraftingCap ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Drafting...
+                      </>
+                    ) : (
+                      "Draft CAP"
+                    )}
+                  </Button>
+                  {capDraftItems ? (
+                    <div className="space-y-2">
+                      {capDraftItems.map((item, index) => (
+                        <div key={index} className="rounded-2xl border border-border/70 p-4 text-sm">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="font-medium">{item.action}</p>
+                            <Badge
+                              variant="outline"
+                              className={
+                                item.priority === "high"
+                                  ? "border-rose-200 bg-rose-100 text-rose-800"
+                                  : item.priority === "medium"
+                                    ? "border-amber-200 bg-amber-100 text-amber-800"
+                                    : "border-emerald-200 bg-emerald-100 text-emerald-800"
+                              }
+                            >
+                              {item.priority}
+                              {item.suggested_due_in_days ? ` · ${item.suggested_due_in_days}d` : ""}
+                            </Badge>
+                          </div>
+                          <p className="mt-1 text-muted-foreground">{item.justification}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
               </CardContent>
             </Card>
           ) : null}

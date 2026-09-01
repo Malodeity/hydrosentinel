@@ -6,6 +6,7 @@ from openai import OpenAI
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from ai.query_agent import run_query_agent
 from ai.rag import retrieve
 from app import auth, models, schemas
 from app.config import settings
@@ -516,4 +517,24 @@ def get_regulatory_context(
     return schemas.RegulatoryContextResponse(
         answer=answer,
         sources=[schemas.RegulatorySource(source=e["source"], page=e["page"], score=round(e["score"], 3)) for e in excerpts],
+    )
+
+
+@router.post("/query", response_model=schemas.AIQueryResponse)
+def post_ai_query(
+    payload: schemas.AIQueryRequest,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(auth.get_current_admin_user),
+) -> schemas.AIQueryResponse:
+    # a natural-language front end over the platform's own data: the model
+    # calls real read-only queries (ai/query_agent.py) instead of reciting a
+    # canned digest — "which Eastern Cape WSAs got worse and still have no
+    # CAP" gets answered with actual rows, not a paragraph.
+    # run_query_agent() creates its own OpenAI client via get_openai_client()
+    # when none is injected, which already raises 503 if the key is missing —
+    # same pattern as every other endpoint in this file.
+    answer, trace = run_query_agent(payload.question, db)
+    return schemas.AIQueryResponse(
+        answer=answer,
+        tool_calls=[schemas.AIQueryToolCall(**t) for t in trace],
     )
