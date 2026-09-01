@@ -14,16 +14,15 @@ function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const user = authStorage.getUser();
-  const showHero = location.pathname !== "/login";
+  const showHero = location.pathname === "/";
 
   return (
     <div className="min-h-screen">
       <header className="border-b border-border/70 bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-sm font-medium uppercase tracking-[0.25em] text-primary">HydroSentinel</p>
-            <h1 className="text-3xl font-semibold">Water services monitoring and accountability</h1>
-          </div>
+          <Link to="/" className="text-xl font-semibold tracking-tight">
+            HydroSentinel
+          </Link>
           <nav className="flex flex-wrap items-center gap-2">
             <Button asChild variant={location.pathname === "/" ? "default" : "outline"}>
               <Link to="/">
@@ -65,18 +64,8 @@ function AppShell() {
 
       <main className="mx-auto max-w-7xl px-4 py-8">
         {showHero ? (
-          <section className="mb-8 rounded-[2rem] border border-border/70 bg-white px-6 py-8 shadow-soft">
-            <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-              <div>
-                <p className="text-sm font-medium uppercase tracking-[0.25em] text-primary">National water accountability</p>
-                <h2 className="mt-3 text-4xl font-semibold leading-tight">
-                  Track municipal water performance, public complaints, and emerging service risk across South Africa.
-                </h2>
-              </div>
-              <p className="text-base leading-7 text-muted-foreground">
-                HydroSentinel gives residents, municipal teams, and oversight users one place to monitor WSAs, review public reports, and understand where service pressure is building.
-              </p>
-            </div>
+          <section className="mb-8">
+            <h2 className="text-4xl font-semibold tracking-tight">South Africa's water services, tracked in real time.</h2>
           </section>
         ) : null}
 

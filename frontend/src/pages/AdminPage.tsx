@@ -301,7 +301,7 @@ export function AdminPage() {
               </span>
             )}
           </div>
-          <CardDescription>Auto-generated alerts for high risk scores and report volume spikes. Acknowledge to clear.</CardDescription>
+          <CardDescription>High risk scores and report volume spikes</CardDescription>
         </CardHeader>
         <CardContent className="pt-4">
           {alerts.length === 0 ? (
@@ -372,7 +372,7 @@ export function AdminPage() {
               Export CSV
             </Button>
           </div>
-          <CardDescription>Filter reports by province, WSA, and timeframe, then open one report to inspect its location and photos.</CardDescription>
+          <CardDescription>Filter by province, WSA, or timeframe</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-4 md:grid-cols-3">
@@ -553,7 +553,7 @@ export function AdminPage() {
               <Card className="border border-border/70 shadow-none">
                 <CardHeader>
                   <CardTitle className="text-lg">Report location</CardTitle>
-                  <CardDescription>Open the selected report on a mini map to understand where the issue was logged.</CardDescription>
+                  <CardDescription>Reported location</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <MapContainer center={[selectedReport.lat, selectedReport.lng]} zoom={13} scrollWheelZoom className="h-[320px] rounded-[1.5rem]">
@@ -622,7 +622,7 @@ export function AdminPage() {
               Export CSV
             </Button>
           </div>
-          <CardDescription>Choose a province first, then focus on a smaller WSA list, see province totals, and open one WSA for detail.</CardDescription>
+          <CardDescription>Filter by province to see totals and detail</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-4 md:grid-cols-[280px_1fr]">
@@ -850,7 +850,7 @@ export function AdminPage() {
       <Card>
         <CardHeader className="border-b border-border/60 pb-4">
           <CardTitle>Admin users</CardTitle>
-          <CardDescription>Create additional admin or viewer accounts, or deactivate one that should no longer sign in.</CardDescription>
+          <CardDescription>Create, deactivate, and manage access</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-4">
           {userManagementError ? <p className="text-sm text-destructive">{userManagementError}</p> : null}
@@ -939,7 +939,7 @@ export function AdminPage() {
       <Card>
         <CardHeader className="border-b border-border/60 pb-4">
           <CardTitle>Audit log</CardTitle>
-          <CardDescription>Immutable record of all admin actions — CAP updates, report triage, and risk scoring.</CardDescription>
+          <CardDescription>Every CAP, report, and risk change</CardDescription>
         </CardHeader>
         <CardContent className="pt-4">
           {auditLog.length === 0 ? (

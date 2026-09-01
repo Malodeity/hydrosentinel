@@ -196,7 +196,7 @@ export function ReportForm({ wsas, isSubmitting, onSubmit }: ReportFormProps) {
     <Card>
       <CardHeader>
         <CardTitle>Submit a citizen report</CardTitle>
-        <CardDescription>Choose the WSA, select the issue type, and use your location, an address search, or the map to place the incident pin.</CardDescription>
+        <CardDescription>Choose a WSA and place the incident on the map</CardDescription>
       </CardHeader>
       <CardContent>
         <form className="grid gap-6" onSubmit={submit}>

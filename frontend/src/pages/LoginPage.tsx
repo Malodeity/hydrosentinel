@@ -36,16 +36,12 @@ export function LoginPage() {
       <Card className="w-full overflow-hidden">
         <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
           <div className="border-b border-border/70 bg-secondary/40 p-8 lg:border-b-0 lg:border-r">
-            <p className="text-sm font-medium uppercase tracking-[0.25em] text-primary">HydroSentinel access</p>
-            <h2 className="mt-4 text-4xl font-semibold leading-tight">Sign in to manage corrective action plans and review public reports.</h2>
-            <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">
-              HydroSentinel helps municipal teams and oversight users follow service risk, track issue reporting, and respond faster where water systems need attention.
-            </p>
+            <h2 className="text-4xl font-semibold tracking-tight">Admin access</h2>
           </div>
           <div className="p-8">
             <CardHeader className="p-0">
               <CardTitle>Admin login</CardTitle>
-              <CardDescription>Use your HydroSentinel account to open the admin workspace.</CardDescription>
+              <CardDescription>Sign in to the admin workspace</CardDescription>
             </CardHeader>
             <CardContent className="p-0 pt-6">
               <form className="space-y-4" onSubmit={submit}>

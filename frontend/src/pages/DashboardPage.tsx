@@ -125,11 +125,7 @@ export function DashboardPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle>AI insights</CardTitle>
-              <CardDescription>
-                {selectedWsa
-                  ? `Select a topic to generate AI analysis. WSA-specific insights are for ${selectedWsa.name}.`
-                  : "Select a WSA on the map to unlock WSA-specific insights."}
-              </CardDescription>
+              <CardDescription>{selectedWsa ? selectedWsa.name : "Select a WSA on the map"}</CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
               {(Object.keys(TAB_LABELS) as AiTab[]).map((tab) => {
@@ -169,10 +165,7 @@ export function DashboardPage() {
         <Card className="overflow-hidden">
           <CardHeader className="border-b border-border/60 bg-card/70">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <CardTitle>National water services dashboard</CardTitle>
-                <CardDescription>Explore risk distribution, service performance indicators, and CAP progress across South African WSAs.</CardDescription>
-              </div>
+              <CardTitle>Risk map</CardTitle>
               <div className="flex flex-wrap gap-2">
                 <Badge className="border-emerald-200 bg-emerald-100 text-emerald-800" variant="outline">Low</Badge>
                 <Badge className="border-amber-200 bg-amber-100 text-amber-800" variant="outline">Medium</Badge>
@@ -195,7 +188,6 @@ export function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Snapshot</CardTitle>
-                <CardDescription>A quick view of current WSA coverage, risk pressure, and corrective action progress.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
                 <div className="rounded-3xl bg-secondary/60 p-4">

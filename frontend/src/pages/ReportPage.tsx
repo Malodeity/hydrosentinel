@@ -29,8 +29,8 @@ export function ReportPage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Citizen issue reporting</CardTitle>
-          <CardDescription>Residents can log leaks, outages, water quality problems, or billing issues with a precise map location.</CardDescription>
+          <CardTitle>Report an issue</CardTitle>
+          <CardDescription>Leaks, outages, water quality, or billing</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {statusMessage ? (
@@ -81,7 +81,7 @@ export function ReportPage() {
       <Card>
         <CardHeader>
           <CardTitle>Track a report</CardTitle>
-          <CardDescription>Enter your reference code to check the status of a report you submitted.</CardDescription>
+          <CardDescription>Enter your reference code</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row">
