@@ -23,11 +23,12 @@ def main() -> None:
     blue_drop = parse_first_matching("*blue*.pdf", parse_blue_drop)
     no_drop = parse_first_matching("*no_drop*.pdf", parse_no_drop)
 
-    # green drop: scan for any provincial GD25 report
-    # note: dws_cap_status is NOT populated here — the Green Drop Watch Report
-    # only provides system-level CAP data, not per-WSA. That field will be
-    # filled once the national Green Drop 2025 report with per-WSA data is available.
-    green_drop = parse_first_matching("*green*.pdf", parse_green_drop)
+    # green drop: merge every matching report (national Watch Report +
+    # any provincial GD25 report), with the provincial file's WSAs taking
+    # precedence — it's the more targeted, more recent source for those.
+    # note: dws_cap_status is NOT populated here — these reports only
+    # provide system-level CAP data, not per-WSA.
+    green_drop = parse_all_green_drop_sources()
 
     # municipal finance CSV/Excel takes priority when supplied directly;
     # otherwise fall back to the live Municipal Money API below
@@ -53,6 +54,21 @@ def main() -> None:
 
     row_count = upsert_wsa_rows(merged)
     print(f"ETL complete: upserted {row_count} WSA rows ({api_matched_count} matched against the live Municipal Money API)")
+
+
+def parse_all_green_drop_sources() -> pd.DataFrame:
+    matches = sorted(RAW_DIR.glob("*green*.pdf"))
+    if not matches:
+        return pd.DataFrame()
+
+    # process provincial reports last so their rows win the dedup below —
+    # they're more targeted/recent for the WSAs they cover than the
+    # national Watch Report
+    matches.sort(key=lambda p: "gauteng" in p.name.lower())
+
+    frames = [parse_green_drop(path) for path in matches]
+    combined = pd.concat(frames, ignore_index=True)
+    return combined.drop_duplicates(subset=["name"], keep="last")
 
 
 def _fetch_municipal_money_api(known_names: list[str]) -> pd.DataFrame:

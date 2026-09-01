@@ -22,6 +22,13 @@ _GARBAGE_TOKENS = (
 )
 
 
+def _normalize_cell(value) -> str:
+    # a wrapped table cell (e.g. "Mogalakwena\nLM") must become one
+    # space-joined name, or it silently fails to match the WSA already in
+    # the database
+    return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
 def _is_wsa_name(value: str | None) -> bool:
     if not value:
         return False
@@ -40,15 +47,14 @@ def _is_wsa_name(value: str | None) -> bool:
 
 def parse_green_drop(pdf_path: str | Path) -> pd.DataFrame:
     """
-    Extracts per-WSA Green Drop scores from a provincial Green Drop Report PDF
-    (e.g. GD25 Report_Gauteng_Rev01_29Mar26.pdf).
+    Extracts per-WSA Green Drop scores from a Green Drop Report PDF — works on
+    both the provincial GD25 reports (e.g. GD25 Report_Gauteng_Rev01_29Mar26.pdf)
+    and the national Green Drop Watch Report (GDWR.pdf), which uses the same
+    table shape.
 
-    Only Gauteng WSAs are available in the current source file; scores for other
-    provinces will remain null until the national Green Drop 2025 report is released.
-
-    The GD25 report has multi-row headers; the score column is identified by
-    "GD" + "Score" appearing in the first header row. Because pdfplumber flattens
-    multi-row headers, the score is usually the last percentage value in each row.
+    The score column is identified by "GD"/"Green Drop" + "Score" appearing in
+    the first header row. Because pdfplumber flattens multi-row headers, the
+    score is usually the last percentage value in each row.
     """
     records: dict[str, float] = {}
 
@@ -96,7 +102,7 @@ def parse_green_drop(pdf_path: str | Path) -> pd.DataFrame:
                 for row in table[data_start:]:
                     if not row:
                         continue
-                    name = str(row[name_col] or "").strip()
+                    name = _normalize_cell(row[name_col])
                     if not _is_wsa_name(name):
                         continue
 
