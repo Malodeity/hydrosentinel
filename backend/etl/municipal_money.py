@@ -1,8 +1,9 @@
-import re
 from pathlib import Path
 
 import pandas as pd
 import requests
+
+from etl.name_matching import match_to_known_names, normalize_name
 
 # recommended maintenance-to-asset-value benchmark from National Treasury
 MAINT_BENCHMARK_PCT = 8.0
@@ -13,29 +14,8 @@ API_BASE = "https://municipaldata.treasury.gov.za/api"
 _MAINT_ITEM_CODES = ["6001", "6002", "6003", "6004"]
 _TOTAL_EXPENDITURE_ITEM = "4400"
 
-# a handful of metros have structurally different names in Treasury's data
-# vs the DWS report names already in the WSA table (e.g. "Cape Town" vs
-# "City of Cape Town") — suffix stripping alone doesn't bridge these
-_METRO_ALIASES: dict[str, list[str]] = {
-    "cape town": ["city of cape town"],
-    "ethekwini": ["ethekwini metropolitan municipality", "durban"],
-    "city of ekurhuleni": ["ekurhuleni"],
-    "city of johannesburg": ["johannesburg"],
-    "city of tshwane": ["tshwane"],
-    "mangaung": ["mangaung metropolitan municipality"],
-    "nelson mandela bay": ["nelson mandela bay metropolitan municipality", "nelson mandela bay metropolitan"],
-}
-
-_SUFFIX_RE = re.compile(
-    r"\b(local municipality|district municipality|metropolitan municipality|metropolitan)\b|\b(DM|LM|MM)\b",
-    re.IGNORECASE,
-)
-
-
-def _normalize(name: str) -> str:
-    cleaned = _SUFFIX_RE.sub("", name)
-    cleaned = re.sub(r"[^a-z0-9 ]", "", cleaned.lower())
-    return re.sub(r"\s+", " ", cleaned).strip()
+# kept as a local alias so existing tests/imports of `_normalize` keep working
+_normalize = normalize_name
 
 
 def _fetch_item_totals(cube: str, item_codes: list[str], year: int) -> dict[str, float]:
@@ -124,35 +104,13 @@ def fetch_municipal_finance(year: int = 2023) -> pd.DataFrame:
 def match_to_wsa_names(finance_df: pd.DataFrame, known_names: list[str]) -> pd.DataFrame:
     """
     Treasury's demarcation labels use yet another naming convention than the
-    DWS report names already flowing through the rest of the ETL (district
-    labels drop the "DM" suffix, metros diverge structurally). This expands
-    each Treasury row into one row per known WSA name that normalizes to the
-    same municipality, so the result can be outer-joined into the same
-    merged frame as every other source — one single upsert pass, same as
-    always, instead of a second pass that would null out every column this
-    frame doesn't carry.
+    DWS report names already flowing through the rest of the ETL. See
+    etl.name_matching.match_to_known_names for how the matching works — a
+    source row that matches nothing is dropped, never turned into a new WSA.
     """
-    norm_to_names: dict[str, list[str]] = {}
-    for name in known_names:
-        norm_to_names.setdefault(_normalize(name), []).append(name)
-
-    rows = []
-    for _, source_row in finance_df.iterrows():
-        label_norm = _normalize(source_row["demarcation_label"])
-        candidate_norms = {label_norm, *(_normalize(a) for a in _METRO_ALIASES.get(label_norm, []))}
-
-        matched_names: set[str] = set()
-        for norm in candidate_norms:
-            matched_names.update(norm_to_names.get(norm, []))
-
-        for wsa_name in matched_names:
-            rows.append({
-                "name": wsa_name,
-                "maint_pct": source_row["maint_pct"],
-                "maint_expenditure": source_row["maint_expenditure"],
-            })
-
-    return pd.DataFrame(rows, columns=["name", "maint_pct", "maint_expenditure"])
+    finance_df = finance_df[["demarcation_label", "maint_pct", "maint_expenditure"]]
+    matched = match_to_known_names(finance_df, "demarcation_label", known_names)
+    return matched[["name", "maint_pct", "maint_expenditure"]]
 
 
 def load_municipal_money(source_path: str | Path) -> pd.DataFrame:
