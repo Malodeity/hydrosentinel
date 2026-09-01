@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Search } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 import { fetchAiDigest, fetchProvinceDigest, fetchRiskExplanation, fetchWsaComparison } from "@/api/ai";
 import { fetchWsas, type WSA } from "@/api/wsa";
@@ -7,6 +9,7 @@ import { WSACard } from "@/components/WSACard";
 import { WSAMap } from "@/components/WSAMap";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -20,10 +23,40 @@ const TAB_LABELS: Record<AiTab, string> = {
 };
 
 export function DashboardPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [wsas, setWsas] = useState<WSA[]>([]);
-  const [selectedWsa, setSelectedWsa] = useState<WSA | null>(null);
+  const [selectedWsa, setSelectedWsaState] = useState<WSA | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoadingWsas, setIsLoadingWsas] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // keeps ?wsa=<id> in the URL in sync so a selected WSA is shareable/bookmarkable
+  function setSelectedWsa(wsa: WSA | null) {
+    setSelectedWsaState(wsa);
+    setSearchParams(wsa ? { wsa: wsa.id } : {}, { replace: true });
+  }
+
+  const searchMatches = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return [];
+    return wsas.filter((wsa) => wsa.name.toLowerCase().includes(query)).slice(0, 8);
+  }, [searchQuery, wsas]);
+
+  const provinceAverages = useMemo(() => {
+    const byProvince = new Map<string, number[]>();
+    for (const wsa of wsas) {
+      if (wsa.blue_drop_score === null) continue;
+      const scores = byProvince.get(wsa.province) ?? [];
+      scores.push(wsa.blue_drop_score);
+      byProvince.set(wsa.province, scores);
+    }
+    return Array.from(byProvince.entries())
+      .map(([province, scores]) => ({
+        province,
+        average: scores.reduce((sum, score) => sum + score, 0) / scores.length,
+      }))
+      .sort((a, b) => b.average - a.average);
+  }, [wsas]);
 
   // ai section state
   const [activeTab, setActiveTab] = useState<AiTab>("national");
@@ -38,10 +71,14 @@ export function DashboardPage() {
     fetchWsas()
       .then((data) => {
         setWsas(data);
-        setSelectedWsa(data[0] ?? null);
+        const requestedId = searchParams.get("wsa");
+        const requested = requestedId ? data.find((wsa) => wsa.id === requestedId) : undefined;
+        setSelectedWsaState(requested ?? data[0] ?? null);
       })
       .catch(() => setError("Unable to load WSA data right now."))
       .finally(() => setIsLoadingWsas(false));
+    // only ever runs once on mount — the URL param is read as the initial value only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
 
     // pre-load national digest into cache
     fetchAiDigest()
@@ -155,9 +192,7 @@ export function DashboardPage() {
               <Skeleton className="h-4 w-3/4" />
             </div>
           ) : aiContent ? (
-            <div className="max-w-3xl">
-              <AITextBlock content={aiContent} label={TAB_LABELS[activeTab]} />
-            </div>
+            <AITextBlock content={aiContent} label={TAB_LABELS[activeTab]} />
           ) : (
             <p className="text-sm text-muted-foreground">
               {wsaSpecificTabs.includes(activeTab) && !selectedWsa
@@ -172,7 +207,36 @@ export function DashboardPage() {
       <div className="grid gap-6 xl:grid-cols-[1.7fr_0.95fr]">
         <Card className="overflow-hidden">
           <CardHeader className="border-b border-border/60 bg-card/70">
-            <CardTitle>Risk map</CardTitle>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>Risk map</CardTitle>
+              <div className="relative w-full sm:w-64">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search a WSA"
+                  className="pl-9"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                />
+                {searchMatches.length > 0 ? (
+                  <div className="absolute z-[1000] mt-2 w-full overflow-hidden rounded-2xl border border-border bg-white shadow-soft">
+                    {searchMatches.map((wsa) => (
+                      <button
+                        key={wsa.id}
+                        type="button"
+                        className="block w-full border-b border-border/60 px-4 py-2.5 text-left text-sm last:border-b-0 hover:bg-secondary/60"
+                        onClick={() => {
+                          setSelectedWsa(wsa);
+                          setSearchQuery("");
+                        }}
+                      >
+                        <span className="font-medium">{wsa.name}</span>
+                        <span className="ml-2 text-muted-foreground">{wsa.province}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="p-4">
             {error ? (
@@ -180,7 +244,7 @@ export function DashboardPage() {
             ) : isLoadingWsas ? (
               <Skeleton className="h-[580px] w-full" />
             ) : (
-              <WSAMap wsas={wsas} selectedWsaId={selectedWsa?.id ?? null} onSelect={setSelectedWsa} />
+              <WSAMap wsas={wsas} selectedWsaId={selectedWsa?.id ?? null} onSelect={setSelectedWsa} showDataGaps />
             )}
           </CardContent>
         </Card>
@@ -217,10 +281,30 @@ export function DashboardPage() {
                 )}
               </CardContent>
             </Card>
+
+            {!isLoadingWsas && provinceAverages.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Blue Drop by province</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {provinceAverages.map(({ province, average }) => (
+                    <div key={province}>
+                      <div className="mb-1 flex items-center justify-between text-sm">
+                        <span className="text-foreground">{province}</span>
+                        <span className="font-medium text-muted-foreground">{average.toFixed(0)}%</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-secondary/60">
+                        <div className="h-full rounded-full bg-primary" style={{ width: `${average}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            ) : null}
           </div>
         </ScrollArea>
       </div>
-
     </div>
   );
 }

@@ -1,13 +1,27 @@
-import { CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
+import { useEffect } from "react";
+import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 
 import type { RiskLevel, WSA } from "@/api/wsa";
 import { RiskBadge } from "@/components/RiskBadge";
+import { dataCompleteness } from "@/components/WSACard";
 
 interface WSAMapProps {
   wsas: WSA[];
   selectedWsaId: string | null;
   onSelect: (wsa: WSA) => void;
+  showDataGaps?: boolean;
+}
+
+function FlyToSelected({ wsa }: { wsa: WSA | null }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!wsa) return;
+    map.flyTo([wsa.lat, wsa.lng], Math.max(map.getZoom(), 9), { duration: 0.8 });
+  }, [wsa, map]);
+
+  return null;
 }
 
 const riskColorMap: Record<RiskLevel, string> = {
@@ -22,7 +36,9 @@ const LEGEND_ITEMS: { level: RiskLevel; label: string }[] = [
   { level: "high", label: "High" },
 ];
 
-export function WSAMap({ wsas, selectedWsaId, onSelect }: WSAMapProps) {
+export function WSAMap({ wsas, selectedWsaId, onSelect, showDataGaps }: WSAMapProps) {
+  const selectedWsa = wsas.find((wsa) => wsa.id === selectedWsaId) ?? null;
+
   return (
     <div className="relative">
       <MapContainer center={[-29.0, 24.0]} zoom={5} scrollWheelZoom className="h-[580px] w-full rounded-[1.5rem]">
@@ -30,9 +46,11 @@ export function WSAMap({ wsas, selectedWsaId, onSelect }: WSAMapProps) {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <FlyToSelected wsa={selectedWsa} />
         <MarkerClusterGroup chunkedLoading spiderfyOnMaxZoom disableClusteringAtZoom={14}>
           {wsas.map((wsa) => {
             const isSelected = wsa.id === selectedWsaId;
+            const isDataGap = showDataGaps && dataCompleteness(wsa).filled < 2;
             return (
               <CircleMarker
                 key={wsa.id}
@@ -41,8 +59,9 @@ export function WSAMap({ wsas, selectedWsaId, onSelect }: WSAMapProps) {
                 pathOptions={{
                   color: isSelected ? "#111827" : riskColorMap[wsa.risk_level],
                   fillColor: riskColorMap[wsa.risk_level],
-                  fillOpacity: 0.85,
-                  weight: isSelected ? 4 : 2,
+                  fillOpacity: isDataGap ? 0.25 : 0.85,
+                  weight: isSelected ? 4 : isDataGap ? 1 : 2,
+                  dashArray: isDataGap ? "2,2" : undefined,
                   className: isSelected ? "wsa-marker-selected" : undefined,
                 }}
                 eventHandlers={{ click: () => onSelect(wsa) }}
@@ -52,6 +71,7 @@ export function WSAMap({ wsas, selectedWsaId, onSelect }: WSAMapProps) {
                     <p className="font-semibold">{wsa.name}</p>
                     <p className="text-sm text-slate-600">{wsa.province}</p>
                     <RiskBadge riskLevel={wsa.risk_level} />
+                    {isDataGap ? <p className="text-xs text-muted-foreground">Limited data available</p> : null}
                   </div>
                 </Popup>
               </CircleMarker>
