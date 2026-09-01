@@ -201,3 +201,25 @@ class AITextResponse(BaseModel):
 class AIRecommendationsResponse(BaseModel):
     content: str
     items: list[str]
+
+
+class CapDraftItem(BaseModel):
+    action: str
+    priority: Literal["high", "medium", "low"]
+    suggested_due_in_days: int | None
+    justification: str
+
+
+class CapDraftResponse(BaseModel):
+    items: list[CapDraftItem]
+
+
+class RegulatorySource(BaseModel):
+    source: str
+    page: int
+    score: float
+
+
+class RegulatoryContextResponse(BaseModel):
+    answer: str
+    sources: list[RegulatorySource]

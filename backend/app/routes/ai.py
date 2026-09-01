@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
@@ -5,6 +6,7 @@ from openai import OpenAI
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from ai.rag import retrieve
 from app import auth, models, schemas
 from app.config import settings
 from app.database import get_db
@@ -32,6 +34,31 @@ def call_openai(system_prompt: str, user_prompt: str, max_tokens: int = 400) -> 
             model=MODEL_NAME,
             max_tokens=max_tokens,
             temperature=0.3,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="OpenAI request failed") from exc
+
+    content = (response.choices[0].message.content or "").strip()
+    if not content:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="OpenAI returned an empty response")
+    return content
+
+
+def call_openai_json(system_prompt: str, user_prompt: str, max_tokens: int = 600) -> str:
+    # same as call_openai but requests strict JSON output for structured features (e.g. CAP drafting)
+    client = get_openai_client()
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            max_tokens=max_tokens,
+            temperature=0.3,
+            response_format={"type": "json_object"},
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
@@ -375,3 +402,118 @@ def generate_report_comment(
     )
     content = call_openai(system_prompt, user_prompt, max_tokens=220)
     return schemas.AITextResponse(content=content)
+
+
+_VALID_PRIORITIES = {"high", "medium", "low"}
+
+
+def parse_cap_draft_json(content: str) -> list[dict]:
+    # the model occasionally returns malformed JSON, the wrong shape, or a
+    # garbage priority value -- this is the boundary that must degrade to an
+    # empty/partial list instead of ever crashing the endpoint
+    try:
+        data = json.loads(content)
+    except json.JSONDecodeError:
+        return []
+
+    if isinstance(data, dict):
+        items = data.get("items", [])
+    elif isinstance(data, list):
+        items = data
+    else:
+        return []
+    if not isinstance(items, list):
+        return []
+
+    valid: list[dict] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        action = item.get("action")
+        if not action or not isinstance(action, str):
+            continue
+
+        priority = item.get("priority")
+        priority = priority if priority in _VALID_PRIORITIES else "medium"
+
+        due_days = item.get("suggested_due_in_days")
+        due_days = due_days if isinstance(due_days, int) and not isinstance(due_days, bool) else None
+
+        valid.append({
+            "action": action,
+            "priority": priority,
+            "suggested_due_in_days": due_days,
+            "justification": str(item.get("justification") or ""),
+        })
+
+    return valid[:6]
+
+
+@router.get("/wsa/{wsa_id}/cap-draft", response_model=schemas.CapDraftResponse)
+def get_cap_draft(
+    wsa_id: UUID,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(auth.get_current_admin_user),
+) -> schemas.CapDraftResponse:
+    # drafts a structured, evidence-linked corrective action plan an admin
+    # can review and edit, instead of a single paragraph of prose
+    wsa = get_wsa_or_404(db, wsa_id)
+
+    from collections import Counter
+    open_reports = (
+        db.query(models.CitizenReport)
+        .filter(
+            models.CitizenReport.wsa_id == wsa_id,
+            models.CitizenReport.case_status.in_(["open", "in_review"]),
+        )
+        .all()
+    )
+    issue_counts = dict(Counter(r.issue_type.value for r in open_reports))
+
+    system_prompt = (
+        "You are drafting a Corrective Action Plan (CAP) for a South African municipal water administrator. "
+        "Return ONLY a JSON object of the exact shape "
+        '{"items": [{"action": string, "priority": "high"|"medium"|"low", '
+        '"suggested_due_in_days": integer, "justification": string}]}. '
+        "Produce 3 to 5 items. Every justification must cite a specific number from the supplied data "
+        "(a score, a percentage, or a report count) -- never invent data or a completed action."
+    )
+    user_prompt = "\n".join([
+        "Draft a corrective action plan using only the real data below.",
+        build_wsa_prompt(wsa),
+        f"Open citizen reports by issue type: {issue_counts or 'none'}",
+    ])
+
+    content = call_openai_json(system_prompt, user_prompt)
+    items = parse_cap_draft_json(content)
+    if not items:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="Could not generate a structured CAP draft")
+
+    return schemas.CapDraftResponse(items=items)
+
+
+@router.get("/regulatory-context", response_model=schemas.RegulatoryContextResponse)
+def get_regulatory_context(
+    query: str,
+    _: models.User = Depends(auth.get_current_admin_user),
+) -> schemas.RegulatoryContextResponse:
+    # answers a question using only excerpts actually retrieved from the DWS
+    # regulatory PDFs already in data/raw/, with a source+page citation per
+    # excerpt -- every claim in the answer can be traced back to a real page
+    excerpts = retrieve(query, top_k=5)
+    if not excerpts:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No relevant excerpts found in the indexed regulatory documents")
+
+    context_block = "\n\n".join(f"[{e['source']} p.{e['page']}]\n{e['text'][:1000]}" for e in excerpts)
+    system_prompt = (
+        "You answer questions about South African water regulation using ONLY the supplied excerpts. "
+        "Cite the source file and page for every claim, like (source.pdf, p.12). "
+        "If the excerpts do not answer the question, say so plainly instead of guessing."
+    )
+    user_prompt = f"Question: {query}\n\nExcerpts:\n{context_block}"
+    answer = call_openai(system_prompt, user_prompt, max_tokens=350)
+
+    return schemas.RegulatoryContextResponse(
+        answer=answer,
+        sources=[schemas.RegulatorySource(source=e["source"], page=e["page"], score=round(e["score"], 3)) for e in excerpts],
+    )
