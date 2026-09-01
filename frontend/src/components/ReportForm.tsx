@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import { divIcon, type LatLngLiteral } from "leaflet";
+import { Loader2 } from "lucide-react";
 
 import type { CreateCitizenReportPayload, IssueType } from "@/api/reports";
 import type { WSA } from "@/api/wsa";
@@ -328,7 +329,14 @@ export function ReportForm({ wsas, isSubmitting, onSubmit }: ReportFormProps) {
 
           <div className="flex justify-end">
             <Button disabled={isSubmitting || !province || !wsaId || description.trim().length < 10} type="submit">
-              {isSubmitting ? "Submitting..." : "Submit report"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit report"
+              )}
             </Button>
           </div>
         </form>
