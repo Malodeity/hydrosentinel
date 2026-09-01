@@ -131,6 +131,7 @@ def apply_ai_schema_changes() -> None:
             EXCEPTION WHEN duplicate_object THEN null;
             END $$;
         """))
+        connection.execute(text("ALTER TYPE alert_type_enum ADD VALUE IF NOT EXISTS 'geo_cluster_incident';"))
         connection.execute(text("""
             CREATE TABLE IF NOT EXISTS alerts (
                 id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

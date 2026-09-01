@@ -10,7 +10,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app import auth, models, schemas
-from app.alert_helpers import raise_report_volume_spike_alert
+from app.alert_helpers import raise_geo_cluster_alert, raise_report_volume_spike_alert
 from app.audit_helpers import write_audit
 from app.database import get_db
 
@@ -77,6 +77,7 @@ async def create_report(
     db.refresh(report)
 
     raise_report_volume_spike_alert(wsa, db)
+    raise_geo_cluster_alert(wsa, report, db)
     db.commit()
 
     if photos:

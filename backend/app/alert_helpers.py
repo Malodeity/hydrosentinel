@@ -1,8 +1,23 @@
+import math
 from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
 from app import models
+
+_EARTH_RADIUS_KM = 6371.0
+_CLUSTER_RADIUS_KM = 2.0
+_CLUSTER_WINDOW_HOURS = 6
+_CLUSTER_MIN_REPORTS = 3
+
+
+def haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    # great-circle distance between two lat/lng points, in kilometers
+    lat1_r, lng1_r, lat2_r, lng2_r = map(math.radians, (lat1, lng1, lat2, lng2))
+    d_lat = lat2_r - lat1_r
+    d_lng = lng2_r - lng1_r
+    a = math.sin(d_lat / 2) ** 2 + math.cos(lat1_r) * math.cos(lat2_r) * math.sin(d_lng / 2) ** 2
+    return _EARTH_RADIUS_KM * 2 * math.asin(math.sqrt(a))
 
 
 def raise_high_risk_alert(wsa: models.WSA, db: Session) -> None:
@@ -59,6 +74,51 @@ def raise_report_volume_spike_alert(wsa: models.WSA, db: Session) -> None:
         message=(
             f"{wsa.name} has received {recent_count} citizen reports in the last 24 hours. "
             "A service delivery crisis may be developing."
+        ),
+    )
+    db.add(alert)
+
+
+def raise_geo_cluster_alert(wsa: models.WSA, new_report: models.CitizenReport, db: Session) -> None:
+    # catches a localized incident (e.g. a burst main) fast: 3+ same-issue-type
+    # reports within 2km of each other within 6h -- well below the
+    # report_volume_spike threshold of 5 reports anywhere in the WSA within 24h
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=_CLUSTER_WINDOW_HOURS)
+    recent_same_type = (
+        db.query(models.CitizenReport)
+        .filter(
+            models.CitizenReport.wsa_id == wsa.id,
+            models.CitizenReport.issue_type == new_report.issue_type,
+            models.CitizenReport.created_at >= cutoff,
+        )
+        .all()
+    )
+
+    nearby = [
+        r for r in recent_same_type
+        if haversine_km(new_report.lat, new_report.lng, r.lat, r.lng) <= _CLUSTER_RADIUS_KM
+    ]
+    if len(nearby) < _CLUSTER_MIN_REPORTS:
+        return
+
+    existing = (
+        db.query(models.Alert)
+        .filter(
+            models.Alert.wsa_id == wsa.id,
+            models.Alert.alert_type == models.AlertType.geo_cluster_incident,
+            models.Alert.acknowledged_at.is_(None),
+        )
+        .first()
+    )
+    if existing:
+        return
+
+    alert = models.Alert(
+        wsa_id=wsa.id,
+        alert_type=models.AlertType.geo_cluster_incident,
+        message=(
+            f"{len(nearby)} {new_report.issue_type.value} reports within {_CLUSTER_RADIUS_KM}km of each other "
+            f"in {wsa.name} in the last {_CLUSTER_WINDOW_HOURS} hours — a localized incident may be developing."
         ),
     )
     db.add(alert)

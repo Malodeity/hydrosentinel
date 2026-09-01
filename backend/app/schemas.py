@@ -142,6 +142,18 @@ class RiskScoreListItem(BaseModel):
     risk_level: RiskLevel
 
 
+class RiskTrajectoryResponse(BaseModel):
+    wsa_id: UUID
+    name: str
+    trend: Literal["insufficient_data", "improving", "stable", "worsening"]
+    current_probability: float | None
+    current_risk_level: RiskLevel | None
+    projected_probability: float | None
+    projected_risk_level: RiskLevel | None
+    crosses_tier: bool
+    sample_size: int
+
+
 class RiskScoreHistoryRead(BaseModel):
     id: UUID
     wsa_id: UUID

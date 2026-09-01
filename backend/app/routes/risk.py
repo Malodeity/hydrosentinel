@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from ai.predict import predict_wsa_risk
+from ai.trajectory import compute_trajectory
 from app import auth, models, schemas
 from app.alert_helpers import raise_high_risk_alert
 from app.audit_helpers import write_audit
@@ -92,3 +93,53 @@ def get_risk_history(
         .order_by(models.RiskScoreHistory.scored_at.desc())
         .all()
     )
+
+
+@router.get("/trajectory/{wsa_id}", response_model=schemas.RiskTrajectoryResponse)
+def get_risk_trajectory(
+    wsa_id: UUID,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(auth.get_current_admin_user),
+) -> schemas.RiskTrajectoryResponse:
+    wsa = db.query(models.WSA).filter(models.WSA.id == wsa_id).first()
+    if not wsa:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="WSA not found")
+
+    history = (
+        db.query(models.RiskScoreHistory)
+        .filter(models.RiskScoreHistory.wsa_id == wsa_id)
+        .order_by(models.RiskScoreHistory.scored_at.asc())
+        .all()
+    )
+    probabilities = [float(entry.probability) for entry in history]
+    trajectory = compute_trajectory(probabilities)
+
+    return schemas.RiskTrajectoryResponse(
+        wsa_id=wsa.id,
+        name=wsa.name,
+        sample_size=len(probabilities),
+        **trajectory,
+    )
+
+
+@router.get("/trending", response_model=list[schemas.RiskTrajectoryResponse])
+def list_trending_wsas(
+    db: Session = Depends(get_db),
+    _: models.User = Depends(auth.get_current_admin_user),
+) -> list[schemas.RiskTrajectoryResponse]:
+    # early-warning list: every WSA whose trend is projected to cross into a
+    # worse risk tier before it's actually scored there
+    results: list[schemas.RiskTrajectoryResponse] = []
+    wsas = db.query(models.WSA).all()
+    for wsa in wsas:
+        history = (
+            db.query(models.RiskScoreHistory)
+            .filter(models.RiskScoreHistory.wsa_id == wsa.id)
+            .order_by(models.RiskScoreHistory.scored_at.asc())
+            .all()
+        )
+        probabilities = [float(entry.probability) for entry in history]
+        trajectory = compute_trajectory(probabilities)
+        if trajectory["crosses_tier"]:
+            results.append(schemas.RiskTrajectoryResponse(wsa_id=wsa.id, name=wsa.name, sample_size=len(probabilities), **trajectory))
+    return results

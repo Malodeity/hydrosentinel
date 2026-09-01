@@ -61,6 +61,7 @@ class AlertType(str, Enum):
     risk_level_increased = "risk_level_increased"
     report_volume_spike = "report_volume_spike"
     cap_overdue = "cap_overdue"
+    geo_cluster_incident = "geo_cluster_incident"
 
 
 class ModelSource(str, Enum):
