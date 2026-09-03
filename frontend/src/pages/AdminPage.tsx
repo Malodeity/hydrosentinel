@@ -24,6 +24,7 @@ import { downloadWsaCsv, fetchWsas, type CapStatus, type RiskLevel, type WSA, up
 import { AITextBlock } from "@/components/AITextBlock";
 import { RiskBadge } from "@/components/RiskBadge";
 import { dataCompleteness } from "@/components/WSACard";
+import { isReportInsideRange } from "@/lib/reportDateRange";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +35,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea";
 
 const capOptions: CapStatus[] = ["none", "submitted", "in_progress", "completed"];
+// matches the backend's geo-cluster detection window (app/alert_helpers.py _CLUSTER_WINDOW_HOURS)
+const GEO_CLUSTER_WINDOW_HOURS = 6;
 const alertBadgeClasses: Record<string, string> = {
   risk_level_high: "border-rose-200 bg-rose-100 text-rose-800",
   risk_level_increased: "border-orange-200 bg-orange-100 text-orange-800",
@@ -66,24 +69,6 @@ function resolveAssetUrl(url: string) {
   return url.startsWith("http") ? url : `${apiBaseUrl}${url}`;
 }
 
-function isReportInsideRange(report: CitizenReport, range: string) {
-  if (range === "all") {
-    return true;
-  }
-
-  const reportDate = new Date(report.created_at);
-  const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  if (range === "today") {
-    return reportDate >= startOfToday;
-  }
-
-  const days = Number(range);
-  const cutoff = new Date(now);
-  cutoff.setDate(now.getDate() - days);
-  return reportDate >= cutoff;
-}
 
 function RiskTrendSparkline({ entries }: { entries: RiskScoreHistoryEntry[] }) {
   if (entries.length < 2) {
@@ -147,6 +132,9 @@ export function AdminPage() {
 
   const [capDraftItems, setCapDraftItems] = useState<CapDraftItem[] | null>(null);
   const [isDraftingCap, setIsDraftingCap] = useState(false);
+  const [acceptedCapDraftIndex, setAcceptedCapDraftIndex] = useState<number | null>(null);
+  const [isAcceptingCapDraft, setIsAcceptingCapDraft] = useState(false);
+  const [expandedClusterAlertId, setExpandedClusterAlertId] = useState<string | null>(null);
 
   const wsaById = useMemo(
     () =>
@@ -315,6 +303,7 @@ export function AdminPage() {
 
   useEffect(() => {
     setCapDraftItems(null);
+    setAcceptedCapDraftIndex(null);
 
     if (!selectedWsa) {
       setSelectedWsaSummary(null);
@@ -367,41 +356,92 @@ export function AdminPage() {
           ) : (
             <ScrollArea className="max-h-72">
               <div className="space-y-2 pr-4">
-                {alerts.map((alert) => (
-                  <div
-                    key={alert.id}
-                    className={`flex items-start justify-between gap-4 rounded-2xl border p-4 ${alert.acknowledged_at ? "opacity-50" : "border-border"}`}
-                  >
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
-                        <Badge className={alertBadgeClasses[alert.alert_type]} variant="outline">
-                          {alertTypeLabel[alert.alert_type]}
-                        </Badge>
-                        <span className="text-sm font-medium">{alert.wsa_name}</span>
+                {alerts.map((alert) => {
+                  const isCluster = alert.alert_type === "geo_cluster_incident";
+                  const isExpanded = expandedClusterAlertId === alert.id;
+                  const clusterReports = isCluster
+                    ? reports.filter(
+                        (r) =>
+                          r.wsa_id === alert.wsa_id &&
+                          Date.now() - new Date(r.created_at).getTime() <= GEO_CLUSTER_WINDOW_HOURS * 3600 * 1000,
+                      )
+                    : [];
+
+                  return (
+                    <div
+                      key={alert.id}
+                      className={`rounded-2xl border p-4 ${alert.acknowledged_at ? "opacity-50" : "border-border"}`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+                            <Badge className={alertBadgeClasses[alert.alert_type]} variant="outline">
+                              {alertTypeLabel[alert.alert_type]}
+                            </Badge>
+                            <span className="text-sm font-medium">{alert.wsa_name}</span>
+                          </div>
+                          <p className="pl-6 text-sm text-muted-foreground">{alert.message}</p>
+                          <p className="pl-6 text-xs text-muted-foreground">{new Date(alert.created_at).toLocaleString()}</p>
+                        </div>
+                        <div className="flex shrink-0 gap-2">
+                          {isCluster && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setExpandedClusterAlertId(isExpanded ? null : alert.id)}
+                            >
+                              {isExpanded ? "Hide map" : "View on map"}
+                            </Button>
+                          )}
+                          {!alert.acknowledged_at && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={async () => {
+                                try {
+                                  const updated = await acknowledgeAlert(alert.id);
+                                  setAlerts((current) => current.map((a) => (a.id === updated.id ? updated : a)));
+                                } catch {
+                                  setError("Could not acknowledge alert.");
+                                }
+                              }}
+                            >
+                              Acknowledge
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <p className="pl-6 text-sm text-muted-foreground">{alert.message}</p>
-                      <p className="pl-6 text-xs text-muted-foreground">{new Date(alert.created_at).toLocaleString()}</p>
+                      {isCluster && isExpanded && (
+                        <div className="mt-3 pl-6">
+                          {clusterReports.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">No reports found within the detection window anymore.</p>
+                          ) : (
+                            <MapContainer
+                              center={[clusterReports[0].lat, clusterReports[0].lng]}
+                              zoom={14}
+                              scrollWheelZoom={false}
+                              className="h-[220px] w-full rounded-2xl"
+                            >
+                              <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                              />
+                              {clusterReports.map((r) => (
+                                <CircleMarker
+                                  key={r.id}
+                                  center={[r.lat, r.lng]}
+                                  radius={8}
+                                  pathOptions={{ color: "#dc2626", fillColor: "#dc2626", fillOpacity: 0.8, weight: 2 }}
+                                />
+                              ))}
+                            </MapContainer>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    {!alert.acknowledged_at && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="shrink-0"
-                        onClick={async () => {
-                          try {
-                            const updated = await acknowledgeAlert(alert.id);
-                            setAlerts((current) => current.map((a) => (a.id === updated.id ? updated : a)));
-                          } catch {
-                            setError("Could not acknowledge alert.");
-                          }
-                        }}
-                      >
-                        Acknowledge
-                      </Button>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </ScrollArea>
           )}
@@ -903,6 +943,7 @@ export function AdminPage() {
                     onClick={async () => {
                       setIsDraftingCap(true);
                       setCapDraftItems(null);
+                      setAcceptedCapDraftIndex(null);
                       try {
                         const draft = await fetchCapDraft(selectedWsa.id);
                         setCapDraftItems(draft.items);
@@ -943,6 +984,33 @@ export function AdminPage() {
                             </Badge>
                           </div>
                           <p className="mt-1 text-muted-foreground">{item.justification}</p>
+                          <div className="mt-3">
+                            <Button
+                              size="sm"
+                              variant={acceptedCapDraftIndex === index ? "secondary" : "outline"}
+                              disabled={isAcceptingCapDraft || acceptedCapDraftIndex === index}
+                              onClick={async () => {
+                                setIsAcceptingCapDraft(true);
+                                try {
+                                  const dueDate = item.suggested_due_in_days
+                                    ? new Date(Date.now() + item.suggested_due_in_days * 86400000).toISOString().slice(0, 10)
+                                    : null;
+                                  const updated = await updateWsaCapStatus(selectedWsa.id, "submitted", dueDate);
+                                  setAcceptedCapDraftIndex(index);
+                                  setSuccessMessage(`CAP updated for ${updated.name}.`);
+                                  setError(null);
+                                  await loadData();
+                                  setSelectedWsaId(updated.id);
+                                } catch {
+                                  setError("Could not apply this CAP item.");
+                                } finally {
+                                  setIsAcceptingCapDraft(false);
+                                }
+                              }}
+                            >
+                              {acceptedCapDraftIndex === index ? "Applied to CAP" : "Accept"}
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>

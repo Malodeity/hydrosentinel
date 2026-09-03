@@ -12,18 +12,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { pickDefaultWsa } from "@/lib/wsaSelection";
 
 type AiTab = "national" | "province" | "insight" | "comparison";
-
-const riskOrder: Record<WSA["risk_level"], number> = { high: 0, medium: 1, low: 2 };
-
-// the default WSA shown on load should be the one most worth looking at,
-// not just whichever name sorts first alphabetically (punctuation like "!"
-// sorts before letters, so a name like "!Kai! Garib LM" would otherwise
-// always win regardless of its actual risk)
-function pickDefaultWsa(wsas: WSA[]): WSA | null {
-  return [...wsas].sort((a, b) => riskOrder[a.risk_level] - riskOrder[b.risk_level] || a.name.localeCompare(b.name))[0] ?? null;
-}
 
 const TAB_LABELS: Record<AiTab, string> = {
   national: "National digest",
