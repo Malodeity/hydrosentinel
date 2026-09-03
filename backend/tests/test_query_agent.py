@@ -8,7 +8,15 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 from app import models
-from ai.query_agent import TOOL_FUNCTIONS, run_query_agent, tool_get_report_counts, tool_get_wsas
+from ai.query_agent import (
+    TOOL_FUNCTIONS,
+    run_query_agent,
+    tool_compare_provinces,
+    tool_get_alerts,
+    tool_get_audit_summary,
+    tool_get_report_counts,
+    tool_get_wsas,
+)
 
 
 def _make_wsa(db, **overrides):
@@ -112,6 +120,58 @@ def test_run_query_agent_handles_unknown_tool_name_gracefully(db):
 
     assert answer == "Fallback answer."
     assert "error" in trace[0]["result"].lower() or "unknown" in trace[0]["result"].lower()
+
+
+def test_tool_get_alerts_filters_by_wsa_name(db, sample_wsa):
+    other_wsa = _make_wsa(db, name="Other Alert WSA")
+    db.add(models.Alert(wsa_id=sample_wsa.id, alert_type=models.AlertType.risk_level_high, message="high risk here"))
+    db.add(models.Alert(wsa_id=other_wsa.id, alert_type=models.AlertType.cap_overdue, message="cap overdue there"))
+    db.flush()
+
+    results = tool_get_alerts(db, wsa_name=sample_wsa.name)
+
+    assert len(results) == 1
+    assert results[0]["message"] == "high risk here"
+
+
+def test_tool_get_alerts_filters_unacknowledged_only(db, sample_wsa):
+    from datetime import datetime, timezone
+    db.add(models.Alert(wsa_id=sample_wsa.id, alert_type=models.AlertType.risk_level_high, message="open one"))
+    db.add(models.Alert(
+        wsa_id=sample_wsa.id, alert_type=models.AlertType.cap_overdue, message="closed one",
+        acknowledged_at=datetime.now(timezone.utc),
+    ))
+    db.flush()
+
+    results = tool_get_alerts(db, wsa_name=sample_wsa.name, unacknowledged_only=True)
+
+    assert len(results) == 1
+    assert results[0]["message"] == "open one"
+
+
+def test_tool_get_audit_summary_counts_by_action(db, admin_user):
+    from app import models as m
+    db.add(m.AuditLog(user_id=admin_user.id, action=m.AuditAction.cap_status_updated, table_name="wsa", record_id=admin_user.id))
+    db.add(m.AuditLog(user_id=admin_user.id, action=m.AuditAction.cap_status_updated, table_name="wsa", record_id=admin_user.id))
+    db.add(m.AuditLog(user_id=admin_user.id, action=m.AuditAction.risk_score_run, table_name="wsa", record_id=admin_user.id))
+    db.flush()
+
+    result = tool_get_audit_summary(db, days=30)
+
+    assert result["by_action"]["cap_status_updated"] == 2
+    assert result["by_action"]["risk_score_run"] == 1
+
+
+def test_tool_compare_provinces_computes_real_averages(db):
+    _make_wsa(db, name="CP WSA 1", province="Compare Province", blue_drop_score=80.0, risk_level=models.RiskLevel.low)
+    _make_wsa(db, name="CP WSA 2", province="Compare Province", blue_drop_score=60.0, risk_level=models.RiskLevel.high)
+
+    results = tool_compare_provinces(db)
+    entry = next(r for r in results if r["province"] == "Compare Province")
+
+    assert entry["wsa_count"] == 2
+    assert entry["avg_blue_drop_score"] == 70.0
+    assert entry["high_risk_count"] == 1
 
 
 def test_all_registered_tools_are_callable_with_db_only():

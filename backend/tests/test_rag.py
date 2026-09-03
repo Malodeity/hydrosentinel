@@ -80,3 +80,72 @@ def test_regulatory_context_endpoint_returns_cited_answer(client, auth_headers):
     assert "annually" in body["answer"]
     assert body["sources"][0]["source"] == "blue_drop.pdf"
     assert body["sources"][0]["page"] == 12
+
+
+def test_directory_fingerprint_changes_when_a_file_is_added(tmp_path):
+    from ai.rag import _directory_fingerprint
+
+    with patch("ai.rag.RAW_DIR", tmp_path):
+        before = _directory_fingerprint()
+        (tmp_path / "new_report.pdf").write_bytes(b"fake")
+        after = _directory_fingerprint()
+
+    assert before != after
+
+
+def test_directory_fingerprint_changes_when_a_file_is_modified(tmp_path):
+    from ai.rag import _directory_fingerprint
+
+    pdf_path = tmp_path / "report.pdf"
+    pdf_path.write_bytes(b"v1")
+    with patch("ai.rag.RAW_DIR", tmp_path):
+        before = _directory_fingerprint()
+        import os
+        import time
+        time.sleep(0.01)
+        os.utime(pdf_path, None)  # bump mtime without changing content
+        after = _directory_fingerprint()
+
+    assert before != after
+
+
+def test_directory_fingerprint_stable_when_nothing_changes(tmp_path):
+    from ai.rag import _directory_fingerprint
+
+    (tmp_path / "report.pdf").write_bytes(b"v1")
+    with patch("ai.rag.RAW_DIR", tmp_path):
+        first = _directory_fingerprint()
+        second = _directory_fingerprint()
+
+    assert first == second
+
+
+def test_get_index_rebuilds_when_fingerprint_changes():
+    from ai import rag
+
+    rag._index_cache.clear()
+    fingerprints = iter([frozenset({("a.pdf", 1.0)}), frozenset({("a.pdf", 1.0), ("b.pdf", 2.0)})])
+
+    with patch("ai.rag._directory_fingerprint", side_effect=lambda: next(fingerprints)), \
+         patch("ai.rag._extract_chunks", return_value=[]) as mock_extract:
+        rag.get_index()
+        rag.get_index()  # different fingerprint this time -> must rebuild
+
+    assert mock_extract.call_count == 2
+    rag._index_cache.clear()
+
+
+def test_get_index_does_not_rebuild_when_fingerprint_is_unchanged():
+    from ai import rag
+
+    rag._index_cache.clear()
+    stable_fingerprint = frozenset({("a.pdf", 1.0)})
+
+    with patch("ai.rag._directory_fingerprint", return_value=stable_fingerprint), \
+         patch("ai.rag._extract_chunks", return_value=[]) as mock_extract:
+        rag.get_index()
+        rag.get_index()
+        rag.get_index()
+
+    assert mock_extract.call_count == 1
+    rag._index_cache.clear()

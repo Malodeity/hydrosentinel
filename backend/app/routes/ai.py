@@ -11,6 +11,7 @@ from ai.rag import retrieve
 from app import auth, models, schemas
 from app.config import settings
 from app.database import get_db
+from app.rate_limit import enforce_ai_rate_limit
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -454,7 +455,7 @@ def parse_cap_draft_json(content: str) -> list[dict]:
 def get_cap_draft(
     wsa_id: UUID,
     db: Session = Depends(get_db),
-    _: models.User = Depends(auth.get_current_admin_user),
+    _: models.User = Depends(enforce_ai_rate_limit),
 ) -> schemas.CapDraftResponse:
     # drafts a structured, evidence-linked corrective action plan an admin
     # can review and edit, instead of a single paragraph of prose
@@ -496,7 +497,7 @@ def get_cap_draft(
 @router.get("/regulatory-context", response_model=schemas.RegulatoryContextResponse)
 def get_regulatory_context(
     query: str,
-    _: models.User = Depends(auth.get_current_admin_user),
+    _: models.User = Depends(enforce_ai_rate_limit),
 ) -> schemas.RegulatoryContextResponse:
     # answers a question using only excerpts actually retrieved from the DWS
     # regulatory PDFs already in data/raw/, with a source+page citation per
@@ -524,7 +525,7 @@ def get_regulatory_context(
 def post_ai_query(
     payload: schemas.AIQueryRequest,
     db: Session = Depends(get_db),
-    _: models.User = Depends(auth.get_current_admin_user),
+    _: models.User = Depends(enforce_ai_rate_limit),
 ) -> schemas.AIQueryResponse:
     # a natural-language front end over the platform's own data: the model
     # calls real read-only queries (ai/query_agent.py) instead of reciting a

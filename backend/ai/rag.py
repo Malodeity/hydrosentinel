@@ -39,9 +39,20 @@ def _extract_chunks() -> list[dict]:
     return chunks
 
 
+def _directory_fingerprint() -> frozenset:
+    # cheap: just filenames + mtimes, not file contents — lets get_index()
+    # detect a dropped-in or edited PDF without re-parsing anything to check
+    if not RAW_DIR.exists():
+        return frozenset()
+    return frozenset((p.name, p.stat().st_mtime) for p in RAW_DIR.glob("*.pdf"))
+
+
 def get_index() -> dict:
-    if not _index_cache:
+    fingerprint = _directory_fingerprint()
+    if not _index_cache or _index_cache.get("_fingerprint") != fingerprint:
+        _index_cache.clear()
         _index_cache.update(build_index_from_chunks(_extract_chunks()))
+        _index_cache["_fingerprint"] = fingerprint
     return _index_cache
 
 

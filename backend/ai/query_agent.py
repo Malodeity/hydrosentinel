@@ -76,10 +76,63 @@ def tool_get_report_counts(
     }
 
 
+def tool_get_alerts(
+    db: Session,
+    wsa_name: str | None = None,
+    unacknowledged_only: bool = False,
+) -> list[dict]:
+    query = db.query(models.Alert).join(models.WSA)
+    if wsa_name:
+        query = query.filter(models.WSA.name == wsa_name)
+    if unacknowledged_only:
+        query = query.filter(models.Alert.acknowledged_at.is_(None))
+    alerts = query.order_by(models.Alert.created_at.desc()).limit(50).all()
+    return [
+        {
+            "wsa_name": a.wsa.name,
+            "alert_type": a.alert_type.value,
+            "message": a.message,
+            "acknowledged": a.acknowledged_at is not None,
+            "created_at": a.created_at.isoformat(),
+        }
+        for a in alerts
+    ]
+
+
+def tool_get_audit_summary(db: Session, days: int = 30) -> dict:
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    entries = db.query(models.AuditLog).filter(models.AuditLog.created_at >= cutoff).all()
+    return {
+        "total": len(entries),
+        "by_action": dict(Counter(e.action.value for e in entries)),
+    }
+
+
+def tool_compare_provinces(db: Session) -> list[dict]:
+    wsas = db.query(models.WSA).all()
+    by_province: dict[str, list[models.WSA]] = {}
+    for wsa in wsas:
+        by_province.setdefault(wsa.province, []).append(wsa)
+
+    results = []
+    for province, group in by_province.items():
+        scores = [w.blue_drop_score for w in group if w.blue_drop_score is not None]
+        results.append({
+            "province": province,
+            "wsa_count": len(group),
+            "avg_blue_drop_score": round(sum(scores) / len(scores), 2) if scores else None,
+            "high_risk_count": sum(1 for w in group if w.risk_level == models.RiskLevel.high),
+        })
+    return sorted(results, key=lambda r: r["province"])
+
+
 TOOL_FUNCTIONS = {
     "get_wsas": tool_get_wsas,
     "get_trending_wsas": tool_get_trending_wsas,
     "get_report_counts": tool_get_report_counts,
+    "get_alerts": tool_get_alerts,
+    "get_audit_summary": tool_get_audit_summary,
+    "compare_provinces": tool_compare_provinces,
 }
 
 TOOLS_SCHEMA = [
@@ -119,6 +172,39 @@ TOOLS_SCHEMA = [
                     "days": {"type": "integer"},
                 },
             },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_alerts",
+            "description": "List system alerts, optionally filtered by WSA name or unacknowledged-only.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "wsa_name": {"type": "string"},
+                    "unacknowledged_only": {"type": "boolean"},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_audit_summary",
+            "description": "Count admin actions (CAP updates, report triage, risk scoring) from the audit log over a number of days, grouped by action type.",
+            "parameters": {
+                "type": "object",
+                "properties": {"days": {"type": "integer"}},
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "compare_provinces",
+            "description": "Compare all provinces: WSA count, average Blue Drop score, and high-risk WSA count per province.",
+            "parameters": {"type": "object", "properties": {}},
         },
     },
 ]
