@@ -66,3 +66,15 @@ def test_endpoint_returns_429_when_rate_limited(client, auth_headers, admin_user
     resp = client.post("/ai/query", json={"question": "how many WSAs are high risk?"}, headers=auth_headers)
     assert resp.status_code == 429
     _call_log.clear()
+
+
+def test_openai_client_has_a_short_timeout_so_an_outage_fails_fast():
+    # the library default read timeout is 600s; an OpenAI outage must not hold a request that long
+    from unittest.mock import patch
+    from app.routes import ai as ai_routes
+
+    with patch.object(ai_routes.settings, "openai_api_key", "test-key"):
+        client = ai_routes.get_openai_client()
+
+    assert client.timeout == 30.0
+    assert client.max_retries == 1

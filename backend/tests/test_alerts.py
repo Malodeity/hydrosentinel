@@ -101,3 +101,39 @@ def test_list_alerts_requires_auth(client):
 def test_acknowledge_nonexistent_alert_returns_404(client, auth_headers):
     resp = client.patch(f"/alerts/{uuid.uuid4()}/acknowledge", headers=auth_headers)
     assert resp.status_code == 404
+
+
+def _add_reports(db, wsa, count):
+    for i in range(count):
+        db.add(models.CitizenReport(
+            wsa_id=wsa.id, issue_type=models.IssueType.outage, description="volume test",
+            reference_code=f"HS-V{i}{uuid.uuid4().hex[:6]}"[:12], case_status="open", lat=-26.2, lng=28.0,
+        ))
+    db.flush()
+
+
+def test_report_volume_spike_alert_fires_at_five_reports_in_24h(db, sample_wsa):
+    from app.alert_helpers import raise_report_volume_spike_alert
+    _add_reports(db, sample_wsa, 5)
+
+    raise_report_volume_spike_alert(sample_wsa, db)
+    db.flush()
+
+    alert = db.query(models.Alert).filter(
+        models.Alert.wsa_id == sample_wsa.id,
+        models.Alert.alert_type == models.AlertType.report_volume_spike,
+    ).first()
+    assert alert is not None
+
+
+def test_report_volume_spike_alert_does_not_fire_below_five_reports(db, sample_wsa):
+    from app.alert_helpers import raise_report_volume_spike_alert
+    _add_reports(db, sample_wsa, 4)
+
+    raise_report_volume_spike_alert(sample_wsa, db)
+    db.flush()
+
+    assert db.query(models.Alert).filter(
+        models.Alert.wsa_id == sample_wsa.id,
+        models.Alert.alert_type == models.AlertType.report_volume_spike,
+    ).count() == 0

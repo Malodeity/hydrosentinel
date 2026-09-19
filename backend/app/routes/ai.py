@@ -25,7 +25,8 @@ def get_openai_client() -> OpenAI:
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="OPENAI_API_KEY is not configured",
         )
-    return OpenAI(api_key=settings.openai_api_key)
+    # the library default read timeout is 600s with 2 retries, far too long for a live admin request
+    return OpenAI(api_key=settings.openai_api_key, timeout=30.0, max_retries=1)
 
 
 def call_openai(system_prompt: str, user_prompt: str, max_tokens: int = 400) -> str:

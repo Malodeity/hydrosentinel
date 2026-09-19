@@ -151,15 +151,17 @@ def test_tool_get_alerts_filters_unacknowledged_only(db, sample_wsa):
 
 def test_tool_get_audit_summary_counts_by_action(db, admin_user):
     from app import models as m
+    # the dev database may already hold real audit rows, so measure the change, not the total
+    before = tool_get_audit_summary(db, days=30)["by_action"]
     db.add(m.AuditLog(user_id=admin_user.id, action=m.AuditAction.cap_status_updated, table_name="wsa", record_id=admin_user.id))
     db.add(m.AuditLog(user_id=admin_user.id, action=m.AuditAction.cap_status_updated, table_name="wsa", record_id=admin_user.id))
     db.add(m.AuditLog(user_id=admin_user.id, action=m.AuditAction.risk_score_run, table_name="wsa", record_id=admin_user.id))
     db.flush()
 
-    result = tool_get_audit_summary(db, days=30)
+    after = tool_get_audit_summary(db, days=30)["by_action"]
 
-    assert result["by_action"]["cap_status_updated"] == 2
-    assert result["by_action"]["risk_score_run"] == 1
+    assert after["cap_status_updated"] - before.get("cap_status_updated", 0) == 2
+    assert after["risk_score_run"] - before.get("risk_score_run", 0) == 1
 
 
 def test_tool_compare_provinces_computes_real_averages(db):
