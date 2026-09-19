@@ -1,0 +1,48 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+title HydroSentinel: Activity Diagram, "Citizen report to CAP action"
+
+|Citizen|
+start
+:Submit report (WSA, issue type,\nlocation, photos);
+|System|
+:Create CitizenReport\n(case_status = open);
+if (5+ reports for this WSA in 24h?) then (yes)
+  :Raise report_volume_spike Alert;
+else (no)
+endif
+if (3+ reports cluster geographically?) then (yes)
+  :Raise geo_cluster_incident Alert;
+else (no)
+endif
+|Admin|
+:Review report in triage queue;
+:Update case_status + admin comment;
+if (Pattern suggests WSA-level risk issue?) then (no)
+  stop
+else (yes)
+endif
+:Trigger Run Risk Scoring;
+|AI Engine|
+:XGBoost predicts risk_level + probability;
+|System|
+if (risk_level == high?) then (yes)
+  :Raise risk_level_high Alert;
+else (no)
+endif
+|Admin|
+:Click Draft CAP;
+|AI Engine|
+:GPT-4o drafts evidence-linked CAP items;
+|Admin|
+:Review CAP draft item;
+if (Accept item?) then (no)
+  stop
+else (yes)
+endif
+|System|
+:Set CAP status = submitted,\ndue date = today + suggested_due_in_days;
+:Write AuditLog (cap_status_updated);
+stop
+@enduml

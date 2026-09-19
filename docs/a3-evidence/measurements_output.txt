@@ -1,0 +1,36 @@
+Recorded output of the measurement scripts, run on 2026-09-19 against the running servers
+(PostgreSQL 16 on :5433, Uvicorn on :8010, real OpenAI key). Server and client on one laptop.
+
+measure_performance_and_access.py
+NFR-01 sequential n=100 GET /wsa: median 0.008s p95 0.009s max 0.070s
+NFR-01 concurrent 50 users x4 (n=200): median 0.413s p95 0.474s max 0.507s wall 1.70s
+payload: 284 WSAs, 175 KB
+NFR-04 no token GET /audit-log -> 401
+NFR-04 no token GET /alerts -> 401
+NFR-04 no token POST /risk/score/00000000-0000-0000-0000-000000000000 -> 401
+NFR-04 no token GET /reports -> 401
+NFR-04 no token GET /users -> 401
+NFR-04 no token PATCH /wsa/{id} -> 401
+
+measure_query_agent_and_ai_outage.py  (port 8011 was started with OPENAI_API_KEY blank)
+--- AI-NFR-02 query agent (real GPT-4o) ---
+200 in 3.43s, tool_calls=1 | Q: How many WSAs are high risk in each province?
+200 in 1.77s, tool_calls=1 | Q: Which Eastern Cape WSAs have no CAP and are high risk?
+200 in 2.25s, tool_calls=1 | Q: Compare the average Blue Drop score of Gauteng and Western Cape.
+--- NFR-02 with OpenAI key blank (port 8011) ---
+core GET /wsa -> 200 0.009s
+AI /ai/wsa/{id}/summary -> 503 {"detail":"OPENAI_API_KEY is not configured"} 0.002s
+AI /ai/wsa/{id}/cap-draft -> 503 {"detail":"OPENAI_API_KEY is not configured"} 0.003s
+AI /ai/digest -> 200 (served from the 24 hour cache) 0.002s
+core GET /alerts -> 200
+core GET /risk/scores -> 200
+
+measure_ai_summary.py
+200 2.13s | !Kai! Garib LM | Blue Drop 16.2 | mentions score: True
+200 1.55s | !Kheis LM | Blue Drop 29.3 | mentions score: True
+200 1.80s | Albert Luthuli LM | Blue Drop 19.1 | mentions score: True
+
+measure_cap_draft.py
+200 2.79s | !Kai! Garib LM | 5 items | priorities ['high', 'medium', 'medium', 'high', 'low'] | days [30, 60, 90, 45, 120]
+200 2.53s | !Kheis LM | 4 items | priorities ['high', 'high', 'medium', 'medium'] | days [90, 120, 180, 60]
+200 3.25s | Albert Luthuli LM | 5 items | priorities ['high', 'medium', 'high', 'medium', 'low'] | days [90, 180, 60, 120, 150]

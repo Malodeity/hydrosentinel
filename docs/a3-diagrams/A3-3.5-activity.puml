@@ -1,0 +1,75 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+title HydroSentinel: Activity Diagram, "Draft and accept a Corrective Action Plan"
+
+|Admin|
+start
+:Select a WSA and click Draft CAP;
+|System|
+:Check the admin token;
+if (Valid admin token?) then (no)
+  :Return 401 / 403;
+  |Admin|
+  :See error, sign in again;
+  stop
+else (yes)
+endif
+|System|
+if (Under 20 AI requests\nin the last hour?) then (no)
+  :Return 429 Too Many Requests;
+  |Admin|
+  :See rate-limit message;
+  stop
+else (yes)
+endif
+|System|
+:Load WSA, open reports and\nlatest risk score from database;
+if (WSA exists?) then (no)
+  :Return 404 Not Found;
+  |Admin|
+  :See "WSA not found";
+  stop
+else (yes)
+endif
+|System|
+if (OpenAI key configured?) then (no)
+  :Return 503 Service Unavailable;
+  |Admin|
+  :See "AI unavailable", other\nfeatures keep working;
+  stop
+else (yes)
+endif
+|AI Engine|
+:GPT-4o drafts 3 to 5 CAP items\nas structured JSON;
+|System|
+if (OpenAI call succeeded?) then (no)
+  :Return 502 Bad Gateway;
+  |Admin|
+  :See "Could not generate draft";
+  stop
+else (yes)
+endif
+|System|
+:Validate JSON, fix bad priorities,\nkeep at most 6 valid items;
+if (At least one valid item?) then (no)
+  :Return 502 Bad Gateway;
+  |Admin|
+  :See "Could not generate draft";
+  stop
+else (yes)
+endif
+|Admin|
+:Review each draft item;
+if (Accept an item?) then (no)
+  :Leave CAP unchanged;
+  stop
+else (yes)
+endif
+|System|
+:Set CAP status = submitted,\ndue date = today + suggested days;
+:Write AuditLog (cap_status_updated);
+|Admin|
+:See "Applied to CAP",\nCAP totals refresh;
+stop
+@enduml

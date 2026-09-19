@@ -1,0 +1,38 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+title HydroSentinel: Deployment Diagram (Docker Compose topology)
+
+node "Client device" as cd {
+  artifact "Web browser\n(React single-page app)" as browser
+}
+
+node "Docker host (Linux or macOS server)" as host {
+  node "frontend container\nnode:20-alpine, port 5173" as fe {
+    artifact "Vite dev server\n(React build)" as vite
+  }
+  node "backend container\nPython, Uvicorn, port 8000" as be {
+    artifact "FastAPI application" as api
+    artifact "model.pkl (XGBoost)" as model
+    artifact "data/uploads (photos)\ndata/raw (regulatory PDFs)" as files
+  }
+  node "db container\npostgres:15, port 5432" as db {
+    database "hydrosentinel database\n(volume: postgres_data)" as pg
+  }
+}
+
+cloud "OpenAI cloud" as oa {
+  artifact "Chat Completions API\n(GPT-4o)" as gpt
+}
+cloud "Public data sources" as pub {
+  artifact "Municipal Money API\nDWS PDF reports" as src
+}
+
+browser --> vite : HTTP :5173
+browser --> api : HTTPS / JSON :8000
+api --> pg : SQL (psycopg2) :5432
+api --> gpt : HTTPS (outbound only)
+api --> model : file read at startup
+api --> files : file read / write
+api ..> src : ETL fetch (batch)
+@enduml

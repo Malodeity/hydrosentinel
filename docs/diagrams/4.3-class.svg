@@ -1,0 +1,214 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1340" viewBox="0 0 1440 1340" font-family="Helvetica, Arial, sans-serif">
+<rect width="1440" height="1340" fill="#fff"/>
+<text x="720.0" y="32" text-anchor="middle" font-size="19" font-weight="bold">HydroSentinel: Class Diagram</text>
+<rect x="40" y="70" width="320" height="204" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="200.0" y="92" text-anchor="middle" font-size="15" font-weight="bold">User</text>
+<line x1="40" y1="106" x2="360" y2="106" stroke="#222" stroke-width="1.2"/>
+<text x="50" y="121" font-size="12.5" font-family="Menlo, Consolas, monospace">+ id : UUID</text>
+<text x="50" y="140" font-size="12.5" font-family="Menlo, Consolas, monospace">+ email : String</text>
+<text x="50" y="159" font-size="12.5" font-family="Menlo, Consolas, monospace">+ hashed_password : String</text>
+<text x="50" y="178" font-size="12.5" font-family="Menlo, Consolas, monospace">+ role : UserRole</text>
+<text x="50" y="197" font-size="12.5" font-family="Menlo, Consolas, monospace">+ is_active : Boolean</text>
+<text x="50" y="216" font-size="12.5" font-family="Menlo, Consolas, monospace">+ last_login_at : DateTime</text>
+<text x="50" y="235" font-size="12.5" font-family="Menlo, Consolas, monospace">+ created_at : DateTime</text>
+<line x1="40" y1="247" x2="360" y2="247" stroke="#222" stroke-width="1.2"/>
+<text x="50" y="262" font-size="12.5" font-family="Menlo, Consolas, monospace">+ verifyPassword(plain) : Boolean</text>
+<rect x="450" y="70" width="320" height="217" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="610.0" y="92" text-anchor="middle" font-size="15" font-weight="bold">AuditLog</text>
+<line x1="450" y1="106" x2="770" y2="106" stroke="#222" stroke-width="1.2"/>
+<text x="460" y="121" font-size="12.5" font-family="Menlo, Consolas, monospace">+ id : UUID</text>
+<text x="460" y="140" font-size="12.5" font-family="Menlo, Consolas, monospace">+ user_id : UUID</text>
+<text x="460" y="159" font-size="12.5" font-family="Menlo, Consolas, monospace">+ action : AuditAction</text>
+<text x="460" y="178" font-size="12.5" font-family="Menlo, Consolas, monospace">+ table_name : String</text>
+<text x="460" y="197" font-size="12.5" font-family="Menlo, Consolas, monospace">+ record_id : UUID</text>
+<text x="460" y="216" font-size="12.5" font-family="Menlo, Consolas, monospace">+ old_value : JSON</text>
+<text x="460" y="235" font-size="12.5" font-family="Menlo, Consolas, monospace">+ new_value : JSON</text>
+<text x="460" y="254" font-size="12.5" font-family="Menlo, Consolas, monospace">+ ip_address : String</text>
+<text x="460" y="273" font-size="12.5" font-family="Menlo, Consolas, monospace">+ created_at : DateTime</text>
+<rect x="920" y="70" width="420" height="280" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="1130.0" y="92" text-anchor="middle" font-size="15" font-weight="bold">WSA</text>
+<line x1="920" y1="106" x2="1340" y2="106" stroke="#222" stroke-width="1.2"/>
+<text x="930" y="121" font-size="12.5" font-family="Menlo, Consolas, monospace">+ id : UUID</text>
+<text x="930" y="140" font-size="12.5" font-family="Menlo, Consolas, monospace">+ name : String</text>
+<text x="930" y="159" font-size="12.5" font-family="Menlo, Consolas, monospace">+ province : String</text>
+<text x="930" y="178" font-size="12.5" font-family="Menlo, Consolas, monospace">+ blue_drop_score : Float</text>
+<text x="930" y="197" font-size="12.5" font-family="Menlo, Consolas, monospace">+ green_drop_score : Float</text>
+<text x="930" y="216" font-size="12.5" font-family="Menlo, Consolas, monospace">+ nrw_percent : Float</text>
+<text x="930" y="235" font-size="12.5" font-family="Menlo, Consolas, monospace">+ maint_pct : Float</text>
+<text x="930" y="254" font-size="12.5" font-family="Menlo, Consolas, monospace">+ risk_level : RiskLevel</text>
+<text x="930" y="273" font-size="12.5" font-family="Menlo, Consolas, monospace">+ cap_status : CAPStatus</text>
+<text x="930" y="292" font-size="12.5" font-family="Menlo, Consolas, monospace">+ cap_due_date : Date</text>
+<text x="930" y="311" font-size="12.5" font-family="Menlo, Consolas, monospace">+ lat, lng : Float</text>
+<line x1="920" y1="323" x2="1340" y2="323" stroke="#222" stroke-width="1.2"/>
+<text x="930" y="338" font-size="12.5" font-family="Menlo, Consolas, monospace">+ updateCapStatus(status, dueDate)</text>
+<rect x="40" y="500" width="320" height="185" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="200.0" y="522" text-anchor="middle" font-size="15" font-weight="bold">RefreshToken</text>
+<line x1="40" y1="536" x2="360" y2="536" stroke="#222" stroke-width="1.2"/>
+<text x="50" y="551" font-size="12.5" font-family="Menlo, Consolas, monospace">+ id : UUID</text>
+<text x="50" y="570" font-size="12.5" font-family="Menlo, Consolas, monospace">+ user_id : UUID</text>
+<text x="50" y="589" font-size="12.5" font-family="Menlo, Consolas, monospace">+ token_hash : String</text>
+<text x="50" y="608" font-size="12.5" font-family="Menlo, Consolas, monospace">+ expires_at : DateTime</text>
+<text x="50" y="627" font-size="12.5" font-family="Menlo, Consolas, monospace">+ revoked_at : DateTime</text>
+<text x="50" y="646" font-size="12.5" font-family="Menlo, Consolas, monospace">+ created_at : DateTime</text>
+<line x1="40" y1="658" x2="360" y2="658" stroke="#222" stroke-width="1.2"/>
+<text x="50" y="673" font-size="12.5" font-family="Menlo, Consolas, monospace">+ rotate() : RefreshToken</text>
+<rect x="450" y="500" width="320" height="318" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="610.0" y="522" text-anchor="middle" font-size="15" font-weight="bold">CitizenReport</text>
+<line x1="450" y1="536" x2="770" y2="536" stroke="#222" stroke-width="1.2"/>
+<text x="460" y="551" font-size="12.5" font-family="Menlo, Consolas, monospace">+ id : UUID</text>
+<text x="460" y="570" font-size="12.5" font-family="Menlo, Consolas, monospace">+ wsa_id : UUID</text>
+<text x="460" y="589" font-size="12.5" font-family="Menlo, Consolas, monospace">+ issue_type : IssueType</text>
+<text x="460" y="608" font-size="12.5" font-family="Menlo, Consolas, monospace">+ reference_code : String</text>
+<text x="460" y="627" font-size="12.5" font-family="Menlo, Consolas, monospace">+ description : String</text>
+<text x="460" y="646" font-size="12.5" font-family="Menlo, Consolas, monospace">+ case_status : String</text>
+<text x="460" y="665" font-size="12.5" font-family="Menlo, Consolas, monospace">+ admin_comment : String</text>
+<text x="460" y="684" font-size="12.5" font-family="Menlo, Consolas, monospace">+ reviewed_by : UUID</text>
+<text x="460" y="703" font-size="12.5" font-family="Menlo, Consolas, monospace">+ resolved_by : UUID</text>
+<text x="460" y="722" font-size="12.5" font-family="Menlo, Consolas, monospace">+ reviewed_at : DateTime</text>
+<text x="460" y="741" font-size="12.5" font-family="Menlo, Consolas, monospace">+ resolved_at : DateTime</text>
+<text x="460" y="760" font-size="12.5" font-family="Menlo, Consolas, monospace">+ lat, lng : Float</text>
+<text x="460" y="779" font-size="12.5" font-family="Menlo, Consolas, monospace">+ created_at : DateTime</text>
+<line x1="450" y1="791" x2="770" y2="791" stroke="#222" stroke-width="1.2"/>
+<text x="460" y="806" font-size="12.5" font-family="Menlo, Consolas, monospace">+ updateCaseStatus(status, comment)</text>
+<rect x="920" y="500" width="420" height="198" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="1130.0" y="522" text-anchor="middle" font-size="15" font-weight="bold">RiskScoreHistory</text>
+<line x1="920" y1="536" x2="1340" y2="536" stroke="#222" stroke-width="1.2"/>
+<text x="930" y="551" font-size="12.5" font-family="Menlo, Consolas, monospace">+ id : UUID</text>
+<text x="930" y="570" font-size="12.5" font-family="Menlo, Consolas, monospace">+ wsa_id : UUID</text>
+<text x="930" y="589" font-size="12.5" font-family="Menlo, Consolas, monospace">+ risk_level : RiskLevel</text>
+<text x="930" y="608" font-size="12.5" font-family="Menlo, Consolas, monospace">+ probability : Float</text>
+<text x="930" y="627" font-size="12.5" font-family="Menlo, Consolas, monospace">+ model_source : ModelSource</text>
+<text x="930" y="646" font-size="12.5" font-family="Menlo, Consolas, monospace">+ model_version : String</text>
+<text x="930" y="665" font-size="12.5" font-family="Menlo, Consolas, monospace">+ scored_by : UUID</text>
+<text x="930" y="684" font-size="12.5" font-family="Menlo, Consolas, monospace">+ scored_at : DateTime</text>
+<rect x="920" y="790" width="420" height="204" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="1130.0" y="812" text-anchor="middle" font-size="15" font-weight="bold">Alert</text>
+<line x1="920" y1="826" x2="1340" y2="826" stroke="#222" stroke-width="1.2"/>
+<text x="930" y="841" font-size="12.5" font-family="Menlo, Consolas, monospace">+ id : UUID</text>
+<text x="930" y="860" font-size="12.5" font-family="Menlo, Consolas, monospace">+ wsa_id : UUID</text>
+<text x="930" y="879" font-size="12.5" font-family="Menlo, Consolas, monospace">+ alert_type : AlertType</text>
+<text x="930" y="898" font-size="12.5" font-family="Menlo, Consolas, monospace">+ message : String</text>
+<text x="930" y="917" font-size="12.5" font-family="Menlo, Consolas, monospace">+ acknowledged_by : UUID</text>
+<text x="930" y="936" font-size="12.5" font-family="Menlo, Consolas, monospace">+ acknowledged_at : DateTime</text>
+<text x="930" y="955" font-size="12.5" font-family="Menlo, Consolas, monospace">+ created_at : DateTime</text>
+<line x1="920" y1="967" x2="1340" y2="967" stroke="#222" stroke-width="1.2"/>
+<text x="930" y="982" font-size="12.5" font-family="Menlo, Consolas, monospace">+ acknowledge(user)</text>
+<rect x="40" y="800" width="320" height="147" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="200.0" y="822" text-anchor="middle" font-size="15" font-weight="bold">Summary</text>
+<line x1="40" y1="836" x2="360" y2="836" stroke="#222" stroke-width="1.2"/>
+<text x="50" y="851" font-size="12.5" font-family="Menlo, Consolas, monospace">+ id : UUID</text>
+<text x="50" y="870" font-size="12.5" font-family="Menlo, Consolas, monospace">+ content : String</text>
+<text x="50" y="889" font-size="12.5" font-family="Menlo, Consolas, monospace">+ generated_by : UUID</text>
+<text x="50" y="908" font-size="12.5" font-family="Menlo, Consolas, monospace">+ generated_at : DateTime</text>
+<line x1="40" y1="920" x2="360" y2="920" stroke="#222" stroke-width="1.2"/>
+<text x="50" y="935" font-size="12.5" font-family="Menlo, Consolas, monospace">+ isFresh(hours) : Boolean</text>
+<polyline points="200,274 200,500" fill="none" stroke="#222" stroke-width="1.4"/>
+<polygon points="200.0,274.0 195.9,282.0 200.0,290.0 204.1,282.0" fill="#222" stroke="#222"/>
+<rect x="225" y="292" width="13" height="17" fill="#fff"/>
+<text x="228" y="304" text-anchor="start" font-size="13">1</text>
+<rect x="225" y="478" width="35" height="17" fill="#fff"/>
+<text x="228" y="490" text-anchor="start" font-size="13">0..*</text>
+<rect x="229" y="379.0" width="35" height="17" fill="#fff"/>
+<text x="232" y="391.0" text-anchor="start" font-size="13">owns</text>
+<polyline points="360,150 450,150" fill="none" stroke="#222" stroke-width="1.4"/>
+<rect x="369" y="130" width="13" height="17" fill="#fff"/>
+<text x="376" y="142" text-anchor="middle" font-size="13">1</text>
+<rect x="411" y="130" width="35" height="17" fill="#fff"/>
+<text x="428" y="142" text-anchor="middle" font-size="13">0..*</text>
+<rect x="373" y="166" width="64" height="17" fill="#fff"/>
+<text x="405.0" y="178" text-anchor="middle" font-size="13">performs</text>
+<polyline points="360,252 405,252 405,570 450,570" fill="none" stroke="#222" stroke-width="1.4"/>
+<rect x="365" y="232" width="35" height="17" fill="#fff"/>
+<text x="382" y="244" text-anchor="middle" font-size="13">0..1</text>
+<rect x="409" y="550" width="35" height="17" fill="#fff"/>
+<text x="426" y="562" text-anchor="middle" font-size="13">0..*</text>
+<rect x="415" y="384" width="136" height="17" fill="#fff"/>
+<text x="418" y="396" text-anchor="start" font-size="13">reviews / resolves</text>
+<polyline points="920,170 845,170 845,620 770,620" fill="none" stroke="#222" stroke-width="1.4"/>
+<polygon points="920.0,170.0 912.0,165.9 904.0,170.0 912.0,174.1" fill="#222" stroke="#222"/>
+<rect x="891" y="150" width="13" height="17" fill="#fff"/>
+<text x="898" y="162" text-anchor="middle" font-size="13">1</text>
+<rect x="779" y="600" width="35" height="17" fill="#fff"/>
+<text x="796" y="612" text-anchor="middle" font-size="13">0..*</text>
+<text x="845" y="460" text-anchor="middle" font-size="13">receives</text>
+<polyline points="1130,350 1130,500" fill="none" stroke="#222" stroke-width="1.4"/>
+<polygon points="1130.0,350.0 1126.0,358.0 1130.0,366.0 1134.0,358.0" fill="#222" stroke="#222"/>
+<rect x="1145" y="368" width="13" height="17" fill="#fff"/>
+<text x="1148" y="380" text-anchor="start" font-size="13">1</text>
+<rect x="1145" y="478" width="35" height="17" fill="#fff"/>
+<text x="1148" y="490" text-anchor="start" font-size="13">0..*</text>
+<rect x="1151" y="417.0" width="85" height="17" fill="#fff"/>
+<text x="1154" y="429.0" text-anchor="start" font-size="13">has history</text>
+<polyline points="1340,190 1405,190 1405,850 1340,850" fill="none" stroke="#222" stroke-width="1.4"/>
+<polygon points="1340.0,190.0 1348.0,194.1 1356.0,190.0 1348.0,185.9" fill="#222" stroke="#222"/>
+<rect x="1355" y="170" width="13" height="17" fill="#fff"/>
+<text x="1362" y="182" text-anchor="middle" font-size="13">1</text>
+<rect x="1353" y="828" width="35" height="17" fill="#fff"/>
+<text x="1370" y="840" text-anchor="middle" font-size="13">0..*</text>
+<rect x="1373" y="748" width="64" height="17" fill="#fff"/>
+<text x="1405" y="760" text-anchor="middle" font-size="13">triggers</text>
+<path d="M450 880H836L850 894V945H450Z" fill="#fffbe6" stroke="#222" stroke-width="1.2"/><path d="M836 880V894H850" fill="none" stroke="#222" stroke-width="1.2"/>
+<text x="460" y="902" text-anchor="start" font-size="12">Other associations to User (each 0..1, ON DELETE SET NULL):</text>
+<text x="460" y="919" text-anchor="start" font-size="12">RiskScoreHistory.scored_by, Alert.acknowledged_by,</text>
+<text x="460" y="936" text-anchor="start" font-size="12">Summary.generated_by. Not drawn, to keep lines readable.</text>
+<path d="M450 975H836L850 989V1040H450Z" fill="#fffbe6" stroke="#222" stroke-width="1.2"/><path d="M836 975V989H850" fill="none" stroke="#222" stroke-width="1.2"/>
+<text x="460" y="997" text-anchor="start" font-size="12">Photos are stored on disk (/uploads/{report_id}/),</text>
+<text x="460" y="1014" text-anchor="start" font-size="12">not as a CitizenReport column.</text>
+<text x="460" y="1031" text-anchor="start" font-size="12">No inheritance: no domain class specialises another.</text>
+<text x="40" y="1085" text-anchor="start" font-size="15" font-weight="bold">Enumerations used as attribute types</text>
+<rect x="40" y="1105" width="170" height="113" fill="#eef3fb" stroke="#222" stroke-width="1.3"/>
+<text x="125.0" y="1120" text-anchor="middle" font-size="11" font-style="italic">«enumeration»</text>
+<text x="125.0" y="1137" text-anchor="middle" font-size="14" font-weight="bold">RiskLevel</text>
+<line x1="40" y1="1145" x2="210" y2="1145" stroke="#222"/>
+<text x="50" y="1161" font-size="12.5" font-family="Menlo, Consolas, monospace">low</text>
+<text x="50" y="1180" font-size="12.5" font-family="Menlo, Consolas, monospace">medium</text>
+<text x="50" y="1199" font-size="12.5" font-family="Menlo, Consolas, monospace">high</text>
+<rect x="220" y="1105" width="170" height="132" fill="#eef3fb" stroke="#222" stroke-width="1.3"/>
+<text x="305.0" y="1120" text-anchor="middle" font-size="11" font-style="italic">«enumeration»</text>
+<text x="305.0" y="1137" text-anchor="middle" font-size="14" font-weight="bold">CAPStatus</text>
+<line x1="220" y1="1145" x2="390" y2="1145" stroke="#222"/>
+<text x="230" y="1161" font-size="12.5" font-family="Menlo, Consolas, monospace">none</text>
+<text x="230" y="1180" font-size="12.5" font-family="Menlo, Consolas, monospace">submitted</text>
+<text x="230" y="1199" font-size="12.5" font-family="Menlo, Consolas, monospace">in_progress</text>
+<text x="230" y="1218" font-size="12.5" font-family="Menlo, Consolas, monospace">completed</text>
+<rect x="400" y="1105" width="170" height="132" fill="#eef3fb" stroke="#222" stroke-width="1.3"/>
+<text x="485.0" y="1120" text-anchor="middle" font-size="11" font-style="italic">«enumeration»</text>
+<text x="485.0" y="1137" text-anchor="middle" font-size="14" font-weight="bold">IssueType</text>
+<line x1="400" y1="1145" x2="570" y2="1145" stroke="#222"/>
+<text x="410" y="1161" font-size="12.5" font-family="Menlo, Consolas, monospace">leak</text>
+<text x="410" y="1180" font-size="12.5" font-family="Menlo, Consolas, monospace">outage</text>
+<text x="410" y="1199" font-size="12.5" font-family="Menlo, Consolas, monospace">quality</text>
+<text x="410" y="1218" font-size="12.5" font-family="Menlo, Consolas, monospace">billing</text>
+<rect x="580" y="1105" width="170" height="94" fill="#eef3fb" stroke="#222" stroke-width="1.3"/>
+<text x="665.0" y="1120" text-anchor="middle" font-size="11" font-style="italic">«enumeration»</text>
+<text x="665.0" y="1137" text-anchor="middle" font-size="14" font-weight="bold">ModelSource</text>
+<line x1="580" y1="1145" x2="750" y2="1145" stroke="#222"/>
+<text x="590" y="1161" font-size="12.5" font-family="Menlo, Consolas, monospace">xgboost</text>
+<text x="590" y="1180" font-size="12.5" font-family="Menlo, Consolas, monospace">heuristic</text>
+<rect x="760" y="1105" width="170" height="94" fill="#eef3fb" stroke="#222" stroke-width="1.3"/>
+<text x="845.0" y="1120" text-anchor="middle" font-size="11" font-style="italic">«enumeration»</text>
+<text x="845.0" y="1137" text-anchor="middle" font-size="14" font-weight="bold">UserRole</text>
+<line x1="760" y1="1145" x2="930" y2="1145" stroke="#222"/>
+<text x="770" y="1161" font-size="12.5" font-family="Menlo, Consolas, monospace">admin</text>
+<text x="770" y="1180" font-size="12.5" font-family="Menlo, Consolas, monospace">viewer</text>
+<rect x="950" y="1105" width="210" height="151" fill="#eef3fb" stroke="#222" stroke-width="1.3"/>
+<text x="1055.0" y="1120" text-anchor="middle" font-size="11" font-style="italic">«enumeration»</text>
+<text x="1055.0" y="1137" text-anchor="middle" font-size="14" font-weight="bold">AlertType</text>
+<line x1="950" y1="1145" x2="1160" y2="1145" stroke="#222"/>
+<text x="960" y="1161" font-size="12.5" font-family="Menlo, Consolas, monospace">risk_level_high</text>
+<text x="960" y="1180" font-size="12.5" font-family="Menlo, Consolas, monospace">risk_level_increased</text>
+<text x="960" y="1199" font-size="12.5" font-family="Menlo, Consolas, monospace">report_volume_spike</text>
+<text x="960" y="1218" font-size="12.5" font-family="Menlo, Consolas, monospace">cap_overdue</text>
+<text x="960" y="1237" font-size="12.5" font-family="Menlo, Consolas, monospace">geo_cluster_incident</text>
+<rect x="1180" y="1105" width="240" height="189" fill="#eef3fb" stroke="#222" stroke-width="1.3"/>
+<text x="1300.0" y="1120" text-anchor="middle" font-size="11" font-style="italic">«enumeration»</text>
+<text x="1300.0" y="1137" text-anchor="middle" font-size="14" font-weight="bold">AuditAction</text>
+<line x1="1180" y1="1145" x2="1420" y2="1145" stroke="#222"/>
+<text x="1190" y="1161" font-size="12.5" font-family="Menlo, Consolas, monospace">cap_status_updated</text>
+<text x="1190" y="1180" font-size="12.5" font-family="Menlo, Consolas, monospace">report_status_updated</text>
+<text x="1190" y="1199" font-size="12.5" font-family="Menlo, Consolas, monospace">report_comment_updated</text>
+<text x="1190" y="1218" font-size="12.5" font-family="Menlo, Consolas, monospace">risk_score_run</text>
+<text x="1190" y="1237" font-size="12.5" font-family="Menlo, Consolas, monospace">wsa_updated</text>
+<text x="1190" y="1256" font-size="12.5" font-family="Menlo, Consolas, monospace">user_created</text>
+<text x="1190" y="1275" font-size="12.5" font-family="Menlo, Consolas, monospace">summary_generated</text>
+</svg>

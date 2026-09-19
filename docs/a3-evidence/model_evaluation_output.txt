@@ -1,0 +1,36 @@
+Training set: 144 labeled WSAs
+risk_level
+low       95
+medium    32
+high      17
+
+=== XGBoost ===
+              precision    recall  f1-score   support
+
+        high       1.00      1.00      1.00         3
+         low       0.86      1.00      0.93        19
+      medium       1.00      0.57      0.73         7
+
+    accuracy                           0.90        29
+   macro avg       0.95      0.86      0.88        29
+weighted avg       0.91      0.90      0.89        29
+
+=== Heuristic (current production fallback) ===
+              precision    recall  f1-score   support
+
+        high       0.00      0.00      0.00         3
+         low       1.00      0.16      0.27        19
+      medium       0.27      1.00      0.42         7
+
+    accuracy                           0.34        29
+   macro avg       0.42      0.39      0.23        29
+weighted avg       0.72      0.34      0.28        29
+
+=== Head-to-head on held-out set ===
+XGBoost accuracy:   89.7%
+Heuristic accuracy: 34.5%
+Test set size: 29 (train set: 115)
+
+=== 5-fold stratified cross-validation (more robust than one 80/20 split) ===
+Fold accuracies: [np.float64(0.862), np.float64(0.655), np.float64(0.69), np.float64(0.828), np.float64(0.857)]
+Mean: 77.8%  Std: 8.8%

@@ -1,0 +1,54 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+title HydroSentinel: Sequence Diagram, "Admin accepts an AI-drafted CAP item"
+
+actor Admin
+boundary "React UI\n(AdminPage)" as UI
+control "FastAPI\n(routes/ai.py, routes/wsa.py)" as API
+participant "AI Engine\n(GPT-4o)" as AI
+database "PostgreSQL" as DB
+
+Admin -> UI : Click "Draft CAP" for WSA
+activate UI
+UI -> API : GET /ai/wsa/{id}/cap-draft
+activate API
+API -> API : enforce_ai_rate_limit(admin)
+alt limit exceeded (20 per hour)
+  API --> UI : 429 Too Many Requests
+  UI --> Admin : Show rate-limit error
+else within limit
+  API -> DB : fetch WSA + latest RiskScoreHistory
+  activate DB
+  DB --> API : WSA data + risk score
+  deactivate DB
+  API -> AI : call_openai(system, wsa context)
+  activate AI
+  AI --> API : structured CAP draft items (JSON)
+  deactivate AI
+  API --> UI : 200 OK, CAP draft items
+  deactivate API
+  UI --> Admin : Render CAP draft with Accept buttons
+end
+deactivate UI
+
+Admin -> UI : Click "Accept" on item 1
+activate UI
+UI -> API : PATCH /wsa/{id} {cap_status: submitted, cap_due_date}
+activate API
+API -> API : get_current_admin_user (JWT check)
+alt invalid or non-admin token
+  API --> UI : 401 / 403
+  UI --> Admin : Show error
+else admin token valid
+  API -> DB : UPDATE wsa SET cap_status, cap_due_date
+  activate DB
+  API -> DB : INSERT AuditLog(action = cap_status_updated)
+  DB --> API : commit OK
+  deactivate DB
+  API --> UI : 200 OK, updated WSA
+  deactivate API
+  UI --> Admin : Button shows "Applied to CAP",\nCAP dashboard totals refresh
+end
+deactivate UI
+@enduml

@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420" height="1200" viewBox="0 0 1420 1200" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="#222" stroke-width="1.4"/></marker><marker id="tri" viewBox="0 0 14 12" refX="13" refY="6" markerWidth="14" markerHeight="12" orient="auto"><path d="M1 1L13 6L1 11Z" fill="#fff" stroke="#222" stroke-width="1.4"/></marker></defs>
+<rect width="1420" height="1200" fill="#fff"/>
+<text x="710.0" y="30" text-anchor="middle" font-size="18" font-weight="bold">HydroSentinel: Use-Case Diagram</text>
+<rect x="390" y="55" width="760" height="1120" fill="#fcfcfc" stroke="#222" stroke-width="1.6" rx="4"/>
+<text x="770" y="80" text-anchor="middle" font-size="15" font-weight="bold">HydroSentinel System Boundary</text>
+<line x1="144.0" y1="626.0" x2="480.0" y2="405.0" stroke="#222" stroke-width="1.3"/>
+<line x1="144.0" y1="626.0" x2="480.0" y2="305.0" stroke="#222" stroke-width="1.3"/>
+<line x1="144.0" y1="626.0" x2="480.0" y2="505.0" stroke="#222" stroke-width="1.3"/>
+<line x1="144.0" y1="626.0" x2="480.0" y2="605.0" stroke="#222" stroke-width="1.3"/>
+<line x1="144.0" y1="626.0" x2="480.0" y2="700.0" stroke="#222" stroke-width="1.3"/>
+<line x1="144.0" y1="626.0" x2="480.0" y2="790.0" stroke="#222" stroke-width="1.3"/>
+<line x1="144.0" y1="626.0" x2="480.0" y2="900.0" stroke="#222" stroke-width="1.3"/>
+<line x1="144.0" y1="626.0" x2="480.0" y2="975.0" stroke="#222" stroke-width="1.3"/>
+<line x1="144.0" y1="626.0" x2="480.0" y2="1050.0" stroke="#222" stroke-width="1.3"/>
+<line x1="144.0" y1="626.0" x2="480.0" y2="1125.0" stroke="#222" stroke-width="1.3"/>
+<line x1="144.0" y1="166.0" x2="480.0" y2="100.0" stroke="#222" stroke-width="1.3"/>
+<line x1="144.0" y1="166.0" x2="480.0" y2="180.0" stroke="#222" stroke-width="1.3"/>
+<line x1="1276.0" y1="626.0" x2="649.9" y2="427.2" stroke="#222" stroke-width="1.3"/>
+<line x1="1276.0" y1="626.0" x2="635.8" y2="330.7" stroke="#222" stroke-width="1.3"/>
+<line x1="1276.0" y1="626.0" x2="674.6" y2="689.9" stroke="#222" stroke-width="1.3"/>
+<line x1="1276.0" y1="626.0" x2="1014.7" y2="721.4" stroke="#222" stroke-width="1.3"/>
+<line x1="1276.0" y1="626.0" x2="993.5" y2="807.1" stroke="#222" stroke-width="1.3"/>
+<line x1="1276.0" y1="356.0" x2="677.3" y2="312.1" stroke="#222" stroke-width="1.3"/>
+<line x1="580.0" y1="374.0" x2="580.0" y2="336.0" stroke="#222" stroke-width="1.3" stroke-dasharray="7 5" marker-end="url(#open)"/>
+<rect x="494.0" y="346.0" width="68" height="16" fill="#fff"/>
+<text x="528.0" y="359.0" text-anchor="middle" font-size="12">«include»</text>
+<line x1="580.0" y1="536.0" x2="580.0" y2="574.0" stroke="#222" stroke-width="1.3" stroke-dasharray="7 5" marker-end="url(#open)"/>
+<rect x="494.0" y="546.0" width="68" height="16" fill="#fff"/>
+<text x="528.0" y="559.0" text-anchor="middle" font-size="12">«include»</text>
+<line x1="859.8" y1="221.6" x2="670.2" y2="193.4" stroke="#222" stroke-width="1.3" stroke-dasharray="7 5" marker-end="url(#open)"/>
+<rect x="731.0" y="194.5" width="68" height="16" fill="#fff"/>
+<text x="765.0" y="207.5" text-anchor="middle" font-size="12">«extend»</text>
+<line x1="864.6" y1="251.1" x2="665.4" y2="288.9" stroke="#222" stroke-width="1.3" stroke-dasharray="7 5" marker-end="url(#open)"/>
+<rect x="731.0" y="273.0" width="68" height="16" fill="#fff"/>
+<text x="765.0" y="286.0" text-anchor="middle" font-size="12">«extend»</text>
+<line x1="856.9" y1="756.3" x2="673.1" y2="778.7" stroke="#222" stroke-width="1.3" marker-end="url(#tri)"/>
+<line x1="856.9" y1="823.7" x2="673.1" y2="801.3" stroke="#222" stroke-width="1.3" marker-end="url(#tri)"/>
+<ellipse cx="580" cy="100" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="580" y="88" text-anchor="middle" font-size="13">View Public</text>
+<text x="580" y="103" text-anchor="middle" font-size="13">Risk Dashboard</text>
+<text x="580" y="119" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(NFR-01)</text>
+<ellipse cx="580" cy="180" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="580" y="168" text-anchor="middle" font-size="13">Submit Citizen</text>
+<text x="580" y="183" text-anchor="middle" font-size="13">Report</text>
+<text x="580" y="199" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(FR-01)</text>
+<ellipse cx="580" cy="305" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="580" y="293" text-anchor="middle" font-size="13">Run Risk</text>
+<text x="580" y="308" text-anchor="middle" font-size="13">Scoring</text>
+<text x="580" y="324" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(FR-04)</text>
+<ellipse cx="580" cy="405" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="580" y="393" text-anchor="middle" font-size="13">Generate AI</text>
+<text x="580" y="408" text-anchor="middle" font-size="13">CAP Draft</text>
+<text x="580" y="424" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(FR-06)</text>
+<ellipse cx="580" cy="505" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="580" y="493" text-anchor="middle" font-size="13">Accept CAP</text>
+<text x="580" y="508" text-anchor="middle" font-size="13">Draft Item</text>
+<text x="580" y="524" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(FR-07)</text>
+<ellipse cx="580" cy="605" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="580" y="593" text-anchor="middle" font-size="13">Update CAP</text>
+<text x="580" y="608" text-anchor="middle" font-size="13">Status</text>
+<text x="580" y="624" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(FR-03)</text>
+<ellipse cx="580" cy="700" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="580" y="688" text-anchor="middle" font-size="13">View AI</text>
+<text x="580" y="703" text-anchor="middle" font-size="13">Recommendations</text>
+<text x="580" y="719" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(FR-05)</text>
+<ellipse cx="580" cy="790" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="580" y="778" text-anchor="middle" font-size="13">Ask AI</text>
+<text x="580" y="793" text-anchor="middle" font-size="13">Question</text>
+<text x="580" y="809" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(FR-08, FR-09)</text>
+<ellipse cx="580" cy="900" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="580" y="888" text-anchor="middle" font-size="13">Triage Citizen</text>
+<text x="580" y="903" text-anchor="middle" font-size="13">Report</text>
+<text x="580" y="919" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(FR-02)</text>
+<ellipse cx="580" cy="975" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="580" y="963" text-anchor="middle" font-size="13">Acknowledge</text>
+<text x="580" y="978" text-anchor="middle" font-size="13">Alert</text>
+<text x="580" y="994" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(NFR-04)</text>
+<ellipse cx="580" cy="1050" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="580" y="1045" text-anchor="middle" font-size="13">View Audit Log</text>
+<text x="580" y="1061" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(NFR-04)</text>
+<ellipse cx="580" cy="1125" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="580" y="1120" text-anchor="middle" font-size="13">Log In</text>
+<text x="580" y="1136" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(NFR-04)</text>
+<ellipse cx="950" cy="235" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="950" y="230" text-anchor="middle" font-size="13">Raise Alert</text>
+<text x="950" y="246" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(FR-10)</text>
+<ellipse cx="950" cy="745" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="950" y="733" text-anchor="middle" font-size="13">Ask NL</text>
+<text x="950" y="748" text-anchor="middle" font-size="13">Data Query</text>
+<text x="950" y="764" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(FR-08)</text>
+<ellipse cx="950" cy="835" rx="100" ry="31" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<text x="950" y="823" text-anchor="middle" font-size="13">Ask Regulatory</text>
+<text x="950" y="838" text-anchor="middle" font-size="13">Question (RAG)</text>
+<text x="950" y="854" text-anchor="middle" font-size="11" fill="#555" font-style="italic">(FR-09)</text>
+<circle cx="120" cy="600" r="13" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<path d="M120 613V648M96 626H144M120 648L100 678M120 648L140 678" stroke="#222" stroke-width="1.4" fill="none"/>
+<text x="120" y="696" text-anchor="middle" font-size="14">Admin</text>
+<circle cx="120" cy="140" r="13" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<path d="M120 153V188M96 166H144M120 188L100 218M120 188L140 218" stroke="#222" stroke-width="1.4" fill="none"/>
+<text x="120" y="236" text-anchor="middle" font-size="14">Citizen</text>
+<circle cx="1300" cy="600" r="13" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<path d="M1300 613V648M1276 626H1324M1300 648L1280 678M1300 648L1320 678" stroke="#222" stroke-width="1.4" fill="none"/>
+<text x="1300" y="696" text-anchor="middle" font-size="14">AI Engine</text>
+<text x="1300" y="712" text-anchor="middle" font-size="14">(XGBoost + GPT-4o)</text>
+<text x="1300" y="576" text-anchor="middle" font-size="12" font-style="italic">«supporting»</text>
+<circle cx="1300" cy="330" r="13" fill="#f6f6f6" stroke="#222" stroke-width="1.4"/>
+<path d="M1300 343V378M1276 356H1324M1300 378L1280 408M1300 378L1320 408" stroke="#222" stroke-width="1.4" fill="none"/>
+<text x="1300" y="426" text-anchor="middle" font-size="14">DWS Regulatory</text>
+<text x="1300" y="442" text-anchor="middle" font-size="14">Data</text>
+<text x="1300" y="306" text-anchor="middle" font-size="12" font-style="italic">«supporting»</text>
+</svg>

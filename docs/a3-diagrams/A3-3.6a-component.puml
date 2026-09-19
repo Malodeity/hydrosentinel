@@ -1,0 +1,55 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam componentStyle uml2
+title HydroSentinel: Component Diagram
+
+package "Web client (React 18 + TypeScript)" {
+  [Dashboard, Report and Admin Pages] as pages
+  [API Client (axios)] as client
+}
+
+package "Application server (FastAPI + Uvicorn)" {
+  [REST Routers\n(auth, wsa, reports, risk,\nalerts, audit, users)] as rest
+  [AI Router] as air
+  [Rate Limiter] as rl
+  [Alert and Audit Helpers] as helpers
+  [Risk Predictor\n(XGBoost + heuristic)] as pred
+  [Query Agent\n(tool calling)] as qa
+  [RAG Index\n(TF-IDF)] as rag
+  [OpenAI Client Helper] as oai
+}
+
+database "PostgreSQL" as pg
+folder "Photo uploads" as up
+folder "Regulatory PDFs" as pdf
+file "model.pkl" as mdl
+[ETL Pipeline (batch)] as etl
+
+cloud "OpenAI API" as openai
+cloud "Municipal Money API" as mm
+cloud "DWS reports (PDF)" as dws
+
+pages --> client
+client --> rest : REST / JSON
+client --> air : REST / JSON
+
+rest --> helpers
+rest --> pred
+rest --> pg
+rest --> up
+helpers --> pg
+pred --> mdl
+
+air --> rl
+air --> qa
+air --> rag
+air --> oai
+qa --> pg
+rag --> pdf
+oai --> openai : HTTPS
+
+etl --> pg
+etl --> mm : HTTPS
+etl --> dws
+@enduml

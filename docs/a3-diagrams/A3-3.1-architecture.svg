@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="830" viewBox="0 0 1500 830" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M1 1L9 5L1 9z" fill="#222"/></marker><marker id="as" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M9 1L1 5L9 9z" fill="#222"/></marker></defs>
+<rect width="1500" height="830" fill="#fff"/>
+<text x="750.0" y="32" text-anchor="middle" font-size="19" font-weight="bold">HydroSentinel: High-Level System Architecture</text>
+<rect x="30" y="56" width="1130" height="100" rx="10" fill="#f4f4f4" stroke="#999" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="44" y="76" font-size="13" font-weight="bold" fill="#444">Users</text>
+<rect x="30" y="190" width="1130" height="110" rx="10" fill="#eef3fb" stroke="#999" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="44" y="210" font-size="13" font-weight="bold" fill="#444">Interfaces (React 18 single-page app)</text>
+<rect x="30" y="335" width="1130" height="120" rx="10" fill="#eef7ee" stroke="#999" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="44" y="355" font-size="13" font-weight="bold" fill="#444">Services (FastAPI application server)</text>
+<rect x="30" y="490" width="1130" height="120" rx="10" fill="#fdf1e3" stroke="#999" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="44" y="510" font-size="13" font-weight="bold" fill="#444">AI component</text>
+<rect x="30" y="645" width="1130" height="120" rx="10" fill="#f4f4f4" stroke="#999" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="44" y="665" font-size="13" font-weight="bold" fill="#444">Data stores</text>
+<rect x="180" y="86" width="300" height="56" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="330.0" y="110.0" text-anchor="middle" font-size="14" font-weight="bold">Citizen</text>
+<text x="330.0" y="128.0" text-anchor="middle" font-size="12">reports issues, views public dashboard</text>
+<rect x="720" y="86" width="340" height="56" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="890.0" y="110.0" text-anchor="middle" font-size="14" font-weight="bold">Admin (municipal or oversight staff)</text>
+<text x="890.0" y="128.0" text-anchor="middle" font-size="12">manages CAPs, triages reports, uses AI tools</text>
+<rect x="60" y="225" width="250" height="60" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="185.0" y="251.0" text-anchor="middle" font-size="14" font-weight="bold">Public Dashboard</text>
+<text x="185.0" y="269.0" text-anchor="middle" font-size="12">risk map, digest, WSA card</text>
+<rect x="330" y="225" width="250" height="60" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="455.0" y="251.0" text-anchor="middle" font-size="14" font-weight="bold">Report Page</text>
+<text x="455.0" y="269.0" text-anchor="middle" font-size="12">submit and track a report</text>
+<rect x="600" y="225" width="250" height="60" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="725.0" y="251.0" text-anchor="middle" font-size="14" font-weight="bold">Login Page</text>
+<text x="725.0" y="269.0" text-anchor="middle" font-size="12">admin sign-in (JWT)</text>
+<rect x="870" y="225" width="270" height="60" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="1005.0" y="251.0" text-anchor="middle" font-size="14" font-weight="bold">Admin Page</text>
+<text x="1005.0" y="269.0" text-anchor="middle" font-size="12">reports, CAP, alerts, AI assistant</text>
+<rect x="60" y="370" width="200" height="68" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="160.0" y="400.0" text-anchor="middle" font-size="14" font-weight="bold">Auth and Users</text>
+<text x="160.0" y="418.0" text-anchor="middle" font-size="12">login, refresh, roles</text>
+<rect x="275" y="370" width="200" height="68" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="375.0" y="400.0" text-anchor="middle" font-size="14" font-weight="bold">WSA and Risk</text>
+<text x="375.0" y="418.0" text-anchor="middle" font-size="12">list, CAP update, scoring</text>
+<rect x="490" y="370" width="200" height="68" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="590.0" y="400.0" text-anchor="middle" font-size="14" font-weight="bold">Reports and Alerts</text>
+<text x="590.0" y="418.0" text-anchor="middle" font-size="12">intake, triage, alerts</text>
+<rect x="705" y="370" width="200" height="68" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="805.0" y="400.0" text-anchor="middle" font-size="14" font-weight="bold">Audit Log</text>
+<text x="805.0" y="418.0" text-anchor="middle" font-size="12">immutable change record</text>
+<rect x="920" y="370" width="220" height="68" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="1030.0" y="400.0" text-anchor="middle" font-size="14" font-weight="bold">AI Service</text>
+<text x="1030.0" y="418.0" text-anchor="middle" font-size="12">rate limited, admin only</text>
+<rect x="60" y="525" width="250" height="68" rx="8" fill="#fff8ee" stroke="#a4661a" stroke-width="1.5"/>
+<text x="185.0" y="555.0" text-anchor="middle" font-size="14" font-weight="bold">Risk Predictor</text>
+<text x="185.0" y="573.0" text-anchor="middle" font-size="12">XGBoost, heuristic fallback</text>
+<rect x="330" y="525" width="250" height="68" rx="8" fill="#fff8ee" stroke="#a4661a" stroke-width="1.5"/>
+<text x="455.0" y="555.0" text-anchor="middle" font-size="14" font-weight="bold">RAG Index</text>
+<text x="455.0" y="573.0" text-anchor="middle" font-size="12">TF-IDF over regulatory PDFs</text>
+<rect x="600" y="525" width="250" height="68" rx="8" fill="#fff8ee" stroke="#a4661a" stroke-width="1.5"/>
+<text x="725.0" y="555.0" text-anchor="middle" font-size="14" font-weight="bold">Query Agent</text>
+<text x="725.0" y="573.0" text-anchor="middle" font-size="12">GPT-4o plus 5 whitelisted data tools</text>
+<rect x="870" y="525" width="270" height="68" rx="8" fill="#fff8ee" stroke="#a4661a" stroke-width="1.5"/>
+<text x="1005.0" y="555.0" text-anchor="middle" font-size="14" font-weight="bold">CAP Drafter and Summaries</text>
+<text x="1005.0" y="573.0" text-anchor="middle" font-size="12">GPT-4o via one helper</text>
+<rect x="60" y="680" width="220" height="64" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="170.0" y="708.0" text-anchor="middle" font-size="14" font-weight="bold">Regulatory PDFs</text>
+<text x="170.0" y="726.0" text-anchor="middle" font-size="12">data/raw</text>
+<rect x="300" y="680" width="200" height="64" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="400.0" y="708.0" text-anchor="middle" font-size="14" font-weight="bold">model.pkl</text>
+<text x="400.0" y="726.0" text-anchor="middle" font-size="12">trained XGBoost</text>
+<rect x="520" y="680" width="220" height="64" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="630.0" y="708.0" text-anchor="middle" font-size="14" font-weight="bold">Photo uploads</text>
+<text x="630.0" y="726.0" text-anchor="middle" font-size="12">data/uploads</text>
+<rect x="760" y="680" width="200" height="64" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="860.0" y="708.0" text-anchor="middle" font-size="14" font-weight="bold">PostgreSQL</text>
+<text x="860.0" y="726.0" text-anchor="middle" font-size="12">8 tables, audit trail</text>
+<rect x="1000" y="680" width="140" height="64" rx="8" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<text x="1070.0" y="708.0" text-anchor="middle" font-size="14" font-weight="bold">ETL scripts</text>
+<text x="1070.0" y="726.0" text-anchor="middle" font-size="12">offline batch</text>
+<rect x="1200" y="525" width="260" height="68" rx="8" fill="#e9eefb" stroke="#222" stroke-width="1.5"/>
+<text x="1330.0" y="555.0" text-anchor="middle" font-size="14" font-weight="bold">OpenAI API</text>
+<text x="1330.0" y="573.0" text-anchor="middle" font-size="12">GPT-4o (external cloud)</text>
+<rect x="1200" y="660" width="260" height="50" rx="8" fill="#e9eefb" stroke="#222" stroke-width="1.5"/>
+<text x="1330.0" y="690.0" text-anchor="middle" font-size="14" font-weight="bold">Municipal Money API</text>
+<rect x="1200" y="725" width="260" height="50" rx="8" fill="#e9eefb" stroke="#222" stroke-width="1.5"/>
+<text x="1330.0" y="755.0" text-anchor="middle" font-size="14" font-weight="bold">DWS reports (PDF)</text>
+<text x="1330" y="500" text-anchor="middle" font-size="13" font-weight="bold" fill="#444">External services</text>
+<line x1="330" y1="142" x2="185" y2="225" stroke="#222" stroke-width="1.6" marker-end="url(#a)"/>
+<line x1="330" y1="142" x2="455" y2="225" stroke="#222" stroke-width="1.6" marker-end="url(#a)"/>
+<line x1="890" y1="142" x2="725" y2="225" stroke="#222" stroke-width="1.6" marker-end="url(#a)"/>
+<line x1="890" y1="142" x2="1005" y2="225" stroke="#222" stroke-width="1.6" marker-end="url(#a)"/>
+<line x1="600" y1="300" x2="600" y2="335" stroke="#222" stroke-width="1.6" marker-end="url(#a)" marker-start="url(#as)"/>
+<rect x="606.0" y="306.5" width="153.2" height="17" fill="#fff"/>
+<text x="610.0" y="319.5" font-size="12">REST / JSON over HTTPS</text>
+<line x1="600" y1="455" x2="600" y2="490" stroke="#222" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="606.0" y="461.5" width="113.6" height="17" fill="#fff"/>
+<text x="610.0" y="474.5" font-size="12">in-process calls</text>
+<line x1="600" y1="610" x2="600" y2="645" stroke="#222" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="606.0" y="616.5" width="126.8" height="17" fill="#fff"/>
+<text x="610.0" y="629.5" font-size="12">SQL and file reads</text>
+<line x1="1140" y1="559" x2="1200" y2="559" stroke="#222" stroke-width="1.6" marker-end="url(#a)"/>
+<text x="1170" y="548" text-anchor="middle" font-size="11">HTTPS</text>
+<line x1="1140" y1="712" x2="1200" y2="690" stroke="#222" stroke-width="1.6" marker-end="url(#a)"/>
+<line x1="1140" y1="725" x2="1200" y2="750" stroke="#222" stroke-width="1.6" marker-end="url(#a)"/>
+<line x1="1000" y1="712" x2="960" y2="712" stroke="#222" stroke-width="1.6" marker-end="url(#a)"/>
+</svg>

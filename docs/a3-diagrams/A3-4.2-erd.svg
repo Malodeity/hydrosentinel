@@ -1,0 +1,191 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1650" height="1080" viewBox="0 0 1650 1080" font-family="Helvetica, Arial, sans-serif">
+<rect width="1650" height="1080" fill="#fff"/>
+<text x="825.0" y="32" text-anchor="middle" font-size="19" font-weight="bold">HydroSentinel: Entity-Relationship Diagram (PostgreSQL schema)</text>
+<rect x="40" y="70" width="360" height="177" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<rect x="40" y="70" width="360" height="30" fill="#dfe8f5" stroke="#222" stroke-width="1.5"/>
+<text x="220.0" y="91" text-anchor="middle" font-size="15" font-weight="bold">users</text>
+<text x="50" y="119" font-size="12.5" font-family="Menlo, Consolas, monospace">id : uuid</text>
+<text x="390" y="119" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">PK</text>
+<text x="50" y="138" font-size="12.5" font-family="Menlo, Consolas, monospace">email : varchar(255)</text>
+<text x="390" y="138" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">UNIQUE</text>
+<text x="50" y="157" font-size="12.5" font-family="Menlo, Consolas, monospace">hashed_password : varchar(255)</text>
+<text x="50" y="176" font-size="12.5" font-family="Menlo, Consolas, monospace">role : user_role_enum</text>
+<text x="50" y="195" font-size="12.5" font-family="Menlo, Consolas, monospace">is_active : boolean</text>
+<text x="50" y="214" font-size="12.5" font-family="Menlo, Consolas, monospace">last_login_at : timestamptz</text>
+<text x="390" y="214" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="50" y="233" font-size="12.5" font-family="Menlo, Consolas, monospace">created_at : timestamptz</text>
+<rect x="40" y="480" width="360" height="158" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<rect x="40" y="480" width="360" height="30" fill="#dfe8f5" stroke="#222" stroke-width="1.5"/>
+<text x="220.0" y="501" text-anchor="middle" font-size="15" font-weight="bold">refresh_tokens</text>
+<text x="50" y="529" font-size="12.5" font-family="Menlo, Consolas, monospace">id : uuid</text>
+<text x="390" y="529" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">PK</text>
+<text x="50" y="548" font-size="12.5" font-family="Menlo, Consolas, monospace">user_id : uuid</text>
+<text x="390" y="548" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">FK users</text>
+<text x="50" y="567" font-size="12.5" font-family="Menlo, Consolas, monospace">token_hash : varchar(255)</text>
+<text x="390" y="567" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">UNIQUE</text>
+<text x="50" y="586" font-size="12.5" font-family="Menlo, Consolas, monospace">expires_at : timestamptz</text>
+<text x="50" y="605" font-size="12.5" font-family="Menlo, Consolas, monospace">revoked_at : timestamptz</text>
+<text x="390" y="605" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="50" y="624" font-size="12.5" font-family="Menlo, Consolas, monospace">created_at : timestamptz</text>
+<rect x="440" y="480" width="360" height="215" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<rect x="440" y="480" width="360" height="30" fill="#dfe8f5" stroke="#222" stroke-width="1.5"/>
+<text x="620.0" y="501" text-anchor="middle" font-size="15" font-weight="bold">audit_log</text>
+<text x="450" y="529" font-size="12.5" font-family="Menlo, Consolas, monospace">id : uuid</text>
+<text x="790" y="529" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">PK</text>
+<text x="450" y="548" font-size="12.5" font-family="Menlo, Consolas, monospace">user_id : uuid</text>
+<text x="790" y="548" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">FK users</text>
+<text x="450" y="567" font-size="12.5" font-family="Menlo, Consolas, monospace">action : audit_action_enum</text>
+<text x="450" y="586" font-size="12.5" font-family="Menlo, Consolas, monospace">table_name : varchar(100)</text>
+<text x="450" y="605" font-size="12.5" font-family="Menlo, Consolas, monospace">record_id : uuid</text>
+<text x="450" y="624" font-size="12.5" font-family="Menlo, Consolas, monospace">old_value : jsonb</text>
+<text x="790" y="624" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="450" y="643" font-size="12.5" font-family="Menlo, Consolas, monospace">new_value : jsonb</text>
+<text x="790" y="643" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="450" y="662" font-size="12.5" font-family="Menlo, Consolas, monospace">ip_address : varchar(45)</text>
+<text x="790" y="662" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="450" y="681" font-size="12.5" font-family="Menlo, Consolas, monospace">created_at : timestamptz</text>
+<rect x="40" y="850" width="360" height="120" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<rect x="40" y="850" width="360" height="30" fill="#dfe8f5" stroke="#222" stroke-width="1.5"/>
+<text x="220.0" y="871" text-anchor="middle" font-size="15" font-weight="bold">summaries</text>
+<text x="50" y="899" font-size="12.5" font-family="Menlo, Consolas, monospace">id : uuid</text>
+<text x="390" y="899" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">PK</text>
+<text x="50" y="918" font-size="12.5" font-family="Menlo, Consolas, monospace">content : text</text>
+<text x="50" y="937" font-size="12.5" font-family="Menlo, Consolas, monospace">generated_by : uuid</text>
+<text x="390" y="937" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">FK users, null</text>
+<text x="50" y="956" font-size="12.5" font-family="Menlo, Consolas, monospace">generated_at : timestamptz</text>
+<rect x="1000" y="70" width="420" height="272" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<rect x="1000" y="70" width="420" height="30" fill="#dfe8f5" stroke="#222" stroke-width="1.5"/>
+<text x="1210.0" y="91" text-anchor="middle" font-size="15" font-weight="bold">wsa</text>
+<text x="1010" y="119" font-size="12.5" font-family="Menlo, Consolas, monospace">id : uuid</text>
+<text x="1410" y="119" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">PK</text>
+<text x="1010" y="138" font-size="12.5" font-family="Menlo, Consolas, monospace">name : varchar(255)</text>
+<text x="1410" y="138" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">UNIQUE</text>
+<text x="1010" y="157" font-size="12.5" font-family="Menlo, Consolas, monospace">province : varchar(100)</text>
+<text x="1010" y="176" font-size="12.5" font-family="Menlo, Consolas, monospace">blue_drop_score : numeric(5,2)</text>
+<text x="1410" y="176" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="1010" y="195" font-size="12.5" font-family="Menlo, Consolas, monospace">green_drop_score : numeric(5,2)</text>
+<text x="1410" y="195" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="1010" y="214" font-size="12.5" font-family="Menlo, Consolas, monospace">nrw_percent : numeric(5,2)</text>
+<text x="1410" y="214" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="1010" y="233" font-size="12.5" font-family="Menlo, Consolas, monospace">maint_pct : numeric(5,2)</text>
+<text x="1410" y="233" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="1010" y="252" font-size="12.5" font-family="Menlo, Consolas, monospace">cap_status : cap_status_enum</text>
+<text x="1010" y="271" font-size="12.5" font-family="Menlo, Consolas, monospace">cap_due_date : date</text>
+<text x="1410" y="271" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="1010" y="290" font-size="12.5" font-family="Menlo, Consolas, monospace">risk_level : risk_level_enum</text>
+<text x="1010" y="309" font-size="12.5" font-family="Menlo, Consolas, monospace">bdrr_risk_level : risk_level_enum</text>
+<text x="1410" y="309" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="1010" y="328" font-size="12.5" font-family="Menlo, Consolas, monospace">lat, lng : numeric(9,6)</text>
+<rect x="820" y="480" width="360" height="291" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<rect x="820" y="480" width="360" height="30" fill="#dfe8f5" stroke="#222" stroke-width="1.5"/>
+<text x="1000.0" y="501" text-anchor="middle" font-size="15" font-weight="bold">citizen_reports</text>
+<text x="830" y="529" font-size="12.5" font-family="Menlo, Consolas, monospace">id : uuid</text>
+<text x="1170" y="529" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">PK</text>
+<text x="830" y="548" font-size="12.5" font-family="Menlo, Consolas, monospace">wsa_id : uuid</text>
+<text x="1170" y="548" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">FK wsa</text>
+<text x="830" y="567" font-size="12.5" font-family="Menlo, Consolas, monospace">issue_type : issue_type_enum</text>
+<text x="830" y="586" font-size="12.5" font-family="Menlo, Consolas, monospace">reference_code : varchar(12)</text>
+<text x="1170" y="586" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">UNIQUE</text>
+<text x="830" y="605" font-size="12.5" font-family="Menlo, Consolas, monospace">case_status : varchar(50)</text>
+<text x="830" y="624" font-size="12.5" font-family="Menlo, Consolas, monospace">description : text</text>
+<text x="1170" y="624" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="830" y="643" font-size="12.5" font-family="Menlo, Consolas, monospace">admin_comment : text</text>
+<text x="1170" y="643" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="830" y="662" font-size="12.5" font-family="Menlo, Consolas, monospace">reviewed_by : uuid</text>
+<text x="1170" y="662" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">FK users, null</text>
+<text x="830" y="681" font-size="12.5" font-family="Menlo, Consolas, monospace">resolved_by : uuid</text>
+<text x="1170" y="681" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">FK users, null</text>
+<text x="830" y="700" font-size="12.5" font-family="Menlo, Consolas, monospace">reviewed_at : timestamptz</text>
+<text x="1170" y="700" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="830" y="719" font-size="12.5" font-family="Menlo, Consolas, monospace">resolved_at : timestamptz</text>
+<text x="1170" y="719" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="830" y="738" font-size="12.5" font-family="Menlo, Consolas, monospace">lat, lng : numeric(9,6)</text>
+<text x="830" y="757" font-size="12.5" font-family="Menlo, Consolas, monospace">created_at : timestamptz</text>
+<rect x="1200" y="480" width="360" height="196" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<rect x="1200" y="480" width="360" height="30" fill="#dfe8f5" stroke="#222" stroke-width="1.5"/>
+<text x="1380.0" y="501" text-anchor="middle" font-size="15" font-weight="bold">risk_score_history</text>
+<text x="1210" y="529" font-size="12.5" font-family="Menlo, Consolas, monospace">id : uuid</text>
+<text x="1550" y="529" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">PK</text>
+<text x="1210" y="548" font-size="12.5" font-family="Menlo, Consolas, monospace">wsa_id : uuid</text>
+<text x="1550" y="548" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">FK wsa</text>
+<text x="1210" y="567" font-size="12.5" font-family="Menlo, Consolas, monospace">risk_level : risk_level_enum</text>
+<text x="1210" y="586" font-size="12.5" font-family="Menlo, Consolas, monospace">probability : numeric(6,4)</text>
+<text x="1210" y="605" font-size="12.5" font-family="Menlo, Consolas, monospace">model_source : model_source_enum</text>
+<text x="1210" y="624" font-size="12.5" font-family="Menlo, Consolas, monospace">model_version : varchar(50)</text>
+<text x="1550" y="624" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="1210" y="643" font-size="12.5" font-family="Menlo, Consolas, monospace">scored_by : uuid</text>
+<text x="1550" y="643" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">FK users, null</text>
+<text x="1210" y="662" font-size="12.5" font-family="Menlo, Consolas, monospace">scored_at : timestamptz</text>
+<rect x="1200" y="780" width="360" height="177" fill="#f6f6f6" stroke="#222" stroke-width="1.5"/>
+<rect x="1200" y="780" width="360" height="30" fill="#dfe8f5" stroke="#222" stroke-width="1.5"/>
+<text x="1380.0" y="801" text-anchor="middle" font-size="15" font-weight="bold">alerts</text>
+<text x="1210" y="829" font-size="12.5" font-family="Menlo, Consolas, monospace">id : uuid</text>
+<text x="1550" y="829" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">PK</text>
+<text x="1210" y="848" font-size="12.5" font-family="Menlo, Consolas, monospace">wsa_id : uuid</text>
+<text x="1550" y="848" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">FK wsa</text>
+<text x="1210" y="867" font-size="12.5" font-family="Menlo, Consolas, monospace">alert_type : alert_type_enum</text>
+<text x="1210" y="886" font-size="12.5" font-family="Menlo, Consolas, monospace">message : text</text>
+<text x="1210" y="905" font-size="12.5" font-family="Menlo, Consolas, monospace">acknowledged_by : uuid</text>
+<text x="1550" y="905" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">FK users, null</text>
+<text x="1210" y="924" font-size="12.5" font-family="Menlo, Consolas, monospace">acknowledged_at : timestamptz</text>
+<text x="1550" y="924" text-anchor="end" font-size="12" font-weight="bold" fill="#8a1c1c">null</text>
+<text x="1210" y="943" font-size="12.5" font-family="Menlo, Consolas, monospace">created_at : timestamptz</text>
+<polyline points="220,247 220,480" fill="none" stroke="#222" stroke-width="1.4"/>
+<line x1="228.0" y1="257.0" x2="212.0" y2="257.0" stroke="#222" stroke-width="1.4"/>
+<line x1="228.0" y1="262.0" x2="212.0" y2="262.0" stroke="#222" stroke-width="1.4"/>
+<line x1="228.0" y1="466.0" x2="220.0" y2="480.0" stroke="#222" stroke-width="1.4"/>
+<line x1="220.0" y1="466.0" x2="220.0" y2="480.0" stroke="#222" stroke-width="1.4"/>
+<line x1="212.0" y1="466.0" x2="220.0" y2="480.0" stroke="#222" stroke-width="1.4"/>
+<line x1="212.0" y1="460.0" x2="228.0" y2="460.0" stroke="#222" stroke-width="1.4"/>
+<rect x="287" y="355.5" width="104" height="17" fill="#fff"/>
+<text x="290" y="367.5" text-anchor="start" font-size="13">owns (CASCADE)</text>
+<polyline points="400,210 620,210 620,480" fill="none" stroke="#222" stroke-width="1.4"/>
+<line x1="410.0" y1="202.0" x2="410.0" y2="218.0" stroke="#222" stroke-width="1.4"/>
+<line x1="415.0" y1="202.0" x2="415.0" y2="218.0" stroke="#222" stroke-width="1.4"/>
+<line x1="628.0" y1="466.0" x2="620.0" y2="480.0" stroke="#222" stroke-width="1.4"/>
+<line x1="620.0" y1="466.0" x2="620.0" y2="480.0" stroke="#222" stroke-width="1.4"/>
+<line x1="612.0" y1="466.0" x2="620.0" y2="480.0" stroke="#222" stroke-width="1.4"/>
+<line x1="612.0" y1="460.0" x2="628.0" y2="460.0" stroke="#222" stroke-width="1.4"/>
+<rect x="637" y="288" width="139" height="17" fill="#fff"/>
+<text x="640" y="300" text-anchor="start" font-size="13">performs (RESTRICT)</text>
+<polyline points="1060,342 1060,480" fill="none" stroke="#222" stroke-width="1.4"/>
+<line x1="1068.0" y1="352.0" x2="1052.0" y2="352.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1068.0" y1="357.0" x2="1052.0" y2="357.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1068.0" y1="466.0" x2="1060.0" y2="480.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1060.0" y1="466.0" x2="1060.0" y2="480.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1052.0" y1="466.0" x2="1060.0" y2="480.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1052.0" y1="460.0" x2="1068.0" y2="460.0" stroke="#222" stroke-width="1.4"/>
+<rect x="1072" y="403.0" width="132" height="17" fill="#fff"/>
+<text x="1075" y="415.0" text-anchor="start" font-size="13">receives (CASCADE)</text>
+<polyline points="1330,342 1330,480" fill="none" stroke="#222" stroke-width="1.4"/>
+<line x1="1338.0" y1="352.0" x2="1322.0" y2="352.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1338.0" y1="357.0" x2="1322.0" y2="357.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1338.0" y1="466.0" x2="1330.0" y2="480.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1330.0" y1="466.0" x2="1330.0" y2="480.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1322.0" y1="466.0" x2="1330.0" y2="480.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1322.0" y1="460.0" x2="1338.0" y2="460.0" stroke="#222" stroke-width="1.4"/>
+<rect x="1342" y="403.0" width="97" height="17" fill="#fff"/>
+<text x="1345" y="415.0" text-anchor="start" font-size="13">has (CASCADE)</text>
+<polyline points="1420,150 1610,150 1610,840 1560,840" fill="none" stroke="#222" stroke-width="1.4"/>
+<line x1="1430.0" y1="142.0" x2="1430.0" y2="158.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1435.0" y1="142.0" x2="1435.0" y2="158.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1574.0" y1="848.0" x2="1560.0" y2="840.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1574.0" y1="840.0" x2="1560.0" y2="840.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1574.0" y1="832.0" x2="1560.0" y2="840.0" stroke="#222" stroke-width="1.4"/>
+<line x1="1580.0" y1="832.0" x2="1580.0" y2="848.0" stroke="#222" stroke-width="1.4"/>
+<rect x="1441" y="128" width="118" height="17" fill="#fff"/>
+<text x="1500" y="140" text-anchor="middle" font-size="13">raises (CASCADE)</text>
+<path d="M440 850H766L780 864V932H440Z" fill="#fffbe6" stroke="#222" stroke-width="1.2"/><path d="M766 850V864H780" fill="none" stroke="#222" stroke-width="1.2"/>
+<text x="450" y="872" text-anchor="start" font-size="12">Every FK to users (reviewed_by, resolved_by,</text>
+<text x="450" y="889" text-anchor="start" font-size="12">scored_by, acknowledged_by, generated_by) is</text>
+<text x="450" y="906" text-anchor="start" font-size="12">nullable and uses ON DELETE SET NULL, so</text>
+<text x="450" y="923" text-anchor="start" font-size="12">deleting a user never deletes records.</text>
+<path d="M440 960H766L780 974V1008H440Z" fill="#fffbe6" stroke="#222" stroke-width="1.2"/><path d="M766 960V974H780" fill="none" stroke="#222" stroke-width="1.2"/>
+<text x="450" y="982" text-anchor="start" font-size="12">Notation: one bar = exactly one, crow's foot =</text>
+<text x="450" y="999" text-anchor="start" font-size="12">zero or more. 'null' marks a nullable column.</text>
+<path d="M820 850H1146L1160 864V932H820Z" fill="#fffbe6" stroke="#222" stroke-width="1.2"/><path d="M1146 850V864H1160" fill="none" stroke="#222" stroke-width="1.2"/>
+<text x="830" y="872" text-anchor="start" font-size="12">Photos are files on disk under</text>
+<text x="830" y="889" text-anchor="start" font-size="12">uploads/{report_id}/, not a column.</text>
+<text x="830" y="906" text-anchor="start" font-size="12">enum types (cap_status_enum etc.) are</text>
+<text x="830" y="923" text-anchor="start" font-size="12">PostgreSQL enumerated types.</text>
+</svg>
