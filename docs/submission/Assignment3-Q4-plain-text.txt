@@ -29,34 +29,22 @@ Modules and responsibilities.
 
 Interface screenshots.
 
-[INSERT FIGURE 8 HERE: upload file Figure-08-dashboard.png]
-
 Figure 8: public dashboard with the cached AI national digest, the risk map and the selected WSA's card.
-
-[INSERT FIGURE 9 HERE: upload file Figure-09-report-form.png]
 
 Figure 9: citizen report page. Province, WSA, issue type, optional photos, description and a map pin.
 
-[INSERT FIGURE 10 HERE: upload file Figure-10-login.png]
-
 Figure 10: admin sign-in. Only admin accounts reach the admin page.
-
-[INSERT FIGURE 11 HERE: upload file Figure-11-admin-ai-assistant.png]
 
 Figure 11: admin page. The trend panel comes from ai/trajectory.py, and the AI assistant shows the tool it used ("Checked: compare_provinces").
 
-[INSERT FIGURE 12 HERE: upload file Figure-12-cap-table.png]
-
 Figure 12: CAP table, where an admin sets a WSA's CAP status and due date and saves.
-
-[INSERT FIGURE 13 HERE: upload file Figure-13-cap-draft.png]
 
 Figure 13: an AI-drafted CAP. Each item shows a priority, suggested days and a justification quoting the WSA's data.
 
 4.2 Database and dataset
 ------------------------
 
-[INSERT FIGURE 14 HERE: upload file Figure-14-entity-relationship.png]
+Figure 14: Entity-relationship diagram
 
 Figure 14 shows the eight tables, keys and delete rules. The five nullable references to users are marked on the columns.
 

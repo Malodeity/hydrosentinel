@@ -1,0 +1,22 @@
+FIGURE UPLOAD GUIDE (for you only, do not paste into the submission)
+
+Upload each image from the images folder where the figure is mentioned in the text.
+Every image is under 250 KB.
+
+Figure 1   Section 3.1   Figure-01-architecture.png
+Figure 2   Section 3.2   Figure-02-use-case.png
+Figure 3   Section 3.3   Figure-03-class.png
+Figure 4   Section 3.4   Figure-04-sequence.png
+Figure 5   Section 3.5   Figure-05-activity.png
+Figure 6   Section 3.6   Figure-06-component.png
+Figure 7   Section 3.6   Figure-07-deployment.png
+Figure 8   Section 4.1   Figure-08-dashboard.png
+Figure 9   Section 4.1   Figure-09-report-form.png
+Figure 10  Section 4.1   Figure-10-login.png
+Figure 11  Section 4.1   Figure-11-admin-ai-assistant.png
+Figure 12  Section 4.1   Figure-12-cap-table.png
+Figure 13  Section 4.1   Figure-13-cap-draft.png
+Figure 14  Section 4.2   Figure-14-entity-relationship.png
+
+Figures 1 to 7 and 14 have a caption line in the text. Figures 8 to 13 use the caption line
+that already follows each screenshot position in section 4.1.

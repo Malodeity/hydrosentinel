@@ -43,7 +43,7 @@
 **Title:** ISJ107V Assignment 3, HydroSentinel project documentation and UML design.
 **Version:** 1.0 (prototype baseline).
 **Date:** 20 September 2026.
-**Author:** Malo.
+**Author:** Malibongwe Mthethwa.
 
 **Revision history.**
 - 0.1, 16 September 2026: first draft of requirements and four UML diagrams.
