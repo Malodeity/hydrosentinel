@@ -5,8 +5,6 @@ import requests
 
 from etl.name_matching import match_to_known_names, normalize_name
 
-# recommended maintenance-to-asset-value benchmark from National Treasury
-MAINT_BENCHMARK_PCT = 8.0
 
 API_BASE = "https://municipaldata.treasury.gov.za/api"
 
@@ -62,10 +60,11 @@ def _build_finance_rows(labels: dict[str, str], maint: dict[str, float], opex: d
     for code, label in labels.items():
         opex_total = opex.get(code)
         maint_total = maint.get(code)
-        if not opex_total:
+        # no maintenance figure means "no data", never 0.00% ("spends nothing")
+        if not opex_total or maint_total is None:
             continue
 
-        pct = round((maint_total or 0.0) / opex_total * 100, 2)
+        pct = round(maint_total / opex_total * 100, 2)
         # audited actuals occasionally carry negative repairs & maintenance
         # entries (accounting reversals/corrections) — treat an out-of-range
         # ratio as unreliable rather than store a misleading number

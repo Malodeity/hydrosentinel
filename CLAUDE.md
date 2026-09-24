@@ -144,7 +144,7 @@ frontend/src/
 | WSA | Water Service Authority — one municipal water provider |
 | Blue Drop score | DWS quality rating 0–100 (higher = better) |
 | NRW % | Non-Revenue Water — water lost before billing (lower = better) |
-| maint_pct | Maintenance spending as % (higher = better) |
+| maint_pct | Repairs and maintenance as a share of total operating expenditure (Treasury's Municipal Money API has no usable asset value, so it is not a share of asset value). Empty when there is no maintenance figure |
 | CAP | Corrective Action Plan — none / submitted / in_progress / completed |
 | Risk level | low / medium / high — set by XGBoost model or heuristic |
 | Summary table | Stores AI national digests; reused for 24 h before regenerating |
@@ -192,5 +192,6 @@ FRONTEND_URL
 - There is a stale `AdminPage 2.tsx` in pages/ — it is not imported anywhere, ignore it
 - `model.pkl` is not committed; missing model falls back to deterministic heuristic in `predict.py`
 - Tests live in `backend/tests/` — run with `cd backend && .venv/bin/pytest tests/ -v`; set `TESTING=1` is handled by conftest.py
+- Authorities are matched across sources and in the DB by `etl.load.authority_key` (province + suffix-stripped name + metro aliases), not by exact name; after loading older data run `python -m etl.dedupe_wsa` (dry run) and add `--apply` to merge duplicate spellings. Take a `pg_dump` backup first
 - Alert auto-generation: `alert_helpers.py` fires on high risk score (deduped) and on 5+ reports in 24 h per WSA
 - Audit log: `audit_helpers.py` `write_audit()` is called from risk.py, reports.py, wsa.py — immutable JSONB rows, never updated

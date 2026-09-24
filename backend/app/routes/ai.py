@@ -86,9 +86,15 @@ def get_wsa_or_404(db: Session, wsa_id: UUID) -> models.WSA:
     return wsa
 
 
+def _average_or_unavailable(values: list[float]) -> float | str:
+    # an average over no data must read as "no data", not as 0.0 (which a model reads as a real result)
+    if not values:
+        return "not available (no data)"
+    return round(sum(values) / len(values), 2)
+
+
 def build_wsa_prompt(wsa: models.WSA) -> str:
     # this builds the shared real-data prompt block used for summary and recommendation generation
-    maint_gap = round(wsa.maint_pct - 8.0, 2) if wsa.maint_pct is not None else None
     return "\n".join(
         [
             f"WSA name: {wsa.name}",
@@ -98,9 +104,8 @@ def build_wsa_prompt(wsa: models.WSA) -> str:
             f"Green Drop score: {wsa.green_drop_score if wsa.green_drop_score is not None else 'unknown'}",
             f"NRW percent: {wsa.nrw_percent if wsa.nrw_percent is not None else 'unknown'}",
             f"No Drop performance: {wsa.nd_performance.value}",
-            f"Maintenance percent of asset value: {wsa.maint_pct if wsa.maint_pct is not None else 'unknown'}",
-            f"Maintenance gap vs 8% benchmark: {maint_gap if maint_gap is not None else 'unknown'}",
-            f"Asset value (ZAR): {wsa.asset_value if wsa.asset_value is not None else 'unknown'}",
+            # Treasury's 8% norm is measured against asset value, which the data does not carry, so no benchmark is quoted
+            f"Maintenance spending as percent of total operating expenditure: {wsa.maint_pct if wsa.maint_pct is not None else 'unknown'}",
             f"Actual maintenance expenditure (ZAR): {wsa.maint_expenditure if wsa.maint_expenditure is not None else 'unknown'}",
             f"Number of water supply systems: {wsa.num_water_supply_systems if wsa.num_water_supply_systems is not None else 'unknown'}",
             f"Internal CAP status: {wsa.cap_status.value}",
@@ -133,7 +138,7 @@ def build_report_prompt(report: models.CitizenReport, wsa: models.WSA) -> str:
             f"WSA risk level: {wsa.risk_level.value}",
             f"WSA Blue Drop score: {wsa.blue_drop_score if wsa.blue_drop_score is not None else 'unknown'}",
             f"WSA NRW percent: {wsa.nrw_percent if wsa.nrw_percent is not None else 'unknown'}",
-            f"WSA maintenance percent: {wsa.maint_pct if wsa.maint_pct is not None else 'unknown'}",
+            f"WSA maintenance percent of operating expenditure: {wsa.maint_pct if wsa.maint_pct is not None else 'unknown'}",
             f"WSA CAP status: {wsa.cap_status.value}",
         ]
     )
@@ -211,16 +216,8 @@ def get_ai_digest(db: Session = Depends(get_db)) -> schemas.AITextResponse:
     high_count = sum(1 for item in wsas if item.risk_level == models.RiskLevel.high)
     medium_count = sum(1 for item in wsas if item.risk_level == models.RiskLevel.medium)
     low_count = sum(1 for item in wsas if item.risk_level == models.RiskLevel.low)
-    avg_blue_drop = round(
-        sum(item.blue_drop_score for item in wsas if item.blue_drop_score is not None)
-        / max(1, sum(1 for item in wsas if item.blue_drop_score is not None)),
-        2,
-    )
-    avg_nrw = round(
-        sum(item.nrw_percent for item in wsas if item.nrw_percent is not None)
-        / max(1, sum(1 for item in wsas if item.nrw_percent is not None)),
-        2,
-    )
+    avg_blue_drop = _average_or_unavailable([w.blue_drop_score for w in wsas if w.blue_drop_score is not None])
+    avg_nrw = _average_or_unavailable([w.nrw_percent for w in wsas if w.nrw_percent is not None])
     completed_cap = sum(1 for item in wsas if item.cap_status == models.CAPStatus.completed)
 
     system_prompt = (

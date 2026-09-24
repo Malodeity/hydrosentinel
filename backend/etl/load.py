@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models import BDCertification, CAPStatus, DWSCAPStatus, NDPerformance, RiskLevel, WSA
+from etl.name_matching import METRO_ALIASES, normalize_name
 
 # same centroids used to seed demo WSAs in main.py — reused here as a fallback
 # for real WSAs whose source PDFs carry no GPS coordinates
@@ -19,6 +20,55 @@ PROVINCE_CENTROIDS: dict[str, tuple[float, float]] = {
 }
 
 
+def authority_key(name: str, province: str | None) -> tuple[str, str]:
+    """
+    One key per real authority. Sources spell names differently ("Alfred Nzo DM"
+    vs "Alfred Nzo District Municipality", "Cape Town" vs "City of Cape Town MM"),
+    so names are compared after suffix stripping and metro aliasing. Province is
+    part of the key because different provinces have same-named authorities.
+    """
+    norm = normalize_name(str(name))
+    for primary, aliases in METRO_ALIASES.items():
+        if norm == primary or norm in {normalize_name(a) for a in aliases}:
+            norm = primary
+            break
+    return (str(province) if province and str(province) != "nan" else "", norm)
+
+
+def _canonicalise_names(frames: list[pd.DataFrame]) -> list[pd.DataFrame]:
+    # the first source to mention an authority (Blue Drop comes first) decides
+    # the display name; later spellings are renamed to it so the outer join
+    # below yields one row per authority instead of one per spelling
+    canonical: dict[tuple[str, str], str] = {}
+    used_names: set[str] = set()
+    by_norm: dict[str, list[tuple[str, str]]] = {}
+    out = []
+    for frame in frames:
+        frame = frame.copy()
+        if "province" in frame.columns:
+            keys = [authority_key(n, p) for n, p in zip(frame["name"], frame["province"])]
+        else:
+            # a source with no province can only be matched when the name is unambiguous
+            keys = []
+            for n in frame["name"]:
+                norm = authority_key(n, None)[1]
+                candidates = by_norm.get(norm, [])
+                keys.append(candidates[0] if len(candidates) == 1 else authority_key(n, None))
+        new_names = []
+        for (key, original) in zip(keys, frame["name"]):
+            if key not in canonical:
+                # the same display name in two provinces stays distinct, since the join below is on name alone
+                display = original if original not in used_names else f"{original} ({key[0] or 'unknown province'})"
+                canonical[key] = display
+                used_names.add(display)
+                by_norm.setdefault(key[1], []).append(key)
+            new_names.append(canonical[key])
+        frame["name"] = new_names
+        # two spellings of one authority inside a single source collapse to one row, keeping the first value found
+        out.append(frame.groupby("name", as_index=False, sort=False).first())
+    return out
+
+
 def merge_sources(
     blue_drop: pd.DataFrame,
     no_drop: pd.DataFrame,
@@ -33,6 +83,7 @@ def merge_sources(
                                      "bd_certification", "nd_performance", "num_water_supply_systems",
                                      "maint_pct", "maint_expenditure", "asset_value",
                                      "bdrr_score_2023", "bdrr_risk_level"])
+    frames = _canonicalise_names(frames)
     merged = frames[0]
     for frame in frames[1:]:
         merged = merged.merge(frame, on="name", how="outer")
@@ -52,10 +103,12 @@ def upsert_wsa_rows(frame: pd.DataFrame, session: Session | None = None) -> int:
     inserted_or_updated = 0
     db: Session = session or SessionLocal()
     try:
+        # match on the authority key, not the exact string, so a different spelling updates the existing row
+        existing_by_key = {authority_key(w.name, w.province): w for w in db.query(WSA).all()}
         for row in frame.to_dict(orient="records"):
-            wsa = db.query(WSA).filter(WSA.name == row["name"]).first()
             province = row.get("province")
             province = province if province and str(province) != "nan" else None
+            wsa = db.query(WSA).filter(WSA.name == row["name"]).first() or existing_by_key.get(authority_key(row["name"], province))
             if not wsa:
                 lat, lng = PROVINCE_CENTROIDS.get(province, (0.0, 0.0))
                 wsa = WSA(
@@ -95,6 +148,7 @@ def upsert_wsa_rows(frame: pd.DataFrame, session: Session | None = None) -> int:
                 wsa.bdrr_risk_level = RiskLevel(bdrr_risk)
 
             db.add(wsa)
+            existing_by_key[authority_key(wsa.name, wsa.province)] = wsa
             inserted_or_updated += 1
 
         db.commit()
