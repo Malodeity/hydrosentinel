@@ -128,7 +128,7 @@ Acceptance criterion: Given a request without a valid admin JWT, when it hits a 
 ID: AI-NFR-01  
 Priority: Must  
 Requirement: The XGBoost risk model shall achieve at least 80% classification accuracy on a held-out validation split of labelled WSA risk data.  
-Acceptance criterion: The classification report that `ai/train.py` prints for the held-out split shows accuracy ≥0.80 before the model is deployed.
+Acceptance criterion: The classification report that `ai/train_from_bdrr.py` prints for the held-out split shows accuracy ≥0.80 before the model is deployed.
 
 ID: AI-NFR-02  
 Priority: Should  

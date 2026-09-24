@@ -1,0 +1,69 @@
+QUESTION 1: PROJECT BASELINE
+============================
+
+1.1 Title, purpose, users, technology and executive summary
+-----------------------------------------------------------
+
+Title: HydroSentinel, an AI-assisted water service risk monitoring platform for South African Water Service Authorities (WSAs).
+
+Purpose. One live view of which WSAs are at risk, what corrective action is under way and what residents report. It replaces reading annual Department of Water and Sanitation (DWS) PDF reports by hand.
+
+Users.
+- Citizens: use the public dashboard and the report page, with no account.
+- Municipal and oversight admins: triage reports, set corrective action plan (CAP) status, run risk scoring and use the AI tools.
+- Regulators: read the public dashboard.
+
+Emerging technology. AI and machine learning. An XGBoost classifier predicts risk level. OpenAI GPT-4o drafts CAPs, writes summaries, answers data questions through fixed database tools, and answers regulatory questions through a TF-IDF search of the DWS PDFs.
+
+Executive summary. The prototype is a three-tier web app: a React 18 and TypeScript frontend (four pages), a FastAPI server with 36 endpoints, and eight PostgreSQL tables holding 169 WSAs. An ETL pipeline loads them from five DWS PDF reports and the National Treasury Municipal Money API. XGBoost scores risk, with a rule-based heuristic as the fallback. GPT-4o drafts structured CAPs that an admin accepts in one click, and answers data questions in 2 to 3 seconds. The three costliest AI functions (CAP draft, data question, regulatory question) are limited to 20 requests per admin per hour, and every admin change is written to an audit log. 183 backend tests and 13 frontend tests pass.
+
+1.2 Final aim, objectives, scope and approved changes
+-----------------------------------------------------
+
+Aim. Give municipal water oversight staff a continuously updated, AI-assisted view of WSA risk that shortens the time between a service problem and a corrective action.
+
+Measurable objectives and status.
+1. A risk level for every WSA, refreshed when new data or citizen reports arrive. Partly met. All 169 WSAs have a level, and 159 (94%) are scored by the model. The other 10 use the fallback because they have no Blue Drop score. Scoring is manual (backend/scripts/bulk_risk_score.py or the scoring endpoint). Nothing re-scores automatically, and the admin page has no scoring button.
+2. An AI CAP draft an admin can accept in under two minutes. Met on system time: a draft takes 2.5 to 3.3 seconds and accepting is one click. Real-user review time is not measured.
+3. At least three early-warning signals raised without a manual query. Met: five alert types (high risk, risk increase, report volume spike, overdue CAP, geographic cluster).
+
+Scope. In scope: risk scoring, citizen reporting and tracking, CAP tracking, AI digests, recommendations and CAP drafts, search of regulatory PDFs, a natural-language query agent, alerts and an audit log. Out of scope: payment processing, carrying out a CAP (the system tracks and drafts only), and SMS or USSD channels.
+
+Approved changes. The project and the emerging technology are unchanged. The author approved three edits, recorded here.
+- Requirement wording corrected to match the code, with no target lowered: FR-01 (photos are optional, with no limit of five), FR-10 (3 or more reports within 2 km inside 6 hours), AI-NFR-01 (the script prints a report and enforces no threshold) and NFR-02 (503 for a missing key, 502 for a failed call).
+- Additions inside the same aim: risk trend forecast, CSV export, admin user management, public report tracking, overdue-CAP alerts, the AI rate limiter, and a 30 second OpenAI timeout (the library default is 600 seconds).
+- Data clean-up while gathering evidence: 284 rows were duplicate spellings of 169 authorities, maintenance was mislabelled as a share of asset value and stored as 0.00% when missing, and the AI digest turned missing NRW into "0.0, indicating efficient water usage". All were fixed with tests (section 5.1).
+
+1.3 Document control
+--------------------
+
+Title: ISJ107V Assignment 3, HydroSentinel project documentation and UML design.
+Version: 1.0 (prototype baseline).
+Date: 20 September 2026.
+Author: Malo.
+
+Revision history.
+- 0.1, 16 September 2026: first draft of requirements and four UML diagrams.
+- 0.2, 19 September 2026: diagrams redrawn in strict UML 2 notation, requirement wording corrected (section 1.2).
+- 1.0, 20 September 2026: this document, after the full test run, measurements, data clean-up and model evaluation in Question 5.
+
+Glossary.
+- WSA: Water Service Authority, a municipality or water board that supplies water.
+- DWS: Department of Water and Sanitation, which audits WSAs.
+- Blue Drop, Green Drop, No Drop: DWS programmes scoring drinking water quality, wastewater and water losses.
+- NRW: non-revenue water, water lost before it is billed.
+- BDRR: Blue Drop Risk Rating, a risk percentage DWS auditors calculate from five indicators. It is the label the model is trained on.
+- CAP: corrective action plan.
+- Risk level: low, medium or high, set by the XGBoost model or the fallback heuristic.
+- RAG: retrieval-augmented generation, an answer built from retrieved document passages.
+- TF-IDF: a text-weighting method that ranks which PDF passages match a question.
+- ETL: the batch scripts that load source data into the database.
+- JWT: JSON Web Token, the signed token that proves an admin is signed in.
+
+Referenced artefacts.
+- Repository: github.com/Malodeity/hydrosentinel, main branch.
+- Code: backend/ (app/, ai/, etl/, tests/) and frontend/src/.
+- Deployment: docker-compose.yml and .env.example.
+- Diagrams and screenshots: docs/diagrams/, docs/a3-diagrams/, docs/a3-screens/.
+- Evidence: docs/a3-evidence/ (test output, measurement scripts and results, model evaluation before and after the clean-up).
+- Data: backend/data/raw/ (six PDF files, five distinct DWS reports).

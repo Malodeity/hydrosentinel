@@ -1,0 +1,90 @@
+QUESTION 3: FINAL DESIGN AS IMPLEMENTED
+=======================================
+
+Actor, class and use case names are the same in every diagram and in the text. The diagrams are PlantUML, or SVG in UML 2 notation where automatic layout crossed lines. Sources are in docs/diagrams/ and docs/a3-diagrams/.
+
+3.1 High-level system architecture
+----------------------------------
+
+[INSERT FIGURE 1 HERE: upload file Figure-01-architecture.png]
+
+Figure 1. Citizens and Admins use four React pages (dashboard, report, login, admin). The pages call a FastAPI server over REST and JSON. Admin calls carry a JWT, and the citizen endpoints need none. The AI component has four parts: the risk predictor (XGBoost with a heuristic fallback), the retrieval index over the DWS PDFs, the query agent, and the CAP drafter and summary writer. The query agent and drafter reach the OpenAI API, the only external AI service, through one helper. Data stores are PostgreSQL, the photo folder, the PDFs and model.pkl. An offline ETL step loads the DWS reports and the Municipal Money API into PostgreSQL.
+
+3.2 Use-case diagram and detailed use-case description
+------------------------------------------------------
+
+[INSERT FIGURE 2 HERE: upload file Figure-02-use-case.png]
+
+Figure 2. Every use case exists in the running system, and each carries the requirement it realises. Accept CAP Draft Item includes Update CAP Status. Generate AI CAP Draft includes Run Risk Scoring (it reads a stored score, and scoring runs through the API or bulk script, not a button). Raise Alert extends Submit Citizen Report and Run Risk Scoring. The two AI question use cases specialise Ask AI Question.
+
+Use case: Generate and Accept an AI CAP Draft (FR-06, FR-07)
+
+Primary actor: Admin. Supporting actor: AI Engine.
+Goal: turn a WSA's data into a reviewed CAP item recorded against the WSA.
+Preconditions: the Admin is signed in with the admin role, the WSA exists and an OpenAI key is configured.
+Trigger: the Admin selects a WSA and clicks Draft CAP.
+
+Normal flow:
+1. The system checks the Admin's token and role.
+2. The system checks the Admin has made fewer than 20 AI requests in the last hour.
+3. The system loads the WSA's indicators, latest risk score and open report counts by issue type.
+4. The system asks GPT-4o for three to five CAP items as JSON: action, priority, suggested days, and a justification quoting a number from the data.
+5. The system validates the reply, sets any invalid priority to medium, drops items without an action and keeps at most six.
+6. The system shows the items, each with an Accept button.
+7. The Admin clicks Accept on an item.
+8. The system sets the CAP status to submitted, the due date to today plus the suggested days, and writes an audit entry.
+9. The page shows "Applied to CAP" and refreshes the CAP totals.
+
+Alternative flows:
+- A1, step 1: missing, expired or non-admin token. The system returns 401 or 403.
+- A2, step 2: hourly limit reached. The system returns 429 and makes no OpenAI call.
+- A3, step 3: WSA not found. The system returns 404.
+- A4, step 4: no OpenAI key. The system returns 503. Everything that does not use AI keeps working.
+- A5, steps 4 and 5: the OpenAI call fails or times out (30 seconds), or the reply has no valid item. The system returns 502 and the Admin can retry.
+- A6, step 7: the Admin accepts nothing. The CAP is unchanged.
+- A7, step 8: the save fails. The page shows "Could not apply this CAP item" and the item can be accepted again.
+
+Postconditions: on success the WSA has CAP status submitted, a due date and an audit entry. On any alternative flow the WSA is unchanged.
+Business rules: only an Admin's Accept changes a CAP. The model may only cite numbers in the prompt. The score used is the last stored one.
+
+3.3 Class diagram
+-----------------
+
+[INSERT FIGURE 3 HERE: upload file Figure-03-class.png]
+
+Figure 3 shows the eight domain classes, with attribute names and types taken from backend/app/models.py. WSA composes CitizenReport, RiskScoreHistory and Alert, and User composes RefreshToken, because deletes cascade to these children. User links to AuditLog and, through reviewed_by and resolved_by, to CitizenReport. Multiplicities are on every association and the enumerations are listed below the diagram. The operations are implemented as functions and route handlers, not model methods: verifyPassword is verify_password in auth.py, updateCapStatus is the PATCH /wsa/{id} handler, and acknowledge is the PATCH /alerts/{id}/acknowledge handler.
+
+3.4 Sequence diagram
+--------------------
+
+[INSERT FIGURE 4 HERE: upload file Figure-04-sequence.png]
+
+Figure 4 follows the core transaction. The Admin clicks Draft CAP in the React page (interface). The FastAPI route (control) runs the rate limiter, reads the WSA and latest score from PostgreSQL (data) and calls GPT-4o (emerging technology). On Accept, the page sends a PATCH. The route checks the admin token, updates the WSA and inserts the audit entry in one commit. The two alt boxes show 429 for the rate limit and 401 or 403 for a bad token.
+
+3.5 Activity diagram
+--------------------
+
+[INSERT FIGURE 5 HERE: upload file Figure-05-activity.png]
+
+Figure 5 shows the same workflow in three swimlanes (Admin, System, AI Engine). It has one start node and seven decisions: valid token, under the limit, WSA exists, key configured, OpenAI call succeeded, at least one valid item, and whether the Admin accepts. Each exception (401 or 403, 429, 404, 503, 502) ends in a final node after the Admin sees a message. "Applied to CAP" is the only success ending, and declining ends with no change.
+
+3.6 Component and deployment diagrams
+-------------------------------------
+
+[INSERT FIGURE 6 HERE: upload file Figure-06-component.png]
+
+Figure 6. The React pages call one API client, which calls the REST routers or the AI router. The REST routers use the alert and audit helpers, the risk predictor, PostgreSQL and the photo folder. The AI router uses the rate limiter, query agent, retrieval index and the OpenAI helper, the only component that reaches OpenAI. The ETL pipeline writes to PostgreSQL and reads the Municipal Money API and the DWS reports.
+
+[INSERT FIGURE 7 HERE: upload file Figure-07-deployment.png]
+
+Figure 7. docker-compose.yml defines three containers on one Docker host: a node:20-alpine container running Vite on port 5173, a Python container running FastAPI under Uvicorn on port 8000, and a postgres:15 container with a named volume. The backend container holds model.pkl, the uploads folder and the PDFs. The backend calls OpenAI outbound over HTTPS. The prototype was tested as local processes (PostgreSQL 16 on 5433, Uvicorn on 8010, Vite on 5182), because Docker was not running, so the Compose start-up has not been exercised. A production release needs a built frontend behind HTTPS.
+
+3.7 Design decisions
+--------------------
+
+1. The AI never changes a record on its own. An Admin must click Accept, and every change is audited.
+2. The risk model has a fallback. If no model is loaded, the WSA has no Blue Drop score or the top probability is under 0.5, the heuristic scores it and the result is labelled with its source. Scoring never fails. Today the fallback scores only the 10 WSAs with no Blue Drop score.
+3. All OpenAI traffic goes through one helper, so the key check, 30 second timeout and error translation (503, 502) live in one place.
+4. The query agent can only call whitelisted database tools, so every figure in an answer comes from a query, and the answer shows which tool was used (Figure 11).
+5. Deleting a WSA cascades to its reports, history and alerts. Deleting a user cascades only to that user's refresh tokens, other references to users use ON DELETE SET NULL, and the audit log uses RESTRICT, so history is never lost.
+6. The audit log is append-only: rows are written by one helper and never updated.

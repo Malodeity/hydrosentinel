@@ -1,0 +1,219 @@
+QUESTION 5: EVALUATION AND RESPONSIBLE USE
+==========================================
+
+5.1 Test summary
+----------------
+
+Environment. Results are from 19 September 2026 on the development machine: PostgreSQL 16 holding the real data (169 WSAs), Uvicorn on port 8010, Vite on port 5182, Python 3.13, Node 20, Chrome and the project's live OpenAI key. Backend tests run in a transaction that rolls back.
+
+Overall. 183 backend tests pass (pytest, about 33 seconds, 25 files). 13 frontend tests pass (Vitest, 3 files) and tsc --noEmit reports no errors.
+- Unit tests check single functions: predictor choice, CAP JSON parsing, distance, PDF parsers and name matching, trend forecast, frontend helpers.
+- Integration tests call real endpoints through FastAPI's test client on the real schema: sign-in, reports, CAP updates and audit, scoring, alerts, users, CSV export, AI endpoints with OpenAI replaced by a stand-in, rate limiter.
+- System tests (ST) ran by hand against the running servers with the live key.
+- Acceptance tests (UAT) are scripted browser walkthroughs by the developer. No real citizens or administrators have tested it yet.
+
+Test case register.
+- TC-U1: tests/test_predict.py, model or fallback choice.
+- TC-U2: tests/test_cap_draft.py, parsing the AI's CAP JSON.
+- TC-U3: tests/test_geo_cluster_alert.py, cluster distance calculation.
+- TC-U4: frontend wsaSelection, reportDateRange and WSACard tests.
+- TC-U5: tests/test_data_labels.py, honest labels and missing data.
+- TC-I1: tests/test_report_tracking.py, intake, reference codes, public tracking.
+- TC-I2: tests/test_report_traceability.py and the report-status audit test, who reviewed or resolved a report.
+- TC-I3: tests/test_audit_log.py and tests/test_cap_overdue.py, CAP status and due date.
+- TC-I4: tests/test_risk_history.py, scoring history with source and scorer.
+- TC-I5: endpoint tests in tests/test_cap_draft.py, admin only, 404, items, 502.
+- TC-I6: tests/test_query_agent.py, tools, five-round limit, endpoint.
+- TC-I7: tests/test_rag.py, retrieval, index refresh, cited answer.
+- TC-I8: tests/test_alerts.py, tests/test_geo_cluster_alert.py, tests/test_cap_overdue.py, all alert types.
+- TC-I9: tests/test_auth.py and the admin-only tests, sign-in, token rotation, access control.
+- TC-I10: tests/test_ai_rate_limit.py, hourly limit and OpenAI timeout.
+- TC-I11: tests/test_wsa_dedupe.py, merging duplicate spellings.
+- IN-01: inspection of the report form and its submit rule.
+- ST-01 to ST-08 and UAT-01 to UAT-03: defined below.
+
+Representative tests. Evidence for TC tests is docs/a3-evidence/pytest_output.txt. Evidence for ST tests is docs/a3-evidence/measurements_output.txt unless stated.
+
+Test case: TC-U1, predictor falls back on low confidence
+Expected result: a top probability under 0.5 returns the heuristic result, labelled "heuristic".
+Actual result: as expected.
+Status: Pass
+
+Test case: TC-U2, malformed CAP draft
+Expected result: invalid JSON gives an empty list, a bad priority becomes medium, at most six items are returned.
+Actual result: as expected.
+Status: Pass
+
+Test case: TC-I1, public tracking hides personal data
+Expected result: the tracking response holds status and no personal fields.
+Actual result: no personal fields.
+Status: Pass
+
+Test case: TC-I3, CAP change is audited
+Expected result: a CAP status change writes an audit entry naming the actor.
+Actual result: as expected.
+Status: Pass
+
+Test case: TC-I8, alerts
+Expected result: 3 same-type reports within 2 km and 6 hours raise a cluster alert and 2 do not. 5 reports in 24 hours raise a volume alert and 4 do not.
+Actual result: as expected in all four cases (the volume tests were added during this evaluation).
+Status: Pass
+
+Test case: TC-I9, refresh token is single use
+Expected result: a second use is rejected.
+Actual result: 401.
+Status: Pass
+
+Test case: TC-I10, rate limit and timeout
+Expected result: the 21st request in an hour returns 429, other users are unaffected, and the OpenAI client has a 30 second timeout and one retry.
+Actual result: as expected. The timeout test failed first because the client used the 600 second default, and passed after the fix.
+Status: Pass
+
+Test case: TC-I11, duplicate spellings merge
+Expected result: differently spelled sources join into one row, same names in different provinces stay apart, metro aliases join, the merge keeps the scored row and moves reports and CAP status, a dry run changes nothing, and a new spelling updates the existing row.
+Actual result: all 7 tests pass. On the real data the merge removed 115 rows (284 to 169) and lost no label or report.
+Status: Pass
+Evidence: pytest output and duplicate_cleanup_report.txt.
+
+Test case: TC-U5, honest data labels
+Expected result: prompts call maintenance a share of operating expenditure and quote no asset value or 8% benchmark, an average over no data reads "not available", and a municipality with no maintenance figure is skipped, not stored as 0.00%.
+Actual result: failed before the fix, all 3 pass after.
+Status: Pass
+
+Test case: ST-01, list response time (NFR-01)
+Expected result: GET /wsa under 3 seconds at the 95th percentile.
+Actual result: 100 sequential requests: median 6 ms, 95th percentile 10 ms. 50 concurrent users, 200 requests: median 261 ms, 95th percentile 317 ms, slowest 409 ms. The response is 169 WSAs and about 105 KB. Before the clean-up it was 474 ms with 284 records and 175 KB.
+Status: Pass
+
+Test case: ST-02, core functions without AI (NFR-02)
+Expected result: with no OpenAI key, AI endpoints fail cleanly and the core keeps working.
+Actual result: a server with a blank key returned 503 "OPENAI_API_KEY is not configured" in 2 to 3 ms, and /wsa, /alerts and /risk/scores returned 200. The national digest returned 200 from its cache.
+Status: Pass
+
+Test case: ST-03, anonymous access (NFR-04)
+Expected result: admin endpoints return 401 without a token.
+Actual result: GET /audit-log, GET /alerts, POST /risk/score/{id}, GET /reports, GET /users and PATCH /wsa/{id} all returned 401.
+Status: Pass
+
+Test case: ST-04, AI summary (FR-05)
+Expected result: a summary in under 8 seconds using the WSA's real scores.
+Actual result: 2.13, 1.55 and 1.80 seconds, each quoting the real Blue Drop score.
+Status: Pass
+
+Test case: ST-05, CAP draft (FR-06)
+Expected result: at least one structured item per WSA.
+Actual result: 5, 4 and 5 items in 2.79, 2.53 and 3.25 seconds, each with a priority and due days.
+Status: Pass
+Evidence: measurements output and Figure 13.
+
+Test case: ST-06, data question (FR-08, AI-NFR-02)
+Expected result: a correct answer from the database within 15 seconds and five round-trips.
+Actual result: 3.43, 1.77 and 2.25 seconds, one tool call each. The comparison (Gauteng 87.42, Western Cape 70.97) matched the database.
+Status: Pass
+Evidence: measurements output and Figure 11.
+
+Test case: ST-07, AI failure cases (NFR-02, AI-NFR-03)
+Expected result: a missing key gives 503, an invalid key gives 502 without breaking other endpoints, and the 21st request in an hour gives 429.
+Actual result: a blank key gave 503 in about 2 ms. An invalid key gave 502 "OpenAI request failed" in 0.64 to 1.02 seconds and /wsa still returned 200. Twenty-two rapid CAP-draft calls on a nonexistent WSA (no OpenAI cost) returned 404 until the counter hit 20, then 429 from the 21st call overall. The counter includes calls that end in 404.
+Status: Pass
+
+Test case: ST-08, model accuracy (AI-NFR-01)
+Expected result: at least 80% on held-out data, and better than the fallback.
+Actual result: 89.7% on the held-out split (29 WSAs) against 34.5% for the fallback, and 80.6% (standard deviation 8.0%) under five-fold cross-validation. It was 77.8% before the merge.
+Status: Pass, with little margin
+Evidence: model_evaluation_after_cleanup.txt and model_evaluation_before_cleanup.txt.
+
+Test case: UAT-01, report page (NFR-03)
+Expected result: a citizen reaches the form without an account and few fields are required.
+Actual result: no sign-in needed, and submit needs only province, WSA and a description of 10 or more characters.
+Status: Pass
+Evidence: Figure 9.
+
+Test case: UAT-02, draft and accept a CAP item (FR-06, FR-07)
+Expected result: after sign-in the Admin drafts a CAP, accepts an item and the CAP status updates.
+Actual result: on 16 September 2026 Accept showed "CAP updated for Alfred Nzo District Municipality" with no console errors. On 19 September Draft CAP showed four items with Accept buttons.
+Status: Pass
+Evidence: Figure 13.
+
+Test case: UAT-03, public dashboard
+Expected result: digest, map and a default WSA card.
+Actual result: all three loaded.
+Status: Pass
+Evidence: Figure 8.
+
+Defects found and fixed during testing.
+- The OpenAI client had no timeout (default 600 seconds). It now uses 30 seconds and one retry, with a test.
+- The volume alert had no test. Two tests now pin the threshold at five reports.
+- One test assumed an empty audit table. It now compares against a baseline.
+- .env.example named ANTHROPIC_API_KEY, but the code reads OPENAI_API_KEY. Fixed.
+- Four requirement statements did not match the code (section 1.2).
+- Duplicate authority rows (284 for 169), which overstated totals and made the fallback score about 70% of stored results. The ETL now matches on an authority key and the rows are merged.
+- Maintenance was labelled a share of asset value and missing values were stored as 0.00%. Corrected.
+- The AI digest turned missing NRW into "0.0, indicating efficient water usage". Averages over no data now read "not available".
+
+5.2 Quantitative evaluation
+---------------------------
+
+NFR-01, performance. Target: 95th percentile of 3 seconds or less for the WSA list with up to 50 concurrent users. Measured: 10 ms for one user and 317 ms for 50 users, about ten times faster than the target. Server and client shared one laptop and one Uvicorn process, so this shows headroom, not capacity.
+
+NFR-02, reliability without AI. Target: reporting, CAP tracking and the dashboard keep working without OpenAI. Measured: with a blank key AI endpoints answered 503 in 2 to 3 ms, and with an invalid key 502 in about a second. Core endpoints returned 200 in both cases.
+
+NFR-04, security. Six admin endpoints returned 401 without a token, and 11 automated tests check that admin-only endpoints refuse non-admins.
+
+AI-NFR-01, model accuracy. Measured with ai/train_from_bdrr.py on the 144 BDRR labels, after the merge. Held-out accuracy 89.7% against 34.5% for the fallback. Cross-validation 80.6% with a standard deviation of 8.0% (folds 69.0% to 89.7%). Per class on the held-out split: high precision 1.00 and recall 1.00 (3 WSAs), low 0.90 and 0.95 (19), medium 0.83 and 0.71 (7). Before the merge cross-validation was 77.8% and medium recall 0.57. The target is met on both measures, narrowly on the cross-validated one, and medium risk is the weakest class.
+
+AI-NFR-02, query latency. Three live questions took 1.77 to 3.43 seconds against a 15 second target.
+
+5.3 User guide for the main workflow
+------------------------------------
+
+From a resident's report to an accepted CAP item.
+
+1. Report a problem (citizen). Open the report page (Figure 9). Choose province and WSA and issue type, add photos, describe the problem in 10 or more characters, move the map pin and submit. Keep the reference code: it shows the report's status without personal details.
+2. Sign in (admin). Open the sign-in page (Figure 10) and enter the admin email and password. The admin page opens (Figure 11).
+3. Review alerts. "System alerts" lists high risk scores, volume spikes and clusters. "Trending toward higher risk" lists WSAs heading into a worse tier. Acknowledge an alert once handled.
+4. Triage reports. In "Citizen reports", filter by province, WSA and date. Set the case status (open, in review, resolved), write a comment ("Generate AI comment" drafts one) and save.
+5. Keep scores current. Scores are the last stored ones and nothing re-scores automatically. After loading data, run scripts/bulk_risk_score.py, or call POST /risk/score/{wsa_id} for one WSA.
+6. Ask the AI assistant. Type a data question in "Ask the data", such as "Compare the average Blue Drop score of Gauteng and Western Cape", and press Ask. The answer shows the tool used (Figure 11). "Ask the regulations" answers from the DWS reports. Limit: 20 AI requests per admin per hour.
+7. Draft and accept a CAP. Choose a WSA and click Draft CAP. Read each item and its justification (Figure 13), then click Accept to set the CAP to submitted with the suggested due date. You can also set status and due date in the CAP table (Figure 12) and click Save.
+
+Troubleshooting (the 503, 502 and 429 cases were reproduced live, test ST-07).
+- "Unable to load admin data" or "Unable to load WSA data": the page cannot reach the API. Check the backend is running, VITE_API_URL points to it, and FRONTEND_URL matches the browser address exactly (localhost differs from 127.0.0.1).
+- Sign-in returns 401: wrong email or password. 403: the account is deactivated.
+- AI returns 503: no OpenAI key. Set OPENAI_API_KEY in .env and restart. Everything else works without it.
+- AI returns 429: the admin has used 20 requests this hour. Every call counts, including ones that end in 404. Wait for old calls to drop out.
+- AI or CAP draft returns 502: OpenAI failed, rejected the key or returned nothing usable. Retry, then check the key and that the machine can reach api.openai.com.
+- No digest on the dashboard: it needs the OpenAI key and is generated once every 24 hours.
+- No WSAs on the map: run the ETL step, then the bulk scoring script.
+- Risk levels look stale: run the bulk scoring script.
+- Backend tests hang: the database is not running or DATABASE_URL is wrong.
+
+5.4 Limitations, risks, ethics, maintenance and future work
+-----------------------------------------------------------
+
+Limitations.
+- Only 144 labelled WSAs (17 high, 32 medium). Cross-validated accuracy is 80.6%, 0.6 points above target, with folds from 69% to 90%. Medium recall is 0.71.
+- The deployed model.pkl (1 September 2026) predates the data clean-up and should be retrained.
+- Weak inputs: nrw_percent is empty for every WSA, maint_pct is a share of operating expenditure and missing for 49 of 169, and coordinates are place-name points. The 10 WSAs with no Blue Drop score use the fallback, which reached 34.5% accuracy on the test rows.
+- Scoring is manual with no button, so the "continuously updated" aim is only partly met.
+- Name matching is a rule of thumb. An unusual new spelling could create a duplicate, so check the dedupe dry run after each load.
+- No real-user testing, Docker start-up not run, no automated test for the Accept button or the summary endpoint. The Docker image uses Python 3.11 against 3.13 in development, and the frontend container runs the Vite development server.
+
+Unresolved risks.
+- Six public AI endpoints have no sign-in and no rate limit, and five call OpenAI on every request, so anyone could run up the bill. They need sign-in, caching or a per-IP limit before release.
+- The rate limiter counts in one process's memory. A restart clears it and two processes would each allow 20.
+- Server-side input limits are thin: a direct API call can send a long description, bad coordinates or many large photos.
+- The example configuration and test setup contain a database password and the default admin password admin123 in a public repository. Treat them as exposed and replace them. The OpenAI key lives only in the git-ignored .env, and a scan found no key in any tracked file or in the git history.
+- No backup job exists.
+
+Ethical and security concerns.
+- The AI can be wrong and can repeat a data mistake it is given. Two were found and fixed here (the asset-value label and "0.0 NRW means efficient"). Every accepted CAP change is audited and the evidence is shown beside each item, but a busy admin could still accept a poor one. The final product should record which items were AI-drafted.
+- A risk label on a named municipality has consequences. It should be shown as an estimate with its source (model or fallback) and its data completeness, not as an audit finding.
+- Data is public and citizens type only what they choose, so privacy exposure is low. Three helpers (report comment, reports summary, report context) send citizens' free text to OpenAI, and the report context endpoint is public, so this needs a data-protection review before release.
+- The dependency audit reports a critical issue in Vitest 2, reachable only through its optional --ui server, which the project never starts. It is a development dependency and does not ship.
+
+Maintenance. After each DWS report cycle: re-run the ETL, check the dedupe dry run, run bulk scoring, and retrain with ai/train_from_bdrr.py --deploy once new labelled data exists. Keep the PDFs in data/raw/ current (the index rebuilds itself). Update dependencies and re-run both test suites, watch OpenAI model and pricing changes, rotate secrets, and track the share of scores from the fallback.
+
+Two future improvements.
+1. Improve the model and data after the prototype presentation: retrain and deploy on the cleaned data, fix NRW extraction, obtain an asset value to measure maintenance against the Treasury's 8% norm, add earlier DWS years and other public data where the licence allows, and re-evaluate with cross-validation. Aim for cross-validated accuracy well above 80% and medium recall above 0.75, and show data completeness beside each score.
+2. Prepare for public release: automate scoring when data or reports arrive, add rate limiting and caching to the public AI endpoints, move the limiter to a shared store, serve a built frontend over HTTPS, add a nightly backup, and run acceptance testing with real citizens and administrators.

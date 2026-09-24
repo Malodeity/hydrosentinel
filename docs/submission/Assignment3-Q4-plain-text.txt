@@ -1,0 +1,153 @@
+QUESTION 4: IMPLEMENTATION DOCUMENTATION
+========================================
+
+4.1 Technology stack, structure, modules and interface
+------------------------------------------------------
+
+Stack.
+- Frontend: React 18.3, TypeScript 5.8, Vite 5, Tailwind CSS 3, shadcn/ui, Leaflet 1.9 with react-leaflet 4, axios, React Router 6, Vitest 2.
+- Backend: Python, FastAPI 0.115 on Uvicorn 0.34, SQLAlchemy 2.0, Pydantic 2, python-jose (JWT), bcrypt. The Docker image uses Python 3.11 and development used 3.13.
+- Database: PostgreSQL (15 in Compose, 16 in development).
+- AI: XGBoost 2.1, scikit-learn 1.6 (TF-IDF index), pdfplumber, OpenAI SDK 2.40 (GPT-4o).
+- Tooling: pytest 8, Docker Compose, Git.
+
+Structure.
+- backend/main.py: creates the app, registers eight routers, sets CORS, loads the model, seeds the admin account.
+- backend/app/: config, database, models, schemas, auth, alert and audit helpers, rate limiter, and routes/ (one file per router).
+- backend/ai/: predictor, features, training scripts, trend forecast, query agent, retrieval index.
+- backend/etl/: one parser per source, name matching, loader, run_etl.py, dedupe_wsa.py.
+- backend/data/: raw/ (source PDFs) and uploads/ (photos). backend/tests/: 25 test files.
+- frontend/src/: pages/ (four), components/, api/, lib/ (tested helpers).
+
+Modules and responsibilities.
+- Authentication (auth.py, routes/auth.py): sign-in, access and rotating refresh tokens, the admin-only guard.
+- WSA and risk (routes/wsa.py, routes/risk.py, ai/predict.py): list WSAs, update CAP, score risk, store history, forecast trend.
+- Reports (routes/reports.py): intake with photos, tracking by reference code, admin case status and comment.
+- Alerts and audit (alert_helpers.py, audit_helpers.py): five alert types with deduplication, and the append-only audit log.
+- AI service (routes/ai.py, ai/query_agent.py, ai/rag.py, rate_limit.py): summaries, digests, CAP drafts, data and regulatory questions, all through one OpenAI helper.
+- ETL (backend/etl/): PDFs and the Municipal Money API into WSA rows.
+
+Interface screenshots.
+
+[INSERT FIGURE 8 HERE: upload file Figure-08-dashboard.png]
+
+Figure 8: public dashboard with the cached AI national digest, the risk map and the selected WSA's card.
+
+[INSERT FIGURE 9 HERE: upload file Figure-09-report-form.png]
+
+Figure 9: citizen report page. Province, WSA, issue type, optional photos, description and a map pin.
+
+[INSERT FIGURE 10 HERE: upload file Figure-10-login.png]
+
+Figure 10: admin sign-in. Only admin accounts reach the admin page.
+
+[INSERT FIGURE 11 HERE: upload file Figure-11-admin-ai-assistant.png]
+
+Figure 11: admin page. The trend panel comes from ai/trajectory.py, and the AI assistant shows the tool it used ("Checked: compare_provinces").
+
+[INSERT FIGURE 12 HERE: upload file Figure-12-cap-table.png]
+
+Figure 12: CAP table, where an admin sets a WSA's CAP status and due date and saves.
+
+[INSERT FIGURE 13 HERE: upload file Figure-13-cap-draft.png]
+
+Figure 13: an AI-drafted CAP. Each item shows a priority, suggested days and a justification quoting the WSA's data.
+
+4.2 Database and dataset
+------------------------
+
+[INSERT FIGURE 14 HERE: upload file Figure-14-entity-relationship.png]
+
+Figure 14 shows the eight tables, keys and delete rules. The five nullable references to users are marked on the columns.
+
+Data dictionary.
+- wsa (169 rows): id (uuid, primary key), name (unique), province, blue_drop_score, green_drop_score, nrw_percent, maint_pct (nullable numbers), cap_status (none, submitted, in_progress, completed), cap_due_date, risk_level (low, medium, high), bdrr_risk_level (the DWS label, nullable), lat, lng, and other ETL fields. asset_value is empty for every row.
+- citizen_reports: wsa_id (foreign key), issue_type (leak, outage, quality, billing), reference_code (unique, 12 characters), case_status (open, in_review, resolved), description, admin_comment, reviewed_by, resolved_by, reviewed_at, resolved_at, lat, lng, created_at.
+- risk_score_history (338 rows): wsa_id, risk_level, probability, model_source (xgboost, heuristic), model_version, scored_by, scored_at.
+- alerts: wsa_id, alert_type (risk_level_high, risk_level_increased, report_volume_spike, cap_overdue, geo_cluster_incident), message, acknowledged_by, acknowledged_at, created_at.
+- users (3 rows): email (unique), hashed_password, role (admin, viewer), is_active, last_login_at, created_at.
+- refresh_tokens: user_id, token_hash (unique), expires_at, revoked_at.
+- audit_log: user_id, action, table_name, record_id, old_value and new_value (JSON), ip_address, created_at.
+- summaries: the cached AI digest (content, generated_by, generated_at), reused for 24 hours.
+
+Data sources and training labels. All data is public, and no personal data is used.
+- WSA names and Blue Drop scores: DWS 2023 Blue Drop report (etl/parse_blue_drop.py). These audits define the 169 authorities.
+- Training labels: the BDRR tables in the same report (etl/parse_bdrr.py). DWS auditors calculate BDRR independently from five indicators, so it is an audited outcome and not a value the system made up. Bands map to three levels: 70% and above (including "critical") is high, 50% to 69% medium, below 50% low. 144 WSAs carry a label: 95 low, 32 medium, 17 high.
+- No Drop performance: 2023 No Drop report. Green Drop scores: 2023 national and 2025 Gauteng Green Drop reports.
+- Maintenance spending: National Treasury Municipal Money API, audited actuals. maint_pct is repairs and maintenance as a share of total operating expenditure. The API has no usable asset value, so the Treasury's 8% norm (defined against asset value) is not quoted. A missing figure stays empty and is never stored as 0.00%.
+- Coordinates: OpenStreetMap Nominatim lookups of each authority name (etl/fix_wsa_data.py). They are place-name points, not surveyed sites. 16 authorities use a province centroid because the lookup found nothing.
+- The same PDFs plus benchmarking_2022.pdf feed regulatory question answering only.
+
+Duplicate records. The DWS reports spell the same authority differently ("Alfred Nzo DM", "Alfred Nzo District Municipality"), and the ETL joined on the exact name, so one authority became two rows: 284 rows for 169 authorities. merge_sources and the loader now match on an authority key (province, suffix-stripped name, metro aliases), and etl/dedupe_wsa.py merged the existing rows after a pg_dump backup. All 144 labels and 6 citizen reports survived, and 7 tests cover it. The matching is a rule of thumb, so an unusual new spelling could slip through. Check the script's dry run after each data load. Before and after figures are in docs/a3-evidence/duplicate_cleanup_report.txt.
+
+What the model learns from. Six inputs: Blue Drop score, NRW percent, maintenance percent, CAP status code, latitude, longitude.
+- nrw_percent is empty for all 169 WSAs (the No Drop parser reads a score, not NRW). Missing values become zero, so this input is constant.
+- 10 WSAs have no Blue Drop score and use the fallback. Maintenance percent is missing for 49.
+- Coordinates are approximate place points.
+- The BDRR label and the Blue Drop score come from the same DWS audit and are correlated.
+
+The deployed backend/ai/model.pkl (1 September 2026) was trained before the clean-up and not retrained since.
+
+Validation rules.
+- Report intake: the WSA must exist (404), issue_type must be one of four values (422), and coordinates must be numbers. Only image files (.jpg, .jpeg, .png, .webp, .gif) are stored. The form also requires a province, a WSA and a description of 10 or more characters.
+- Case status must be open, in_review or resolved, and an admin comment is at most 2,000 characters. Passwords need 8 or more characters, emails must be valid, and a duplicate email returns 409. AI questions are 3 to 500 characters.
+- CAP drafts: invalid JSON gives an empty result, a bad priority becomes medium, an item without an action is dropped, and at most six items are kept.
+- Not enforced on the server: description length, coordinate ranges, photo count and size. Only the form limits these.
+
+Privacy controls.
+- No account for citizens. A report holds only what they type and a map pin, and public tracking returns status only.
+- Passwords are bcrypt hashes. Refresh tokens are SHA-256 hashes, single use, revoked at logout. Access tokens last 60 minutes, refresh tokens 7 days.
+- Admin endpoints reject calls without a valid admin token. Photos sit under a random report id folder. The audit log records the actor and old and new values. CORS allows only the configured frontend address and local port 5173.
+
+Backup. The database is the only store that cannot be rebuilt by script: it holds reports, admin decisions, alerts and the audit trail. The plan is a nightly pg_dump kept 30 days on a separate host, plus a copy of data/uploads/. WSA data, the model and the search index rebuild from the PDFs and scripts. No backup job exists yet.
+
+4.3 API and integration interface
+---------------------------------
+
+REST with JSON. Interactive docs are at /docs on the running server. Errors return {"detail": "..."} with these codes: 401 missing or invalid token, 403 non-admin or inactive account, 404 unknown record, 409 duplicate, 422 invalid body, 429 AI rate limit, 502 AI call failed or unusable, 503 no OpenAI key.
+
+Authentication.
+- POST /auth/login: email and password in; access token, refresh token and user out. No token needed. Errors: 401, 403.
+- POST /auth/refresh: refresh token in; new tokens out. The old token cannot be reused. Error: 401.
+- POST /auth/logout: revokes the refresh token. GET /auth/me: the signed-in user.
+
+Public (no token).
+- GET /wsa, GET /risk/scores: WSAs with indicators, risk level and CAP status.
+- POST /reports: multipart form (wsa_id, issue_type, description, lat, lng, optional photos); returns 201 with the report and reference code. Errors: 404, 422.
+- GET /reports/track/{reference_code}: status and timestamps only. Error: 404.
+
+Admin (admin token).
+- PATCH /wsa/{id}: CAP status and due date in; updated WSA out; writes an audit entry. Error: 404.
+- PATCH /reports/{id}: case_status and comment in; sets reviewed_by or resolved_by and writes an audit entry. Errors: 404, 422.
+- POST /risk/score/{wsa_id}: risk level, probability and source out; updates the WSA, stores history, writes an audit entry, may raise a high-risk alert. Error: 404.
+- GET /alerts, PATCH /alerts/{id}/acknowledge (safe to repeat), GET /audit-log, GET /reports, the two CSV exports, GET /risk/history/{wsa_id}, GET /risk/trajectory/{wsa_id}, GET /risk/trending, POST /users, GET /users and PATCH /users/{id}.
+
+AI.
+- GET /ai/wsa/{id}/cap-draft, POST /ai/query ({"question": "..."}, 3 to 500 characters, returns the answer and tools used), GET /ai/regulatory-context?query=: admin token, rate limited. Errors: 404, 422, 429, 502, 503.
+- Recommendations, report summary and report comment: admin token, not rate limited.
+- Six endpoints are public with no rate limit: WSA summary, risk explanation, comparison, report context, province digest and national digest. The national digest is cached 24 hours, and the other five call OpenAI on every request. This is an open cost risk (section 5.4).
+
+External integrations. OpenAI Chat Completions (outbound HTTPS, key from the environment, 30 second timeout, one retry). The National Treasury Municipal Money API (ETL only).
+
+4.4 Installation, configuration and deployment
+----------------------------------------------
+
+Minimum requirements.
+- Server: 2 cores at 2.0 GHz, 4 GB memory, 20 GB SSD, stable outbound internet for OpenAI. Recommended: 4 cores, 8 GB, 50 GB SSD.
+- Software: Docker with Compose, or Python 3.11+, Node.js 20+ and PostgreSQL 15+ for a local run.
+- Client: current Chrome, Safari, Firefox or Edge, at least 1280 by 720 for the admin page.
+
+Configure.
+1. Clone the repository and copy .env.example to .env.
+2. Set POSTGRES_PASSWORD and the matching DATABASE_URL, a long random JWT_SECRET_KEY, ADMIN_EMAIL, ADMIN_PASSWORD and OPENAI_API_KEY (leave the key blank to run without AI). Set FRONTEND_URL to the exact address the browser uses, because the API only accepts that origin.
+3. Put the source PDFs in backend/data/raw/.
+
+Run with Docker. Run docker compose up --build, then open http://localhost:5173. The backend creates the tables and the admin account on start-up.
+
+Run without Docker. Create the database to match DATABASE_URL. In backend/, create a virtual environment, install requirements.txt and run uvicorn main:app --port 8000. In frontend/, run npm install and npm run dev with VITE_API_URL set to the backend.
+
+Load the data. In backend/ run python -m etl.run_etl with PYTHONPATH set to the backend folder. On an older database run python -m etl.dedupe_wsa (dry run) and add --apply to merge duplicates, after a pg_dump. Then run scripts/bulk_risk_score.py (needs API_URL, ADMIN_EMAIL, ADMIN_PASSWORD) with the backend running, and repeat it after each data load. ai/train_from_bdrr.py evaluates the model, and --deploy retrains on all labelled rows and overwrites ai/model.pkl.
+
+Run the tests. pytest tests/ in backend/ and npm test in frontend/. Backend tests run inside a transaction that rolls back.
+
+Before real deployment. Replace every example secret, serve over HTTPS behind a reverse proxy, build the frontend as static files, restrict the database port to the backend host, and add the backup job.

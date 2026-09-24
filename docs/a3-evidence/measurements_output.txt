@@ -34,3 +34,24 @@ measure_cap_draft.py
 200 2.79s | !Kai! Garib LM | 5 items | priorities ['high', 'medium', 'medium', 'high', 'low'] | days [30, 60, 90, 45, 120]
 200 2.53s | !Kheis LM | 4 items | priorities ['high', 'high', 'medium', 'medium'] | days [90, 120, 180, 60]
 200 3.25s | Albert Luthuli LM | 5 items | priorities ['high', 'medium', 'high', 'medium', 'low'] | days [90, 180, 60, 120, 150]
+
+==========================================================================
+Re-run on 2026-09-19 after the duplicate-record clean-up (169 WSAs, 105 KB response)
+==========================================================================
+measure_performance_and_access.py
+NFR-01 sequential n=100 GET /wsa: median 0.006s p95 0.010s max 0.078s
+NFR-01 concurrent 50 users x4 (n=200): median 0.261s p95 0.317s max 0.409s wall 1.09s
+payload: 169 WSAs, 105 KB
+NFR-04: GET /audit-log, GET /alerts, POST /risk/score/{id}, GET /reports, GET /users, PATCH /wsa/{id} without a token -> all 401
+AI digest regenerated after the clean-up (3.3s): "... out of 169 Water Services Authorities (WSAs), 18 are classified as high risk,
+43 as medium risk, and 108 as low risk ... data on the average Non-Revenue Water (NRW) percentage is currently unavailable."
+
+AI troubleshooting scenarios, run live (server on :8012 started with OPENAI_API_KEY=sk-invalid-test-key)
+TS-A invalid OpenAI key, WSA summary   -> 502 {"detail":"OpenAI request failed"} in 1.02s
+TS-B invalid OpenAI key, CAP draft     -> 502 {"detail":"OpenAI request failed"} in 0.64s   (core GET /wsa still 200)
+TS-C 22 rapid CAP-draft calls on a nonexistent WSA (no OpenAI spend). The counter includes every call, TS-B included:
+     the 21st call overall and every later one -> 429 {"detail":"AI request limit reached (20 per hour). Try again later."}
+Blank key (port 8011, earlier run) -> 503 {"detail":"OPENAI_API_KEY is not configured"}
+
+CAP draft after the prompt fix (real key), first item for !Kheis LM:
+  "Current maintenance spending is only 0.15% of total operating expenditure ..."

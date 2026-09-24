@@ -1,0 +1,29 @@
+Duplicate WSA records: before and after (2026-09-19)
+
+Cause: etl/load.py joined the DWS reports on the exact name string, and the reports spell the same authority differently
+("Alfred Nzo DM" vs "Alfred Nzo District Municipality"), so one authority became two rows.
+
+Fix: etl.load.merge_sources now joins on an authority key (province + name with suffixes stripped + metro aliases),
+etl.load.upsert_wsa_rows matches existing rows on the same key, and etl/dedupe_wsa.py merged the existing rows.
+A pg_dump backup was taken first. Tests: tests/test_wsa_dedupe.py (7) and tests/test_data_labels.py (3).
+
+                                   before      after
+WSA rows                             284        169
+duplicate groups                     108          0   (115 rows removed)
+rows with a Blue Drop score          168        159   (59% of rows -> 94% of rows)
+labelled (DWS BDRR) rows             144        144   (no label lost)
+citizen reports                        6          6   (2 moved to the kept row)
+risk history rows                    568        338   (230 belonged to the removed rows)
+latest score from XGBoost            n/a        159   (10 from the rule-based fallback)
+rows on a province-centroid coord    n/a         16   (rest geocoded from OpenStreetMap by name)
+maint_pct = 0.00 with no data          5          0   (now NULL)
+risk levels (high/medium/low)   18/152/114   18/43/108
+
+Model evaluation (ai/train_from_bdrr.py, evaluate only), same 144 labelled rows:
+                                   before      after
+held-out accuracy (29 rows)        89.7%      89.7%
+heuristic accuracy, same rows      34.5%      34.5%
+5-fold CV mean (std)         77.8% (8.8%)  80.6% (8.0%)
+medium-class recall                 0.57       0.71
+The cross-validation gain comes from the merge filling gaps in the labelled rows. The deployed ai/model.pkl (1 Sept 2026)
+was NOT retrained; run ai/train_from_bdrr.py --deploy to retrain on the cleaned data.

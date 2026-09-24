@@ -1,0 +1,220 @@
+QUESTION 2: REQUIREMENTS AND TRACEABILITY
+=========================================
+
+2.1 Final prioritised requirements
+----------------------------------
+
+Each requirement has a unique ID, a priority and a measurable acceptance criterion. Wording corrections are listed in section 1.2.
+
+FUNCTIONAL REQUIREMENTS
+
+ID: FR-01
+Priority: Must
+Requirement: The system shall allow a citizen to submit a report against a WSA, selecting an issue type (leak, outage, quality, billing), a description, a map location and optional photos.
+Acceptance criterion: Given a citizen on the report form, when they select a WSA, issue type and location and submit, then a CitizenReport row is created with case_status = open and is visible in the admin reports table within one refresh.
+
+ID: FR-02
+Priority: Must
+Requirement: The system shall allow an admin to update a citizen report's case status (open/in review/resolved) and attach an admin comment.
+Acceptance criterion: Given an admin viewing an open report, when they change status and save, then the report's case_status, admin_comment, reviewed_by/reviewed_at fields update and an audit log entry is written.
+
+ID: FR-03
+Priority: Must
+Requirement: The system shall allow an admin to update a WSA's CAP status (none/submitted/in_progress/completed) and due date.
+Acceptance criterion: Given an admin on a WSA's CAP card, when they change CAP status, then WSA.cap_status updates, an AuditLog row with action cap_status_updated is written, and the CAP dashboard totals update.
+
+ID: FR-04
+Priority: Must
+Requirement: The system shall compute and store a risk level (low/medium/high) and probability for each WSA using the trained XGBoost model, or a deterministic heuristic if no model is loaded.
+Acceptance criterion: Given an admin triggers risk scoring for a WSA, when scoring completes, then a RiskScoreHistory row is created and WSA.risk_level reflects the new score within the same request.
+
+ID: FR-05
+Priority: Must
+Requirement: The system shall generate an AI-written natural-language risk summary for a selected WSA on request.
+Acceptance criterion: Given a WSA with at least Blue Drop or Green Drop data present, when a user requests the summary, then a non-empty text response referencing that WSA's actual scores is returned within 8 seconds.
+
+ID: FR-06
+Priority: Should
+Requirement: The system shall generate an AI-drafted, prioritised CAP (list of structured action items with a suggested due-in-days) for a WSA on admin request.
+Acceptance criterion: Given an admin clicks "Draft CAP" for a WSA, when generation completes, then at least one CAP draft item with a title, priority and suggested due-in-days is displayed.
+
+ID: FR-07
+Priority: Should
+Requirement: The system shall let an admin accept a single CAP draft item, which applies it to the WSA's live CAP status (status = submitted, due date computed from the suggested days).
+Acceptance criterion: Given a rendered CAP draft, when the admin clicks "Accept" on an item, then updateWsaCapStatus is called, the WSA's CAP status becomes submitted, and the button changes to "Applied to CAP".
+
+ID: FR-08
+Priority: Should
+Requirement: The system shall let an admin ask a free-text question about live WSA/report/alert/audit data and receive an answer computed from real backend data via tool calls, not from the LLM's own knowledge.
+Acceptance criterion: Given an admin submits a question such as "which Eastern Cape WSAs have no CAP and are high risk", when the query agent resolves it, then the response text only contains values traceable to a tool-function result for that query.
+
+ID: FR-09
+Priority: Should
+Requirement: The system shall let an admin ask a free-text question against the indexed regulatory PDF corpus and receive an answer with the source document referenced.
+Acceptance criterion: Given regulatory PDFs are indexed, when the admin submits a regulations question, then the response cites at least one source PDF filename.
+
+ID: FR-10
+Priority: Could
+Requirement: The system shall automatically raise an alert when a WSA's risk score crosses into "high", when a WSA receives 5+ citizen reports in 24 hours, or when 3+ reports fall within 2 km of each other inside 6 hours.
+Acceptance criterion: Given the qualifying condition occurs, when the triggering event is processed, then an Alert row is created with the correct alert_type and is visible, unacknowledged, in the admin alerts panel without further action.
+
+NON-FUNCTIONAL REQUIREMENTS (FURPS+)
+
+ID: NFR-01
+Category: Performance
+Priority: Must
+Requirement: The system shall return the WSA list and risk map data within 3 seconds under normal load (<=50 concurrent admin users).
+Acceptance criterion: Measured server response time for GET /wsa is <=3 seconds at the 95th percentile.
+
+ID: NFR-02
+Category: Reliability
+Priority: Must
+Requirement: The system shall remain available for AI-independent core functions (report submission, CAP tracking, dashboard) when the OpenAI API is unreachable.
+Acceptance criterion: Given OPENAI_API_KEY is unset or the OpenAI call fails, when a user submits a citizen report or updates CAP status, then the action still completes successfully (AI-only endpoints return 503 when the key is missing and 502 when the OpenAI call fails, instead of crashing the app).
+
+ID: NFR-03
+Category: Usability
+Priority: Should
+Requirement: The system shall let a first-time citizen submit a report in 5 fields or fewer without requiring an account.
+Acceptance criterion: A usability walkthrough confirms report submission requires no login and completes in <=5 form interactions before photo upload.
+
+ID: NFR-04
+Category: Security / Constraint
+Priority: Must
+Requirement: The system shall restrict all CAP-modification, risk-scoring, alert-acknowledgement and audit-log endpoints to authenticated users with the admin role.
+Acceptance criterion: Given a request without a valid admin JWT, when it hits a protected endpoint, then the API returns 401/403 and no data is modified.
+
+AI AND MACHINE LEARNING REQUIREMENTS
+
+ID: AI-NFR-01
+Priority: Must
+Requirement: The XGBoost risk model shall achieve at least 80% classification accuracy on a held-out validation split of labelled WSA risk data.
+Acceptance criterion: The classification report that ai/train_from_bdrr.py prints for the held-out split shows accuracy >=0.80 before the model is deployed.
+
+ID: AI-NFR-02
+Priority: Should
+Requirement: The AI query agent shall resolve a natural-language data question in at most 5 OpenAI round-trips and return a result within 15 seconds under normal load.
+Acceptance criterion: Given a representative query set, when run through run_query_agent, then the tool-call loop terminates within 5 iterations and total wall-clock time is <=15 seconds.
+
+ID: AI-NFR-03
+Priority: Must
+Requirement: The AI layer shall enforce a per-admin rate limit of 20 AI requests per rolling hour across the query agent, CAP draft and regulatory-context endpoints, to bound OpenAI API cost and prevent abuse.
+Acceptance criterion: Given an admin has made 20 AI requests within the last 60 minutes, when a 21st request is made, then the API returns 429 Too Many Requests and no OpenAI call is made.
+
+2.2 Requirements traceability matrix
+------------------------------------
+
+Each requirement maps to its UML element, module, test case and status. Test case IDs are defined in section 5.1. "Live" means run by hand against the running system on 19 September 2026.
+
+Requirement: FR-01
+UML reference: use case Submit Citizen Report, class CitizenReport, activity diagram (section 3.5)
+Module: backend/app/routes/reports.py, frontend/src/components/ReportForm.tsx
+Test case: TC-I1 (6 tests)
+Status: Pass
+
+Requirement: FR-02
+UML reference: use case Triage Citizen Report, class CitizenReport
+Module: backend/app/routes/reports.py, backend/app/audit_helpers.py
+Test case: TC-I2
+Status: Pass
+
+Requirement: FR-03
+UML reference: use case Update CAP Status, class WSA
+Module: backend/app/routes/wsa.py, frontend/src/pages/AdminPage.tsx
+Test case: TC-I3
+Status: Pass
+
+Requirement: FR-04
+UML reference: use case Run Risk Scoring, classes WSA and RiskScoreHistory
+Module: backend/app/routes/risk.py, backend/ai/predict.py
+Test case: TC-U1, TC-I4 (13 tests)
+Status: Pass. Scoring runs through the API or scripts/bulk_risk_score.py. The admin page has no scoring button and nothing re-scores automatically.
+
+Requirement: FR-05
+UML reference: use case View AI Recommendations, AI Engine actor
+Module: backend/app/routes/ai.py (summary endpoint)
+Test case: ST-04 (live)
+Status: Pass. Three WSAs answered in 1.6 to 2.1 seconds, each quoting the real Blue Drop score. Checked live only.
+
+Requirement: FR-06
+UML reference: use case Generate AI CAP Draft, sequence diagram (section 3.4)
+Module: backend/app/routes/ai.py (get_cap_draft, parse_cap_draft_json)
+Test case: TC-U2, TC-I5 (11 tests), ST-05 (live)
+Status: Pass
+
+Requirement: FR-07
+UML reference: use case Accept CAP Draft Item, sequence diagram (section 3.4)
+Module: frontend/src/pages/AdminPage.tsx (Accept button), backend/app/routes/wsa.py
+Test case: UAT-02 (live)
+Status: Pass. Checked live only.
+
+Requirement: FR-08
+UML reference: use case Ask NL Data Query, AI Engine actor
+Module: backend/ai/query_agent.py, backend/app/routes/ai.py
+Test case: TC-I6 (14 tests), ST-06 (live)
+Status: Pass
+
+Requirement: FR-09
+UML reference: use case Ask Regulatory Question (RAG), AI Engine actor
+Module: backend/ai/rag.py, backend/app/routes/ai.py
+Test case: TC-I7 (14 tests)
+Status: Pass
+
+Requirement: FR-10
+UML reference: use case Raise Alert, class Alert
+Module: backend/app/alert_helpers.py
+Test case: TC-I8 (24 tests)
+Status: Pass
+
+Requirement: NFR-01
+UML reference: deployment and architecture diagrams (API layer)
+Module: backend/app/routes/wsa.py
+Test case: ST-01 (live)
+Status: Pass. 95th percentile 10 ms for one user and 317 ms for 50 concurrent users, against a 3 second target.
+
+Requirement: NFR-02
+UML reference: component diagram (AI isolated behind one helper), activity diagram exceptions
+Module: backend/app/routes/ai.py (get_openai_client, call_openai)
+Test case: ST-02, ST-07 (live)
+Status: Pass. AI endpoints return 503 (no key) or 502 (failed call) and every core endpoint still returns 200.
+
+Requirement: NFR-03
+UML reference: use case Submit Citizen Report
+Module: frontend/src/components/ReportForm.tsx
+Test case: IN-01 (inspection)
+Status: Pass. Only province, WSA and a description of 10 or more characters are required, with no account. Not tested with real citizens.
+
+Requirement: NFR-04
+UML reference: use case Log In, sequence diagram (JWT check)
+Module: backend/app/auth.py (get_current_admin_user)
+Test case: TC-I9, ST-03 (live)
+Status: Pass. Six protected endpoints returned 401 without a token.
+
+Requirement: AI-NFR-01
+UML reference: AI component in the architecture and component diagrams
+Module: backend/ai/train_from_bdrr.py
+Test case: ST-08 (live evaluation)
+Status: Pass, with little margin. 89.7% on the held-out split and 80.6% (standard deviation 8.0%) under cross-validation.
+
+Requirement: AI-NFR-02
+UML reference: use case Ask NL Data Query, sequence diagram of the tool loop
+Module: backend/ai/query_agent.py (run_query_agent)
+Test case: ST-06 (live), TC-I6
+Status: Pass. 1.8 to 3.4 seconds with one tool call each.
+
+Requirement: AI-NFR-03
+UML reference: component diagram (Rate Limiter), activity diagram (429 path)
+Module: backend/app/rate_limit.py
+Test case: TC-I10 (6 tests)
+Status: Pass. The count lives in one process's memory (section 5.4).
+
+Summary: 17 of 17 requirements Pass. Caveats: FR-04 (scoring is manual), FR-05 and FR-07 (checked live only) and AI-NFR-01 (narrow margin).
+
+2.3 How the system meets the three AI requirements
+--------------------------------------------------
+
+AI-NFR-01, at least 80% accuracy. backend/ai/train_from_bdrr.py trains XGBoost (three classes) on the 144 WSAs that carry a DWS BDRR label. On a single 80/20 split (29 test rows) accuracy is 89.7%, against 34.5% for the rule-based heuristic. Five-fold cross-validation gives 80.6% with a standard deviation of 8.0% (folds 79.3, 75.9, 69.0, 89.7 and 89.3). The target is met on both measures, but the cross-validated mean clears it by 0.6 points, so the margin is small. Medium risk is the weak class, with recall 0.71 (5 of 7 found). Before the duplicate records were merged the same script gave 77.8% and 0.57. The deployed model.pkl is dated 1 September 2026 and was not retrained on the cleaned data. Retraining with --deploy is the next step.
+
+AI-NFR-02, at most five round-trips and 15 seconds. The query agent lets GPT-4o call one of five whitelisted database tools, capped at five rounds in code and in a test. Three live questions returned in 3.43, 1.77 and 2.25 seconds, each with one tool call.
+
+AI-NFR-03, at most 20 AI requests per admin per hour. A dependency on the query, CAP-draft and regulatory endpoints counts each admin's calls in a sliding one-hour window and returns 429 from the 21st. Six tests cover it, plus the 30 second timeout.
