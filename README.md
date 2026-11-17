@@ -22,10 +22,17 @@ Stack: React 18 + TypeScript + Vite + Tailwind + Leaflet; FastAPI + SQLAlchemy +
 Requirements: Python 3.12, Node 20, PostgreSQL 15 or 16.
 
 ```bash
-git clone <repo-url> hydrosentinel && cd hydrosentinel
+git clone https://github.com/Malodeity/hydrosentinel.git hydrosentinel && cd hydrosentinel
 cp .env.example .env                      # then edit DATABASE_URL / POSTGRES_PORT, JWT_SECRET_KEY, OPENAI_API_KEY (optional)
 cd backend && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/uvicorn main:app --port 8000     # first start creates the tables, the admin and the 169 authorities
+.venv/bin/uvicorn main:app --port 8000     # first start creates the tables, the admin and 144 placeholder authorities
+```
+
+Then load the real dataset (169 authorities from the DWS reports and Municipal Money) and **restart the backend**, because loading it clears the users and the restart re-creates them:
+
+```bash
+psql "$DATABASE_URL" -c "TRUNCATE wsa CASCADE" -f backend/data/sample/wsa_sample.sql     # run from the repo root
+# stop uvicorn (Ctrl+C) and start it again
 ```
 
 ```bash

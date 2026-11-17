@@ -72,8 +72,8 @@ with httpx.Client(base_url=BASE, timeout=60) as c:
           f"{w['name']} {body.get('risk_level')} p={body.get('probability')} {ms} ms")
 
     r, ms = timed(lambda: c.get(f"/ai/wsa/{wsa['id']}/cap-draft", headers=h))
-    if r.status_code == 503:
-        print("SKIP  CAP draft (no OpenAI key)")
+    if r.status_code in (502, 503):  # no key (503) or a placeholder key OpenAI rejects (502)
+        print("SKIP  CAP draft (no working OpenAI key)")
     else:
         items = r.json().get("items", []) if r.status_code == 200 else []
         check("TC-06 GPT-4o CAP draft", r.status_code == 200 and 1 <= len(items) <= 6, f"{r.status_code} {len(items)} items {ms} ms")
