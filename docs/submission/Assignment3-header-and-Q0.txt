@@ -3,3 +3,4 @@ ISJ107V ASSIGNMENT 3: PROJECT DOCUMENTATION AND UML DESIGN
 
 Project: HydroSentinel (prototype build)
 Module: ISJ107V (Integrated Software Project)
+Student: Malibongwe Mthethwa, student number 213355813
