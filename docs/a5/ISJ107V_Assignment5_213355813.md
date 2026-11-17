@@ -1,3 +1,5 @@
+<style>@page land { size: A4 landscape; margin: 14mm 14mm; } .land { page: land; break-before: page; break-after: page; } .land img { max-height: 150mm; }</style>
+
 # ISJ107V Assignment 5: Final System Presentation and Demonstration
 
 ## Declarations
@@ -96,7 +98,7 @@ The presentation runs in this order: the design in UML (use case, class, sequenc
 
 *Table 3. Technology stack.*
 
-The emerging technology is artificial intelligence and machine learning. XGBoost predicts a low, medium or high risk level for each authority. GPT-4o writes the citizen acknowledgement, drafts CAP items and ticket instructions, and answers data questions through six fixed database tools. The AI only drafts. A person assigns, accepts and verifies.
+The emerging technology is artificial intelligence and machine learning. XGBoost predicts a low, medium or high risk level for each authority. GPT-4o writes the citizen acknowledgement, drafts CAP items and ticket instructions, and answers data questions through ten fixed database tools. The AI only drafts. A person assigns, accepts and verifies.
 
 <div style="break-before:page"></div>
 
@@ -191,12 +193,16 @@ PostgreSQL holds the authorities, citizen reports, users, refresh tokens, risk s
 
 The five diagrams describe the completed system. They use UML 2.5.1 notation (Object Management Group, 2017) and were drawn in PlantUML (PlantUML, no date). The editable `.puml` sources are submitted with the slides. The class diagram is generated from `backend/app/models.py`, and a script checks every route, file and class named on the diagrams against the running code (60 names, 0 mismatches).
 
+<div class="land">
+
 ### 3.1 Use-case diagram
 
 <figure>
-<img src="uml/ISJ107V_A5_Q3.1_UseCase.png" alt="Figure 6: Use-case diagram" style="max-height:140mm">
+<img src="uml/ISJ107V_A5_Q3.1_UseCase.png" alt="Figure 6: Use-case diagram" style="max-height:150mm">
 <figcaption>Figure 6. Actors: Citizen, Admin (national), Authority admin and Contractor, plus GPT-4o (external) and the XGBoost model (internal). Citizens use the public functions with no account. Admins triage, assign, verify, score risk and manage contractors and users. Contractors work only their own tickets. GPT-4o serves the functions that draft or explain text, and the XGBoost model serves risk scoring.</figcaption>
 </figure>
+
+</div>
 
 ### 3.2 Class diagram
 
@@ -221,14 +227,18 @@ Key design decisions:
 
 ### 3.4 Component and deployment views
 
+<div class="land">
+
 <figure>
-<img src="uml/ISJ107V_A5_Q3.4a_Component.png" alt="Figure 9: Component diagram" style="max-height:120mm">
+<img src="uml/ISJ107V_A5_Q3.4a_Component.png" alt="Figure 9: Component diagram" style="max-height:150mm">
 <figcaption>Figure 9. The React pages call the API through one client (axios, JWT, refresh). FastAPI routers use the services (auth, assignment rules, alerts, audit, mailer, rate limit) and the AI modules (XGBoost prediction with a heuristic fallback, regulatory retrieval, the query agent). Data persists in PostgreSQL, photos on disk and the model in <code>ai/model.pkl</code>. OpenAI and the optional SMTP server are external.</figcaption>
 </figure>
 
+</div>
+
 <figure>
 <img src="uml/ISJ107V_A5_Q3.4b_Deployment.png" alt="Figure 10: Deployment diagram" style="max-height:95mm">
-<figcaption>Figure 10. The system runs on one presenter laptop: the browser runs the React app, a Python environment runs the API with the model and the retrieval index, and PostgreSQL runs on the same machine. Docker Compose is the alternative. The API reaches OpenAI over the internet, and the map tiles come from OpenStreetMap. There is no cloud hosting.</figcaption>
+<figcaption>Figure 10. The system runs on one presenter laptop: the browser runs the React app, a Python environment runs the API with the model and the retrieval index, and PostgreSQL runs on the same machine. Docker Compose is an alternative that was not used for the demonstration. The API reaches OpenAI over the internet, and the map tiles come from OpenStreetMap. There is no cloud hosting.</figcaption>
 </figure>
 
 ### 3.5 Consistency and justified deviations

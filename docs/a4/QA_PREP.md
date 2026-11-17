@@ -120,7 +120,7 @@ Four ways. Prompts contain only real data from the database and say not to inven
 The AI features return a clear error (503 with no key, 502 on failure) and the rest of the system keeps working. The map summary even returns its live counts with the sentence marked unavailable. I tested these cases.
 
 **Q28. How does the question agent work, and why is it safe?**
-The model can call six fixed, read-only tools: authorities, trending authorities, report counts, alerts, audit summary and province comparison. It can't run arbitrary SQL. The loop is bounded to five rounds, and the answer must cite numbers the tools returned. **Show:** `backend/ai/query_agent.py`.
+The model can call ten fixed, read-only tools, for example authorities, trending authorities, report counts, alerts, audit summary and province comparison. It can't run arbitrary SQL. The loop is bounded to five rounds, and the answer must cite numbers the tools returned. **Show:** `backend/ai/query_agent.py`.
 
 **Q29. How does the regulation question work?**
 I split the DWS report PDFs into page-sized chunks and index them with TF-IDF. A question retrieves the five most relevant pages, and GPT-4o answers only from those, citing file and page. If the pages don't answer it, the model says so. **Show:** `backend/ai/rag.py`.
