@@ -1,0 +1,75 @@
+@startuml
+skinparam shadowing false
+skinparam dpi 200
+skinparam defaultFontName Helvetica
+title HydroSentinel prototype: Activity Diagram, report to resolution
+
+|Citizen|
+start
+:Choose province, WSA, issue type;
+:Describe problem, pin location, add photos;
+:Submit report;
+|System|
+if (Valid input and WSA exists?) then (no)
+  :Return 422 or 404;
+  |Citizen|
+  :See error message;
+  stop
+else (yes)
+endif
+|System|
+:Save report, keep image files only,\ncreate reference code;
+:Check volume spike and geographic cluster alerts;
+|AI (GPT-4o)|
+:Write acknowledgement for the citizen;
+|Citizen|
+:See reference code and AI reply;
+|Admin|
+:Sign in;
+|System|
+if (Valid admin token?) then (no)
+  :Return 401;
+  |Admin|
+  :Sign in again;
+  stop
+else (yes)
+endif
+|Admin|
+:Open report, set status to "in review", add note;
+|System|
+:Record reviewer and time, write audit row;
+|Admin|
+:Run risk score for the WSA;
+|XGBoost model|
+:Predict low, medium or high with confidence;
+|System|
+if (Model loaded, Blue Drop score present,\nconfidence at least 0.5?) then (yes)
+  :Use XGBoost result;
+else (no)
+  :Use heuristic fallback;
+endif
+:Save score history, raise high-risk alert if needed;
+|Admin|
+:Click Draft CAP;
+|System|
+if (Under 20 AI requests per hour?) then (no)
+  :Return 429;
+  |Admin|
+  :See rate-limit message;
+  stop
+else (yes)
+endif
+|AI (GPT-4o)|
+:Draft 3 to 5 CAP items;
+|Admin|
+if (Accept an item?) then (yes)
+  |System|
+  :Update CAP status and due date, write audit row;
+else (no)
+endif
+|Admin|
+:Set report to "resolved";
+|Citizen|
+:Track report, see "resolved";
+stop
+@enduml

@@ -1,0 +1,44 @@
+@startuml
+skinparam shadowing false
+skinparam dpi 200
+skinparam defaultFontName Helvetica
+left to right direction
+skinparam linetype ortho
+skinparam nodesep 25
+skinparam ranksep 35
+title HydroSentinel prototype: Use-Case Diagram (demonstrated functions)
+
+actor "Citizen" as C
+actor "Admin" as A
+actor "OpenAI API\n(GPT-4o)" as AI <<system>>
+
+rectangle "HydroSentinel prototype" {
+  usecase "View risk map and\nAI national digest" as UC1
+  usecase "Submit report\nwith photos" as UC2
+  usecase "Track report by\nreference code" as UC3
+  usecase "Sign in" as UC4
+  usecase "Triage report" as UC5
+  usecase "Score WSA risk\n(XGBoost)" as UC6
+  usecase "Draft CAP with AI" as UC7
+  usecase "Accept CAP item" as UC8
+  usecase "Ask AI about data\nor regulations" as UC9
+  usecase "Review alerts and\naudit log" as UC10
+}
+
+C --> UC1
+C --> UC2
+C --> UC3
+A --> UC5
+A --> UC6
+A --> UC7
+A --> UC9
+A --> UC10
+UC5 ..> UC4 : <<include>>
+UC6 ..> UC4 : <<include>>
+UC7 ..> UC4 : <<include>>
+UC8 ..> UC7 : <<extend>>
+UC1 --> AI
+UC2 --> AI
+UC7 --> AI
+UC9 --> AI
+@enduml

@@ -1,0 +1,47 @@
+@startuml
+skinparam shadowing false
+skinparam dpi 200
+skinparam defaultFontName Helvetica
+title HydroSentinel prototype: Sequence Diagram, score a WSA and draft a CAP
+
+actor Admin
+boundary "React UI\n(AdminPage)" as UI
+control "FastAPI\n(routes/risk.py, routes/ai.py)" as API
+participant "XGBoost model\n(ai/predict.py)" as ML
+participant "GPT-4o\n(OpenAI API)" as AI
+database "PostgreSQL" as DB
+
+Admin -> UI : Select WSA, request risk score
+UI -> API : POST /risk/score/{id} (Bearer JWT)
+alt invalid or non-admin token
+  API --> UI : 401 / 403
+else admin token valid
+  API -> DB : load WSA
+  DB --> API : WSA row
+  API -> ML : predict_wsa_risk(wsa)
+  alt model loaded, Blue Drop present, confidence >= 0.5
+    ML --> API : XGBoost level + probability
+  else
+    ML --> API : heuristic level + probability
+  end
+  API -> DB : INSERT RiskScoreHistory, UPDATE WSA.risk_level, INSERT AuditLog
+  API --> UI : 200 level, probability, model_source
+end
+
+Admin -> UI : Click Draft CAP
+UI -> API : GET /ai/wsa/{id}/cap-draft
+alt over 20 AI requests this hour
+  API --> UI : 429
+else within limit
+  API -> DB : load WSA, open reports, latest score
+  DB --> API : context
+  API -> AI : structured prompt (30 s timeout)
+  alt no key or OpenAI failure
+    API --> UI : 503 / 502
+  else
+    AI --> API : CAP items (JSON)
+    API --> UI : 200 items
+    UI --> Admin : Show items with Accept buttons
+  end
+end
+@enduml

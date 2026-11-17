@@ -1,0 +1,20 @@
+Run on a fresh database (blank, then 169-row sample load), backend started with the documented steps
+PASS  WSAs are seeded  169 rows
+PASS  TC-01 submit report with photo  201 17 ms
+PASS  non-image upload is ignored  1 stored
+PASS  TC-02 invalid issue_type rejected  422
+PASS  TC-03 unknown WSA rejected  404
+PASS  public tracking by reference code  
+PASS  tracking hides location and description  
+PASS  admin list needs a token  
+PASS  wrong password rejected  401
+PASS  admin login  
+PASS  TC-04 admin triage  200
+PASS  invalid case status rejected  422
+PASS  TC-05 XGBoost risk score  !Kai! Garib LM medium p=0.8263 14 ms
+PASS  TC-06 GPT-4o CAP draft  200 5 items 5787 ms
+PASS  resolve report  
+PASS  tracking shows resolved  
+PASS  audit log records the actions  3 rows
+
+17/17 passed

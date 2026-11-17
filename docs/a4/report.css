@@ -1,0 +1,4 @@
+figure { margin: 8px 0 14px; break-inside: avoid-page; page-break-inside: avoid; }
+figure img { margin: 6px auto 4px; }
+figcaption { font-size: 12.5px; line-height: 1.45; margin: 4px 0 0; }
+table { break-inside: avoid-page; page-break-inside: avoid; }

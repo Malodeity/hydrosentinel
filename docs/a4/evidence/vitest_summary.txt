@@ -1,0 +1,10 @@
+ ✓ src/lib/reportDateRange.test.ts (5 tests) 5ms
+ ✓ src/lib/wsaSelection.test.ts (4 tests) 10ms
+ ✓ src/components/WSACard.test.ts (4 tests) 2ms
+
+ Test Files  3 passed (3)
+      Tests  13 passed (13)
+   Start at  18:41:51
+   Duration  746ms (transform 82ms, setup 0ms, collect 163ms, tests 17ms, environment 1.11s, prepare 234ms)
+
+✓ built in 2.22s

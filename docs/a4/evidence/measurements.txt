@@ -1,0 +1,4 @@
+GET /wsa (169 rows): median 5 ms, p95 6 ms (n=30)
+POST /risk/score (XGBoost, one WSA): median 5 ms, p95 5 ms (n=10)
+GET /reports (admin): median 3 ms, p95 3 ms (n=30)
+labelled WSAs in DB: 144

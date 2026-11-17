@@ -1,0 +1,29 @@
+@startuml
+skinparam shadowing false
+skinparam dpi 200
+skinparam defaultFontName Helvetica
+title HydroSentinel prototype: Deployment Diagram (demonstration machine)
+
+node "Presenter laptop (macOS)" {
+  node "Web browser" {
+    artifact "React + Vite SPA\n(:5173)" as SPA
+  }
+  node "Python 3 virtual environment" {
+    artifact "FastAPI app (uvicorn :8000)\nroutes, auth, alerts, audit" as API
+    artifact "ai/model.pkl\n(XGBoost, 144 labels)" as MODEL
+    artifact "TF-IDF index over\nregulatory PDFs" as RAG
+    artifact "data/uploads/\n(report photos)" as UP
+  }
+  database "PostgreSQL 16 (:5432)\n169 WSAs, reports,\nalerts, audit log" as DB
+}
+cloud "OpenAI API\n(GPT-4o)" as OAI
+cloud "OpenStreetMap\n(tiles + Nominatim)" as OSM
+
+SPA --> API : HTTPS/JSON, Bearer JWT
+API --> DB : SQLAlchemy
+API --> MODEL : joblib load at startup
+API --> RAG : in-memory
+API --> UP : file write
+API --> OAI : HTTPS, API key from .env
+SPA --> OSM : map tiles, address search
+@enduml

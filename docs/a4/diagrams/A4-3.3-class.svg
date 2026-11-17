@@ -1,0 +1,236 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1580" viewBox="0 0 2000 1580" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="op" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="11" markerHeight="11" orient="auto"><path d="M1,1 L11,6 L1,11" fill="none" stroke="#334155" stroke-width="1.6"/></marker></defs>
+<rect width="2000" height="1580" fill="#fff"/>
+<text x="1000.0" y="46" text-anchor="middle" font-size="28" font-weight="700" fill="#0f172a">HydroSentinel prototype: Class Diagram</text>
+<rect x="370" y="80" width="1100" height="138" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M370,116 V86 Q370,80 376,80 H1464 Q1470,80 1470,86 V116 Z" fill="#dbeafe" stroke="#334155" stroke-width="2"/>
+<text x="920.0" y="105" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">User</text>
+<text x="382.0" y="136" font-size="14.5" fill="#0f172a">id : UUID</text>
+<text x="382.0" y="158" font-size="14.5" fill="#0f172a">email : String</text>
+<text x="382.0" y="180" font-size="14.5" fill="#0f172a">hashed_password : String</text>
+<text x="382.0" y="202" font-size="14.5" fill="#0f172a">role : UserRole</text>
+<text x="932.0" y="136" font-size="14.5" fill="#0f172a">is_active : Boolean</text>
+<text x="932.0" y="158" font-size="14.5" fill="#0f172a">last_login_at : DateTime</text>
+<text x="932.0" y="180" font-size="14.5" fill="#0f172a">created_at : DateTime</text>
+<rect x="370" y="420" width="320" height="182" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M370,456 V426 Q370,420 376,420 H684 Q690,420 690,426 V456 Z" fill="#e0f2fe" stroke="#334155" stroke-width="2"/>
+<text x="530.0" y="445" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">RiskScoreHistory</text>
+<text x="382.0" y="476" font-size="14.5" fill="#0f172a">id : UUID</text>
+<text x="382.0" y="498" font-size="14.5" fill="#0f172a">risk_level : RiskLevel</text>
+<text x="382.0" y="520" font-size="14.5" fill="#0f172a">probability : Float</text>
+<text x="382.0" y="542" font-size="14.5" fill="#0f172a">model_source : ModelSource</text>
+<text x="382.0" y="564" font-size="14.5" fill="#0f172a">model_version : String</text>
+<text x="382.0" y="586" font-size="14.5" fill="#0f172a">scored_at : DateTime</text>
+<rect x="730" y="420" width="390" height="314" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M730,456 V426 Q730,420 736,420 H1114 Q1120,420 1120,426 V456 Z" fill="#e0f2fe" stroke="#334155" stroke-width="2"/>
+<text x="925.0" y="445" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">CitizenReport</text>
+<text x="742.0" y="476" font-size="14.5" fill="#0f172a">id : UUID</text>
+<text x="742.0" y="498" font-size="14.5" fill="#0f172a">issue_type : IssueType</text>
+<text x="742.0" y="520" font-size="14.5" fill="#0f172a">description : String</text>
+<text x="742.0" y="542" font-size="14.5" fill="#0f172a">reference_code : String</text>
+<text x="742.0" y="564" font-size="14.5" fill="#0f172a">case_status : String</text>
+<text x="742.0" y="586" font-size="14.5" fill="#0f172a">admin_comment : String</text>
+<text x="742.0" y="608" font-size="14.5" fill="#0f172a">lat : Float</text>
+<text x="742.0" y="630" font-size="14.5" fill="#0f172a">lng : Float</text>
+<text x="742.0" y="652" font-size="14.5" fill="#0f172a">photo_analysis : JSON</text>
+<text x="742.0" y="674" font-size="14.5" fill="#0f172a">reviewed_at : DateTime</text>
+<text x="742.0" y="696" font-size="14.5" fill="#0f172a">resolved_at : DateTime</text>
+<text x="742.0" y="718" font-size="14.5" fill="#0f172a">created_at : DateTime</text>
+<rect x="1160" y="420" width="310" height="160" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M1160,456 V426 Q1160,420 1166,420 H1464 Q1470,420 1470,426 V456 Z" fill="#e0f2fe" stroke="#334155" stroke-width="2"/>
+<text x="1315.0" y="445" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">Alert</text>
+<text x="1172.0" y="476" font-size="14.5" fill="#0f172a">id : UUID</text>
+<text x="1172.0" y="498" font-size="14.5" fill="#0f172a">alert_type : AlertType</text>
+<text x="1172.0" y="520" font-size="14.5" fill="#0f172a">message : String</text>
+<text x="1172.0" y="542" font-size="14.5" fill="#0f172a">acknowledged_at : DateTime</text>
+<text x="1172.0" y="564" font-size="14.5" fill="#0f172a">created_at : DateTime</text>
+<rect x="370" y="860" width="1100" height="182" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M370,896 V866 Q370,860 376,860 H1464 Q1470,860 1470,866 V896 Z" fill="#dbeafe" stroke="#334155" stroke-width="2"/>
+<text x="920.0" y="885" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">WSA</text>
+<text x="382.0" y="916" font-size="14.5" fill="#0f172a">id : UUID</text>
+<text x="382.0" y="938" font-size="14.5" fill="#0f172a">name : String</text>
+<text x="382.0" y="960" font-size="14.5" fill="#0f172a">province : String</text>
+<text x="382.0" y="982" font-size="14.5" fill="#0f172a">blue_drop_score : Float</text>
+<text x="382.0" y="1004" font-size="14.5" fill="#0f172a">nrw_percent : Float</text>
+<text x="382.0" y="1026" font-size="14.5" fill="#0f172a">maint_pct : Float</text>
+<text x="932.0" y="916" font-size="14.5" fill="#0f172a">cap_status : CAPStatus</text>
+<text x="932.0" y="938" font-size="14.5" fill="#0f172a">cap_due_date : Date</text>
+<text x="932.0" y="960" font-size="14.5" fill="#0f172a">risk_level : RiskLevel</text>
+<text x="932.0" y="982" font-size="14.5" fill="#0f172a">lat : Float</text>
+<text x="932.0" y="1004" font-size="14.5" fill="#0f172a">lng : Float</text>
+<text x="932.0" y="1026" font-size="14.5" fill="#0f172a">updated_at : DateTime</text>
+<rect x="1650" y="80" width="330" height="116" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M1650,116 V86 Q1650,80 1656,80 H1974 Q1980,80 1980,86 V116 Z" fill="#e0f2fe" stroke="#334155" stroke-width="2"/>
+<text x="1815.0" y="105" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">RefreshToken</text>
+<text x="1662.0" y="136" font-size="14.5" fill="#0f172a">token_hash : String</text>
+<text x="1662.0" y="158" font-size="14.5" fill="#0f172a">expires_at : DateTime</text>
+<text x="1662.0" y="180" font-size="14.5" fill="#0f172a">revoked_at : DateTime</text>
+<rect x="1650" y="250" width="330" height="116" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M1650,286 V256 Q1650,250 1656,250 H1974 Q1980,250 1980,256 V286 Z" fill="#e0f2fe" stroke="#334155" stroke-width="2"/>
+<text x="1815.0" y="275" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">Summary</text>
+<text x="1662.0" y="306" font-size="14.5" fill="#0f172a">id : UUID</text>
+<text x="1662.0" y="328" font-size="14.5" fill="#0f172a">content : String</text>
+<text x="1662.0" y="350" font-size="14.5" fill="#0f172a">generated_at : DateTime</text>
+<rect x="1650" y="420" width="330" height="226" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M1650,456 V426 Q1650,420 1656,420 H1974 Q1980,420 1980,426 V456 Z" fill="#e0f2fe" stroke="#334155" stroke-width="2"/>
+<text x="1815.0" y="445" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">AuditLog</text>
+<text x="1662.0" y="476" font-size="14.5" fill="#0f172a">id : UUID</text>
+<text x="1662.0" y="498" font-size="14.5" fill="#0f172a">action : AuditAction</text>
+<text x="1662.0" y="520" font-size="14.5" fill="#0f172a">table_name : String</text>
+<text x="1662.0" y="542" font-size="14.5" fill="#0f172a">record_id : UUID</text>
+<text x="1662.0" y="564" font-size="14.5" fill="#0f172a">old_value : JSON</text>
+<text x="1662.0" y="586" font-size="14.5" fill="#0f172a">new_value : JSON</text>
+<text x="1662.0" y="608" font-size="14.5" fill="#0f172a">ip_address : String</text>
+<text x="1662.0" y="630" font-size="14.5" fill="#0f172a">created_at : DateTime</text>
+<rect x="1650" y="720" width="330" height="118" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M1650,772 V726 Q1650,720 1656,720 H1974 Q1980,720 1980,726 V772 Z" fill="#fef3c7" stroke="#334155" stroke-width="2"/>
+<text x="1815.0" y="739" text-anchor="middle" font-size="14" font-style="italic" fill="#334155">«service»</text>
+<text x="1815.0" y="761" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">AuditService</text>
+<line x1="1650" y1="780" x2="1980" y2="780" stroke="#334155" stroke-width="1.5"/>
+<text x="1662" y="800" font-size="14.5" fill="#0f172a">write_audit(db, user, action,</text>
+<text x="1662" y="822" font-size="14.5" fill="#0f172a">    table, record, old, new)</text>
+<rect x="1650" y="860" width="330" height="206" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M1650,912 V866 Q1650,860 1656,860 H1974 Q1980,860 1980,866 V912 Z" fill="#fef3c7" stroke="#334155" stroke-width="2"/>
+<text x="1815.0" y="879" text-anchor="middle" font-size="14" font-style="italic" fill="#334155">«service»</text>
+<text x="1815.0" y="901" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">AlertService</text>
+<line x1="1650" y1="920" x2="1980" y2="920" stroke="#334155" stroke-width="1.5"/>
+<text x="1662" y="940" font-size="14.5" fill="#0f172a">raise_high_risk_alert(wsa, db)</text>
+<text x="1662" y="962" font-size="14.5" fill="#0f172a">raise_risk_increased_alert(...)</text>
+<text x="1662" y="984" font-size="14.5" fill="#0f172a">raise_report_volume_spike_alert(..)</text>
+<text x="1662" y="1006" font-size="14.5" fill="#0f172a">raise_geo_cluster_alert(...)</text>
+<text x="1662" y="1028" font-size="14.5" fill="#0f172a">raise_cap_overdue_alerts(db)</text>
+<text x="1662" y="1050" font-size="14.5" fill="#0f172a">resolve_stale_alerts(db)</text>
+<rect x="30" y="420" width="250" height="118" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M30,472 V426 Q30,420 36,420 H274 Q280,420 280,426 V472 Z" fill="#fef3c7" stroke="#334155" stroke-width="2"/>
+<text x="155.0" y="439" text-anchor="middle" font-size="14" font-style="italic" fill="#334155">«service»</text>
+<text x="155.0" y="461" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">RiskModel</text>
+<line x1="30" y1="480" x2="280" y2="480" stroke="#334155" stroke-width="1.5"/>
+<text x="42" y="500" font-size="14.5" fill="#0f172a">predict_wsa_risk(wsa)</text>
+<text x="42" y="522" font-size="14.5" fill="#0f172a">: RiskResult</text>
+<rect x="30" y="980" width="250" height="162" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M30,1032 V986 Q30,980 36,980 H274 Q280,980 280,986 V1032 Z" fill="#fef3c7" stroke="#334155" stroke-width="2"/>
+<text x="155.0" y="999" text-anchor="middle" font-size="14" font-style="italic" fill="#334155">«service»</text>
+<text x="155.0" y="1021" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">AiService</text>
+<line x1="30" y1="1040" x2="280" y2="1040" stroke="#334155" stroke-width="1.5"/>
+<text x="42" y="1060" font-size="14.5" fill="#0f172a">call_openai(system, user)</text>
+<text x="42" y="1082" font-size="14.5" fill="#0f172a">get_cap_draft(wsa_id)</text>
+<text x="42" y="1104" font-size="14.5" fill="#0f172a">analyze_report_photo(id)</text>
+<text x="42" y="1126" font-size="14.5" fill="#0f172a">run_query_agent(question)</text>
+<line x1="530.0" y1="218" x2="530.0" y2="420" stroke="#334155" stroke-width="1.9"/>
+<text x="538.0" y="236" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">0..1</text>
+<text x="538.0" y="412" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">0..*</text>
+<rect x="505.4" y="312.0" width="49.2" height="17" fill="#fff"/>
+<text x="530.0" y="324.0" text-anchor="middle" font-size="13.5"  fill="#334155">scores</text>
+<line x1="925.0" y1="218" x2="925.0" y2="420" stroke="#334155" stroke-width="1.9"/>
+<text x="933.0" y="236" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">0..1</text>
+<text x="933.0" y="412" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">0..*</text>
+<rect x="857.2" y="312.0" width="135.6" height="17" fill="#fff"/>
+<text x="925.0" y="324.0" text-anchor="middle" font-size="13.5"  fill="#334155">reviews / resolves</text>
+<line x1="1315.0" y1="218" x2="1315.0" y2="420" stroke="#334155" stroke-width="1.9"/>
+<text x="1323.0" y="236" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">0..1</text>
+<text x="1323.0" y="412" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">0..*</text>
+<rect x="1268.8" y="312.0" width="92.4" height="17" fill="#fff"/>
+<text x="1315.0" y="324.0" text-anchor="middle" font-size="13.5"  fill="#334155">acknowledges</text>
+<line x1="530.0" y1="602" x2="530.0" y2="860" stroke="#334155" stroke-width="1.9"/>
+<text x="538.0" y="620" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">0..*</text>
+<text x="538.0" y="852" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">1</text>
+<rect x="469.4" y="724.0" width="121.2" height="17" fill="#fff"/>
+<text x="530.0" y="736.0" text-anchor="middle" font-size="13.5"  fill="#334155">scored over time</text>
+<line x1="925.0" y1="734" x2="925.0" y2="860" stroke="#334155" stroke-width="1.9"/>
+<text x="933.0" y="752" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">0..*</text>
+<text x="933.0" y="852" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">1</text>
+<rect x="893.2" y="790.0" width="63.6" height="17" fill="#fff"/>
+<text x="925.0" y="802.0" text-anchor="middle" font-size="13.5"  fill="#334155">receives</text>
+<line x1="1315.0" y1="580" x2="1315.0" y2="860" stroke="#334155" stroke-width="1.9"/>
+<text x="1323.0" y="598" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">0..*</text>
+<text x="1323.0" y="852" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">1</text>
+<rect x="1290.4" y="713.0" width="49.2" height="17" fill="#fff"/>
+<text x="1315.0" y="725.0" text-anchor="middle" font-size="13.5"  fill="#334155">raises</text>
+<line x1="1470" y1="108" x2="1650" y2="108" stroke="#334155" stroke-width="1.9"/>
+<text x="1478" y="102" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">1</text>
+<text x="1642" y="102" text-anchor="end" font-size="14" font-weight="700" fill="#0f172a">0..*</text>
+<rect x="1539.0" y="90" width="42.0" height="17" fill="#fff"/>
+<text x="1560.0" y="102" text-anchor="middle" font-size="13.5"  fill="#334155">holds</text>
+<polyline points="1470,160 1600,160 1600,278 1650,278" fill="none" stroke="#334155" stroke-width="1.9"/>
+<text x="1478" y="154" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">0..1</text>
+<text x="1642" y="272" text-anchor="end" font-size="14" font-weight="700" fill="#0f172a">0..*</text>
+<rect x="1589" y="211.0" width="70.8" height="17" fill="#fff"/>
+<text x="1592" y="223.0" text-anchor="end" font-size="13.5"  fill="#334155">generates</text>
+<polyline points="1470,210 1550,210 1550,448 1650,448" fill="none" stroke="#334155" stroke-width="1.9"/>
+<text x="1478" y="204" text-anchor="start" font-size="14" font-weight="700" fill="#0f172a">1</text>
+<text x="1642" y="442" text-anchor="end" font-size="14" font-weight="700" fill="#0f172a">0..*</text>
+<rect x="1539" y="321.0" width="63.6" height="17" fill="#fff"/>
+<text x="1542" y="333.0" text-anchor="end" font-size="13.5"  fill="#334155">performs</text>
+<line x1="280" y1="511.0" x2="370" y2="511.0" stroke="#334155" stroke-width="1.9" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="304.0" y="491.0" width="42.0" height="17" fill="#fff"/>
+<text x="325.0" y="503.0" text-anchor="middle" font-size="13.5"  fill="#334155">saves</text>
+<polyline points="155.0,538 155.0,920 370,920" fill="none" stroke="#334155" stroke-width="1.9" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="184.0" y="900" width="42.0" height="17" fill="#fff"/>
+<text x="205.0" y="912" text-anchor="middle" font-size="13.5"  fill="#334155">reads</text>
+<line x1="280" y1="1020" x2="370" y2="1020" stroke="#334155" stroke-width="1.9" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="304.0" y="1000" width="42.0" height="17" fill="#fff"/>
+<text x="325.0" y="1012" text-anchor="middle" font-size="13.5"  fill="#334155">reads</text>
+<line x1="1470" y1="1020" x2="1470" y2="1020" stroke="#334155" stroke-width="1.9"/>
+<polyline points="1650,890 1510,890 1510,500.0 1470,500.0" fill="none" stroke="#334155" stroke-width="1.9" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="1551.8" y="870" width="56.4" height="17" fill="#fff"/>
+<text x="1580" y="882" text-anchor="middle" font-size="13.5"  fill="#334155">creates</text>
+<line x1="1815.0" y1="720" x2="1815.0" y2="646" stroke="#334155" stroke-width="1.9" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="1832.4" y="675.0" width="49.2" height="17" fill="#fff"/>
+<text x="1857.0" y="687.0" text-anchor="middle" font-size="13.5"  fill="#334155">writes</text>
+<text x="30" y="1276" font-size="14" font-weight="700" letter-spacing="1.5" fill="#475569">ENUMERATIONS USED BY THE ATTRIBUTES ABOVE</text>
+<rect x="30" y="1290" width="170" height="154" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M30,1342 V1296 Q30,1290 36,1290 H194 Q200,1290 200,1296 V1342 Z" fill="#ede9fe" stroke="#334155" stroke-width="2"/>
+<text x="115.0" y="1309" text-anchor="middle" font-size="14" font-style="italic" fill="#334155">«enumeration»</text>
+<text x="115.0" y="1331" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">CAPStatus</text>
+<text x="42.0" y="1362" font-size="14.5" fill="#0f172a">none</text>
+<text x="42.0" y="1384" font-size="14.5" fill="#0f172a">submitted</text>
+<text x="42.0" y="1406" font-size="14.5" fill="#0f172a">in_progress</text>
+<text x="42.0" y="1428" font-size="14.5" fill="#0f172a">completed</text>
+<rect x="216" y="1290" width="170" height="132" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M216,1342 V1296 Q216,1290 222,1290 H380 Q386,1290 386,1296 V1342 Z" fill="#ede9fe" stroke="#334155" stroke-width="2"/>
+<text x="301.0" y="1309" text-anchor="middle" font-size="14" font-style="italic" fill="#334155">«enumeration»</text>
+<text x="301.0" y="1331" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">RiskLevel</text>
+<text x="228.0" y="1362" font-size="14.5" fill="#0f172a">low</text>
+<text x="228.0" y="1384" font-size="14.5" fill="#0f172a">medium</text>
+<text x="228.0" y="1406" font-size="14.5" fill="#0f172a">high</text>
+<rect x="402" y="1290" width="170" height="154" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M402,1342 V1296 Q402,1290 408,1290 H566 Q572,1290 572,1296 V1342 Z" fill="#ede9fe" stroke="#334155" stroke-width="2"/>
+<text x="487.0" y="1309" text-anchor="middle" font-size="14" font-style="italic" fill="#334155">«enumeration»</text>
+<text x="487.0" y="1331" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">IssueType</text>
+<text x="414.0" y="1362" font-size="14.5" fill="#0f172a">leak</text>
+<text x="414.0" y="1384" font-size="14.5" fill="#0f172a">outage</text>
+<text x="414.0" y="1406" font-size="14.5" fill="#0f172a">quality</text>
+<text x="414.0" y="1428" font-size="14.5" fill="#0f172a">billing</text>
+<rect x="588" y="1290" width="170" height="110" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M588,1342 V1296 Q588,1290 594,1290 H752 Q758,1290 758,1296 V1342 Z" fill="#ede9fe" stroke="#334155" stroke-width="2"/>
+<text x="673.0" y="1309" text-anchor="middle" font-size="14" font-style="italic" fill="#334155">«enumeration»</text>
+<text x="673.0" y="1331" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">ModelSource</text>
+<text x="600.0" y="1362" font-size="14.5" fill="#0f172a">xgboost</text>
+<text x="600.0" y="1384" font-size="14.5" fill="#0f172a">heuristic</text>
+<rect x="774" y="1290" width="196.0" height="176" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M774,1342 V1296 Q774,1290 780,1290 H964.0 Q970.0,1290 970.0,1296 V1342 Z" fill="#ede9fe" stroke="#334155" stroke-width="2"/>
+<text x="872.0" y="1309" text-anchor="middle" font-size="14" font-style="italic" fill="#334155">«enumeration»</text>
+<text x="872.0" y="1331" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">AlertType</text>
+<text x="786.0" y="1362" font-size="14.5" fill="#0f172a">risk_level_high</text>
+<text x="786.0" y="1384" font-size="14.5" fill="#0f172a">risk_level_increased</text>
+<text x="786.0" y="1406" font-size="14.5" fill="#0f172a">report_volume_spike</text>
+<text x="786.0" y="1428" font-size="14.5" fill="#0f172a">cap_overdue</text>
+<text x="786.0" y="1450" font-size="14.5" fill="#0f172a">geo_cluster_incident</text>
+<rect x="986.0" y="1290" width="212.8" height="220" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M986.0,1342 V1296 Q986.0,1290 992.0,1290 H1192.8 Q1198.8,1290 1198.8,1296 V1342 Z" fill="#ede9fe" stroke="#334155" stroke-width="2"/>
+<text x="1092.4" y="1309" text-anchor="middle" font-size="14" font-style="italic" fill="#334155">«enumeration»</text>
+<text x="1092.4" y="1331" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">AuditAction</text>
+<text x="998.0" y="1362" font-size="14.5" fill="#0f172a">cap_status_updated</text>
+<text x="998.0" y="1384" font-size="14.5" fill="#0f172a">report_status_updated</text>
+<text x="998.0" y="1406" font-size="14.5" fill="#0f172a">report_comment_updated</text>
+<text x="998.0" y="1428" font-size="14.5" fill="#0f172a">risk_score_run</text>
+<text x="998.0" y="1450" font-size="14.5" fill="#0f172a">wsa_updated</text>
+<text x="998.0" y="1472" font-size="14.5" fill="#0f172a">user_created</text>
+<text x="998.0" y="1494" font-size="14.5" fill="#0f172a">summary_generated</text>
+<rect x="1214.8" y="1290" width="170" height="110" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+<path d="M1214.8,1342 V1296 Q1214.8,1290 1220.8,1290 H1378.8 Q1384.8,1290 1384.8,1296 V1342 Z" fill="#ede9fe" stroke="#334155" stroke-width="2"/>
+<text x="1299.8" y="1309" text-anchor="middle" font-size="14" font-style="italic" fill="#334155">«enumeration»</text>
+<text x="1299.8" y="1331" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">UserRole</text>
+<text x="1226.8" y="1362" font-size="14.5" fill="#0f172a">admin</text>
+<text x="1226.8" y="1384" font-size="14.5" fill="#0f172a">viewer</text>
+</svg>

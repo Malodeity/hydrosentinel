@@ -1,0 +1,215 @@
+<!doctype html><html><head><meta charset="utf-8"><title>HydroSentinel Prototype Presentation</title>
+<style>
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap");
+@page { size: 13.333in 7.5in; margin: 0; }
+:root{--fg:#14283e;--blue:#0f77c7;--sky:#38bdf8;--mut:#566881;--border:#d3e0ee;
+  --mx:.85in; --hy:.78in; --zt:2.35in; --zb:.95in}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;margin:0;padding:0}
+body{font-family:"DM Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;color:var(--fg)}
+/* slide frame */
+.s{width:13.333in;height:7.5in;page-break-after:always;break-after:page;position:relative;overflow:hidden}
+.s:last-child{page-break-after:auto}
+.light{background:radial-gradient(circle at 8% 0%,rgba(59,130,246,.12),transparent 38%),linear-gradient(180deg,#fbfdff,#eef5fe)}
+.dark{background:radial-gradient(circle at 85% 0%,rgba(15,119,199,.38),transparent 45%),radial-gradient(circle at 0% 100%,rgba(56,189,248,.14),transparent 40%),linear-gradient(180deg,#0e1f33,#0a1626);color:#fff}
+/* header: identical position and size on every content slide */
+.hd{position:absolute;left:var(--mx);right:var(--mx);top:var(--hy)}
+.eyebrow{font-size:20px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--blue);line-height:1;height:20px;margin-bottom:18px}
+.dark .eyebrow{color:var(--sky)}
+h1,h2{font-weight:700;letter-spacing:-2.5px;line-height:1.05}
+h2{font-size:60px;white-space:nowrap}
+.g{color:var(--blue)} .dark .g{color:var(--sky)}
+/* content zone: identical box on every content slide */
+.ct{position:absolute;left:var(--mx);right:var(--mx);top:var(--zt);bottom:var(--zb)}
+/* footer */
+.foot{position:absolute;left:var(--mx);right:var(--mx);bottom:.4in;display:flex;justify-content:space-between;font-size:18px;font-weight:500;color:#6c829a;letter-spacing:.2px;line-height:1}
+/* cards */
+.card{background:#fff;border-radius:22px;box-shadow:0 8px 30px rgba(15,40,70,.10),0 0 0 1px rgba(20,40,62,.08)}
+.dark .card{background:rgba(255,255,255,.07);box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+/* title / closing */
+.hero{position:absolute;left:var(--mx);right:var(--mx);top:0;bottom:0;display:flex;flex-direction:column;justify-content:center}
+.hero h1{font-size:132px;letter-spacing:-6px}
+.sub{font-size:30px;line-height:1.3;color:var(--mut);font-weight:500;letter-spacing:-.3px}
+.dark .sub{color:#a9bdd1}
+/* slide 2 */
+.rows{display:grid;grid-template-rows:repeat(3,1fr);gap:.2in;height:100%}
+.row{display:grid;grid-template-columns:2in 1fr;gap:.3in;align-items:center;padding:0 .4in}
+.row i{font-style:normal;font-size:20px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue)}
+.row p{font-size:30px;font-weight:500;letter-spacing:-.4px;line-height:1.25}
+/* slide 3 */
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.3in;height:100%}
+.step{padding:.4in .4in}
+.n1{flex:none;width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:21px;display:flex;align-items:center;justify-content:center}
+.dark .n1{background:var(--sky);color:#0a1626}
+.step .n1{width:54px;height:54px;font-size:28px;margin-bottom:.28in}
+.step em{display:block;font-style:normal;font-size:20px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:.08in}.step b{display:block;font-size:44px;letter-spacing:-.8px;line-height:1.15;margin-bottom:.14in}
+.step span.d{display:block;font-size:25px;color:var(--mut);line-height:1.35;font-weight:500}
+/* slide 5 */
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.3in;height:100%}
+.pane{padding:.38in .45in}
+.pane h3{font-size:22px;color:var(--sky);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.2in;font-weight:700}
+.big{font-size:104px;font-weight:700;letter-spacing:-4px;line-height:1;color:var(--sky);margin-bottom:.14in}
+.pane p{font-size:27px;line-height:1.32;font-weight:500;letter-spacing:-.2px;color:#e8f1fa}
+.pane ul{list-style:none}
+.pane li{font-size:27px;line-height:1.3;font-weight:500;letter-spacing:-.2px;margin-bottom:.16in}
+.pane .note{color:var(--sky);margin-top:.1in}
+/* slide 6 */
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.2in}
+.tile{padding:.26in .28in}
+.tile b{display:block;font-size:26px;white-space:nowrap;letter-spacing:-.6px;line-height:1.15;margin-bottom:.09in}
+.tile span{display:block;font-size:20px;color:var(--mut);line-height:1.3;font-weight:500}
+.legend{display:flex;align-items:center;gap:.16in;margin-top:.34in;font-size:22px;color:var(--mut);font-weight:500}
+.badge{display:inline-block;border-radius:999px;padding:5px 15px;font-size:16px;font-weight:700;border:1px solid;letter-spacing:.2px}
+.part{background:#fef3c7;border-color:#fde68a;color:#92400e}.next{background:#eef2f7;border-color:#d3e0ee;color:#566881}
+.legend .gap{width:.3in}
+/* slides 7-9 */
+.wk{display:grid;grid-template-columns:4.5in 6.6in;justify-content:space-between;height:100%;align-items:start}
+.pts{list-style:none;display:grid;gap:.22in}
+.pts li{display:flex;gap:.16in;align-items:flex-start;font-size:28px;line-height:1.27;font-weight:500;letter-spacing:-.3px}
+.dark .pts li{color:#e8f1fa}
+.pts .n1{margin-top:2px}
+.win{background:#fff;border-radius:18px;box-shadow:0 30px 70px rgba(15,40,70,.28),0 0 0 1px rgba(20,40,62,.10);overflow:hidden;width:6.6in}
+.dark .win{box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.10)}
+.bar{height:.34in;background:#eef2f7;display:flex;align-items:center;gap:9px;padding:0 16px;border-bottom:1px solid #dfe6ee}
+.bar i{width:12px;height:12px;border-radius:50%;display:block}
+.bar i:nth-child(1){background:#ff5f57}.bar i:nth-child(2){background:#febc2e}.bar i:nth-child(3){background:#28c840}
+.shot{position:relative;line-height:0}
+.shot{width:6.6in;max-height:3.86in;overflow:hidden}.shot img{display:block;width:6.6in;height:auto}
+.mk.sm{width:28px;height:28px;font-size:16px;box-shadow:0 0 0 3px #14283e,0 4px 12px rgba(0,0,0,.5)}.mk{position:absolute;width:36px;height:36px;border-radius:50%;background:#0f77c7;color:#fff;font:700 21px "DM Sans",sans-serif;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);box-shadow:0 0 0 4px #fff,0 6px 16px rgba(15,40,70,.35);line-height:1}
+.dark .mk{background:#38bdf8;color:#0a1626;box-shadow:0 0 0 4px #14283e,0 6px 16px rgba(0,0,0,.5)}
+/* slide 10 */
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.3in}
+.stat{padding:.4in .4in}
+.stat b{display:block;font-size:92px;letter-spacing:-4px;line-height:1;font-weight:700;color:var(--blue);margin-bottom:.2in;white-space:nowrap}
+.stat span{display:block;font-size:27px;font-weight:500;line-height:1.28;letter-spacing:-.3px}
+.stat small{display:block;font-size:21px;color:var(--mut);margin-top:.12in;line-height:1.3;font-weight:500}
+/* slide 11 */
+.lim{display:grid;grid-template-rows:repeat(3,1fr);gap:.2in;height:100%}
+.lim .card{display:flex;flex-direction:column;justify-content:center;padding:0 .45in}
+.lim p{font-size:30px;font-weight:500;letter-spacing:-.4px;line-height:1.25;color:#fff}
+.lim small{display:block;font-size:23px;color:#a9bdd1;font-weight:500;margin-top:.08in;letter-spacing:0}
+
+/* appendix: full-size UML slides */
+.uml .hd{top:.32in}.uml h2{font-size:40px;white-space:nowrap}.uml .eyebrow{margin-bottom:8px;font-size:17px}
+.uml .pic{position:absolute;left:.45in;right:.45in;top:1.2in;bottom:.62in;background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(15,40,70,.10),0 0 0 1px rgba(20,40,62,.08);display:flex;align-items:center;justify-content:center;padding:.1in}
+.uml .pic img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+</style></head><body>
+
+<!-- 1 title -->
+<div class="s dark"><div class="hero">
+<div class="eyebrow" style="margin-bottom:26px">ISJ107V Integrated Software Project &middot; Assignment 4</div>
+<h1 class="g">HydroSentinel</h1>
+<div class="sub" style="font-size:40px;color:#fff;max-width:10.5in;margin-top:26px;line-height:1.22">Report water problems. See which municipalities are at risk.</div>
+<div class="sub" style="font-size:28px;max-width:10.5in;margin-top:18px">A web app that joins citizen reports, official audit data and AI.</div>
+<div class="sub" style="font-size:26px;margin-top:.5in">Malibongwe Mthethwa &middot; 213355813</div></div>
+<div class="foot"><span>Functional prototype and live demonstration</span><span>1</span></div></div>
+
+<!-- 2 problem -->
+<div class="s light"><div class="hd"><div class="eyebrow">The problem</div><h2>Nobody sees the <span class="g">whole picture.</span></h2></div>
+<div class="ct"><div class="rows">
+<div class="row card"><i>Audit data</i><p>South Africa's municipal water services are audited in long annual PDF reports.</p></div>
+<div class="row card"><i>Residents</i><p>No simple way to report a leak or outage and follow it up.</p></div>
+<div class="row card"><i>Officials</i><p>No single view of which municipalities are at risk and what is being fixed.</p></div></div></div>
+<div class="foot"><span>HydroSentinel</span><span>2</span></div></div>
+
+<!-- 3 solution -->
+<div class="s light"><div class="hd"><div class="eyebrow">The solution</div><h2>One website for <span class="g">the whole loop.</span></h2></div>
+<div class="ct"><div class="steps">
+<div class="step card"><div class="n1">1</div><em>Residents</em><b>Report</b><span class="d">Pick the place, add photos, get a reference code to track the case.</span></div>
+<div class="step card"><div class="n1">2</div><em>Officials</em><b>Act</b><span class="d">Triage reports, watch a risk map, get alerts when things escalate.</span></div>
+<div class="step card"><div class="n1">3</div><em>AI</em><b>Assist</b><span class="d">Rates each municipality's risk and drafts a plan. A person decides.</span></div></div></div>
+<div class="foot"><span>Authority = a Water Service Authority, the municipal body that runs a town's water. The prototype covers 169.</span><span>3</span></div></div>
+
+<!-- 4 architecture -->
+<div class="s light"><div class="hd"><div class="eyebrow">Architecture</div><h2>How it is <span class="g">built.</span></h2></div>
+<div class="ct"><svg viewBox="0 0 1180 440" style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg" font-family="DM Sans, Helvetica, Arial, sans-serif">
+<defs><marker id="a" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1 1 L11 6 L1 11 Z" fill="#0f77c7"/></marker></defs>
+<g fill="#fff" stroke="#d3e0ee" stroke-width="2">
+<rect x="2" y="120" width="290" height="200" rx="24"/><rect x="420" y="100" width="300" height="240" rx="24"/>
+<rect x="850" y="2" width="328" height="126" rx="24"/><rect x="850" y="157" width="328" height="126" rx="24"/><rect x="850" y="312" width="328" height="126" rx="24"/></g>
+<g fill="#14283e" font-weight="700" font-size="30"><text x="28" y="180">Web browser</text><text x="446" y="160">Server</text><text x="876" y="46">Database</text><text x="876" y="201">Risk model</text><text x="876" y="356">AI assistant</text></g>
+<g fill="#566881" font-size="22" font-weight="500">
+<text x="28" y="218">What residents and</text><text x="28" y="248">officials use</text>
+<text x="446" y="198">Checks logins, applies</text><text x="446" y="228">the rules, keeps a log</text><text x="446" y="270" font-size="20">(FastAPI, Python)</text>
+<text x="876" y="80">169 authorities, reports,</text><text x="876" y="108">alerts (PostgreSQL)</text>
+<text x="876" y="235">Rates each authority low,</text><text x="876" y="263">medium or high (XGBoost)</text>
+<text x="876" y="390">Writes replies and drafts</text><text x="876" y="418">plans (GPT-4o by OpenAI)</text></g>
+<g stroke="#0f77c7" stroke-width="3" fill="none" marker-end="url(#a)">
+<line x1="296" y1="220" x2="414" y2="220"/><path d="M724 170 C790 170 790 65 844 65"/><path d="M724 220 L844 220"/><path d="M724 270 C790 270 790 375 844 375"/></g></svg></div>
+<div class="foot"><span>HydroSentinel</span><span>4</span></div></div>
+
+<!-- 5 AI -->
+<div class="s dark"><div class="hd"><div class="eyebrow">Emerging technology</div><h2>Two kinds of AI. <span class="g">One rates, one writes.</span></h2></div>
+<div class="ct"><div class="two">
+<div class="pane card"><h3>Risk model (XGBoost)</h3><div class="big">26 of 29</div><p>unseen authorities rated correctly (89.7%). It learned from 144 audited ones. A simple rule of thumb got 10&nbsp;of&nbsp;29.</p></div>
+<div class="pane card"><h3>Writing assistant (GPT-4o)</h3><ul><li>Replies to residents</li><li>Drafts a Corrective Action Plan (CAP): the fixes to carry out</li><li>Answers officials' questions</li></ul><p class="note">A person approves before anything changes.</p></div></div></div>
+<div class="foot"><span>CAP = Corrective Action Plan</span><span>5</span></div></div>
+
+<!-- 6 features -->
+<div class="s light"><div class="hd"><div class="eyebrow">Prototype features</div><h2>Eight features <span class="g">work today.</span></h2></div>
+<div class="ct"><div class="tiles">
+<div class="tile card"><b>Risk map</b><span>169 authorities coloured by risk, with an AI summary</span></div>
+<div class="tile card"><b>Report a leak</b><span>Form, map pin, photos and a reference code</span></div>
+<div class="tile card"><b>Track a report</b><span>Check status with the code. Location stays private</span></div>
+<div class="tile card"><b>Triage</b><span>Mark reports open, in review or resolved</span></div>
+<div class="tile card"><b>Alerts</b><span>Flags high-risk authorities and report spikes</span></div>
+<div class="tile card"><b>Risk rating</b><span>Low, medium or high, with a backup rule</span></div>
+<div class="tile card"><b>AI action plan</b><span>AI drafts fixes. A person accepts one to apply it</span></div>
+<div class="tile card"><b>Secure access</b><span>Officials sign in. Every change is logged</span></div></div>
+<div class="legend"><span class="badge part">Partial</span>scoring button in the admin page<span class="gap"></span><span class="badge next">Next</span>automatic re-scoring, citizen notifications</div></div>
+<div class="foot"><span>HydroSentinel</span><span>6</span></div></div>
+
+<!-- 7 walkthrough 1 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Walkthrough 1 of 3 &middot; Resident</div><h2>Report it. <span class="g">Track it.</span></h2></div>
+<div class="ct"><div class="wk"><ul class="pts"><li><span class="n1">1</span><span>Gets a reference code to follow the case</span></li><li><span class="n1">2</span><span>Gets an instant AI reply naming their municipality</span></li></ul>
+<div class="win"><div class="bar"><i></i><i></i><i></i></div><div class="shot"><img src="c-submitted.png"><div class="mk" style="left:93.5%;top:29.7%">1</div><div class="mk" style="left:93.5%;top:41.5%">2</div></div></div></div></div>
+<div class="foot"><span>HydroSentinel</span><span>7</span></div></div>
+
+<!-- 8 walkthrough 2 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Walkthrough 2 of 3 &middot; Official</div><h2>Triage with <span class="g">a paper trail.</span></h2></div>
+<div class="ct"><div class="wk"><ul class="pts"><li><span class="n1">1</span><span>Sets the case to In Review</span></li><li><span class="n1">2</span><span>System records who and when</span></li><li><span class="n1">3</span><span>Leaves a note for colleagues</span></li></ul>
+<div class="win"><div class="bar"><i></i><i></i><i></i></div><div class="shot"><img src="c-triage.png"><div class="mk" style="left:31%;top:10.5%">1</div><div class="mk" style="left:28%;top:28.9%">2</div><div class="mk" style="left:66%;top:77%">3</div></div></div></div></div>
+<div class="foot"><span>HydroSentinel</span><span>8</span></div></div>
+
+<!-- 9 walkthrough 3 -->
+<div class="s dark"><div class="hd"><div class="eyebrow">Walkthrough 3 of 3 &middot; AI</div><h2>AI drafts. <span class="g">A person decides.</span></h2></div>
+<div class="ct"><div class="wk"><ul class="pts"><li><span class="n1">1</span><span>Each fix has a priority and a deadline</span></li><li><span class="n1">2</span><span>Nothing changes until someone clicks Accept</span></li></ul>
+<div class="win"><div class="bar"><i></i><i></i><i></i></div><div class="shot"><img src="c-cap.png"><div class="mk sm" style="left:80%;top:5%">1</div><div class="mk sm" style="left:11%;top:21%">2</div></div></div></div></div>
+<div class="foot"><span>CAP = Corrective Action Plan, the fixes an authority must carry out.</span><span>9</span></div></div>
+
+<!-- 10 results -->
+<div class="s light"><div class="hd"><div class="eyebrow">Results</div><h2>It works, <span class="g">and it is fast.</span></h2></div>
+<div class="ct"><div class="stats">
+<div class="stat card"><b>17 of 17</b><span>checks of the full workflow passed</span><small>from a resident's report to a resolved case</small></div>
+<div class="stat card"><b>184</b><span>automated tests pass</span><small>plus 13 for the web pages</small></div>
+<div class="stat card"><b>5 ms</b><span>to load all 169 authorities</span><small>a few thousandths of a second</small></div></div></div>
+<div class="foot"><span>Tested on a fresh install, with a live AI call.</span><span>10</span></div></div>
+
+<!-- 11 limitations -->
+<div class="s dark"><div class="hd"><div class="eyebrow">Limitations</div><h2>Honest limits, <span class="g">clear fixes.</span></h2></div>
+<div class="ct"><div class="lim">
+<div class="card"><p>The risk model once switched itself off without warning.<small>Now it warns and falls back safely. Next: show which method scored each authority.</small></p></div>
+<div class="card"><p>The AI usage limit lives in one server's memory, so a restart resets it.<small>Next: keep the count in shared storage.</small></p></div>
+<div class="card"><p>Risk scoring is started by hand.<small>Next: run it automatically after each data update.</small></p></div></div></div>
+<div class="foot"><span>HydroSentinel</span><span>11</span></div></div>
+
+<!-- 12 questions -->
+<div class="s dark"><div class="hero"><h1 class="g" style="font-size:150px">Questions?</h1>
+<div class="sub" style="font-size:38px;color:#fff;margin-top:.4in">Thank you.</div>
+<div class="sub" style="font-size:30px;margin-top:.1in">github.com/Malodeity/hydrosentinel</div></div>
+<div class="foot"><span>HydroSentinel</span><span>12</span></div></div>
+
+<!-- 13 UML Use-case diagram -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Appendix &middot; UML 1 of 5</div><h2>Use-case diagram</h2></div><div class="pic"><img src="../img/A4-3.1-use-case.png" alt="Use-case diagram"></div><div class="foot"><span>Who uses what. Every admin function includes sign-in. Seven functions call GPT-4o.</span><span>13</span></div></div>
+
+<!-- 14 UML Activity diagram -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Appendix &middot; UML 2 of 5</div><h2>Activity diagram</h2></div><div class="pic" style="gap:.15in;align-items:flex-start"><img src="A4-3.2-activity-part1.png" alt="Activity diagram, first half" style="width:50%;height:auto"><img src="A4-3.2-activity-part2.png" alt="Activity diagram, second half" style="width:50%;height:auto"></div><div class="foot"><span>One report across five lanes, drawn in two halves: the left half continues in the right half.</span><span>14</span></div></div>
+
+<!-- 15 UML Class diagram -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Appendix &middot; UML 3 of 5</div><h2>Class diagram</h2></div><div class="pic"><img src="../img/A4-3.3-class.png" alt="Class diagram"></div><div class="foot"><span>Data classes, services and enumerations, with multiplicities.</span><span>15</span></div></div>
+
+<!-- 16 UML Sequence diagram -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Appendix &middot; UML 4 of 5</div><h2>Sequence diagram</h2></div><div class="pic"><img src="../img/A4-3.4-sequence.png" alt="Sequence diagram"></div><div class="foot"><span>Browser, API, database, XGBoost and GPT-4o, with the failure paths.</span><span>16</span></div></div>
+
+<!-- 17 UML Deployment diagram -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Appendix &middot; UML 5 of 5</div><h2>Deployment diagram</h2></div><div class="pic"><img src="../img/A4-3.5-deployment.png" alt="Deployment diagram"></div><div class="foot"><span>Everything runs on one laptop; the API reaches OpenAI over the internet.</span><span>17</span></div></div>
+</body></html>

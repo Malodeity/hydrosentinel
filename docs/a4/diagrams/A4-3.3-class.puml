@@ -1,0 +1,95 @@
+@startuml
+skinparam shadowing false
+skinparam dpi 200
+skinparam defaultFontName Helvetica
+skinparam classAttributeIconSize 0
+left to right direction
+skinparam nodesep 18
+skinparam ranksep 40
+title HydroSentinel prototype: Class Diagram
+
+class WSA {
+  id : UUID
+  name : String
+  province : String
+  blue_drop_score : Float
+  nrw_percent : Float
+  maint_pct : Float
+  cap_status : CAPStatus
+  cap_due_date : Date
+  risk_level : RiskLevel
+  lat : Float
+  lng : Float
+}
+class CitizenReport {
+  id : UUID
+  issue_type : IssueType
+  description : String
+  reference_code : String
+  case_status : String
+  admin_comment : String
+  lat : Float
+  lng : Float
+  reviewed_at : DateTime
+  resolved_at : DateTime
+}
+class User {
+  id : UUID
+  email : String
+  hashed_password : String
+  role : UserRole
+  is_active : Boolean
+  last_login_at : DateTime
+}
+class RefreshToken {
+  token_hash : String
+  expires_at : DateTime
+  revoked_at : DateTime
+}
+class RiskScoreHistory {
+  risk_level : RiskLevel
+  probability : Float
+  model_source : ModelSource
+  model_version : String
+  scored_at : DateTime
+}
+class Alert {
+  alert_type : AlertType
+  message : String
+  acknowledged_at : DateTime
+}
+class AuditLog {
+  action : AuditAction
+  table_name : String
+  old_value : JSON
+  new_value : JSON
+  created_at : DateTime
+}
+class RiskModel <<service>> {
+  predict_wsa_risk(wsa) : RiskResult
+}
+class AiService <<service>> {
+  call_openai(system_prompt, user_prompt) : String
+  get_cap_draft(wsa_id) : CapDraftResponse
+  run_query_agent(question, db) : String
+}
+class AlertService <<service>> {
+  raise_high_risk_alert(wsa, db)
+  raise_report_volume_spike_alert(wsa, db)
+  raise_geo_cluster_alert(wsa, new_report, db)
+  raise_cap_overdue_alerts(db)
+}
+
+WSA "1" -- "0..*" CitizenReport : receives
+WSA "1" -- "0..*" RiskScoreHistory : scored over time
+WSA "1" -- "0..*" Alert : raises
+User "1" -- "0..*" RefreshToken : holds
+User "1" -- "0..*" AuditLog : performs
+User "0..1" -- "0..*" CitizenReport : reviews / resolves
+User "0..1" -- "0..*" RiskScoreHistory : scores
+User "0..1" -- "0..*" Alert : acknowledges
+RiskModel ..> WSA : reads
+RiskModel ..> RiskScoreHistory : results saved as
+AiService ..> WSA : reads
+AlertService ..> Alert : creates
+@enduml
