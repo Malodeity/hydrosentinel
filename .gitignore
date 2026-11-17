@@ -38,9 +38,21 @@ backend/data/uploads/*
 !backend/data/raw/.gitkeep
 
 # ML model
-backend/ai/model.pkl
+# model.pkl is committed on purpose: a fresh clone then scores with XGBoost like the demo
+#backend/ai/model.pkl
 
 # skills cache
 skills-lock.json
 forge-workspace/
 graphify-out/
+
+# foglamp scan edit token is a secret
+.foglamp/
+backend/data/rag_index.pkl
+
+# local tool folders
+.freebuff/
+.agents/
+
+# Office lock files
+~$*

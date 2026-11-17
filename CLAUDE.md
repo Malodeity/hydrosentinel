@@ -41,7 +41,8 @@ A test that can't fail when business logic changes is wrong.
 Monitors South African Water Service Authorities (WSAs). Three user surfaces:
 - **Public dashboard** — Leaflet map, WSA cards, AI national digest, per-WSA AI summary
 - **Citizen report page** — submit leaks / outages / quality / billing issues with photos
-- **Admin page** — manage CAP status, triage citizen reports, view AI recommendations
+- **Admin page** — manage CAP status, triage citizen reports, assign reports to contractors, view AI recommendations
+- **Contractor page** (`/tickets`) — a contractor sees only its own repair tickets: accept/reject, start, mark fixed. The authority verifies, which resolves the report
 
 ---
 
@@ -65,7 +66,8 @@ backend/
     config.py              # Settings (pydantic-settings, lru_cache) — env vars live here
     database.py            # engine, SessionLocal, Base, get_db()
     models.py              # SQLAlchemy models: WSA, CitizenReport, User, Summary,
-                           #   RefreshToken, RiskScoreHistory, AuditLog, Alert
+                           #   RefreshToken, RiskScoreHistory, AuditLog, Alert,
+                           #   Contractor, ContractorCoverage, ReportAssignment, Notification
                            # Enums: CAPStatus, RiskLevel, IssueType, UserRole,
                            #   AlertType, ModelSource, AuditAction
     schemas.py             # Pydantic I/O: WSARead/Update, CitizenReportCreate/Read,
@@ -76,8 +78,10 @@ backend/
                            #   get_current_user, get_current_admin_user
     alert_helpers.py       # raise_high_risk_alert, raise_report_volume_spike_alert
     audit_helpers.py       # write_audit(db, user_id, action, table_name, record_id, ...)
+    assignment_helpers.py  # ticket rules: can_serve, status steps, default due hours, notify(), overdue, public_repair_status
+    mailer.py              # optional SMTP email (no-op unless SMTP_HOST set; never raises)
     routes/
-      auth.py              # POST /auth/login, POST /auth/refresh, POST /auth/logout, GET /auth/me
+      auth.py              # POST /auth/login, /auth/refresh, /auth/logout, /auth/change-password, GET /auth/me
       wsa.py               # GET /wsa, GET /wsa/{id}, PATCH /wsa/{id} (admin, CAP only)
       reports.py           # POST /reports (multipart+photos), GET /reports (admin),
                            #   PATCH /reports/{id} (admin — case_status + comment)
@@ -85,7 +89,9 @@ backend/
                            #   GET /risk/history/{wsa_id} (admin)
       alerts.py            # GET /alerts (admin), PATCH /alerts/{id}/acknowledge (admin)
       audit.py             # GET /audit-log (admin)
-      ai.py                # GET /ai/wsa/{id}/summary, /recommendations (admin),
+      assignments.py       # /contractors (+coverage, performance), POST /reports/{id}/assign, /reports/assign-bulk,
+                           #   PATCH /assignments/{id}/review (verify|send_back|cancel), /my/tickets (contractor), /notifications
+      ai.py                # GET /ai/reports/{id}/work-order (draft ticket), GET /ai/wsa/{id}/summary, /recommendations (admin),
                            #   /ai/digest (cached 24h in Summary table),
                            #   /ai/reports/{id}/comment (admin)
   ai/
@@ -132,6 +138,8 @@ frontend/src/
     AITextBlock.tsx        # reusable AI content display (text or items list)
     RiskBadge.tsx          # colour-coded risk label badge
     ProtectedRoute.tsx     # redirects to /login if no token or wrong role
+    ContractorsTab.tsx / ReportTicketPanel.tsx / NotificationBell.tsx / TicketStatus.tsx  # contractor + ticket UI
+  pages/ContractorTicketsPage.tsx  # contractor's own tickets (/tickets)
     ui/                    # shadcn primitives (badge, button, card, input, select, …)
   lib/utils.ts             # cn() helper (clsx + tailwind-merge)
 ```
@@ -181,6 +189,10 @@ ADMIN_PASSWORD_HASH   # optional — overrides hashing ADMIN_PASSWORD at startup
 MODEL_PATH            # default: ai/model.pkl
 OPENAI_API_KEY        # used ONLY for this project — do not reuse
 FRONTEND_URL
+SMTP_HOST             # optional — empty means no email, notifications stay in the app bell
+SMTP_PORT / SMTP_USER / SMTP_PASSWORD / SMTP_FROM
+SEED_DEMO_DATA        # true = seed demo contractors + logins at start (default false)
+DEMO_CONTRACTOR_PASSWORD  # password of the seeded demo contractor/authority-admin logins
 ```
 
 ---
@@ -194,4 +206,9 @@ FRONTEND_URL
 - Tests live in `backend/tests/` — run with `cd backend && .venv/bin/pytest tests/ -v`; set `TESTING=1` is handled by conftest.py
 - Authorities are matched across sources and in the DB by `etl.load.authority_key` (province + suffix-stripped name + metro aliases), not by exact name; after loading older data run `python -m etl.dedupe_wsa` (dry run) and add `--apply` to merge duplicate spellings. Take a `pg_dump` backup first
 - Alert auto-generation: `alert_helpers.py` fires on high risk score (deduped) and on 5+ reports in 24 h per WSA
-- Audit log: `audit_helpers.py` `write_audit()` is called from risk.py, reports.py, wsa.py — immutable JSONB rows, never updated
+- Audit log: `audit_helpers.py` `write_audit()` is called from risk.py, reports.py, wsa.py, assignments.py — immutable JSONB rows, never updated
+- One open ticket per report is a partial unique index (`uq_report_active_ticket`). A switched-off contractor keeps and can finish tickets it holds; it just gets no new ones. Passwords: `POST /auth/change-password` (self), `PATCH /users/{id}/password` (national admin, audited).
+- Final-presentation tooling lives in `docs/a5/` (`reset_demo.sh` + `backend/scripts/seed_demo_reports.py` restore the demo state; `uml/` has the diagrams, generator and name audit; `shot.mjs` takes screenshots).
+- Contractor tickets: a contractor can never resolve a report; `fixed` waits for an admin `verify`, which resolves it. `case_status` stays open/in_review/resolved (the ticket is its own table). A contractor only gets reports for an authority + issue type it is set up for (`ContractorCoverage`). Another contractor's ticket returns 404, not 403
+- Authority-scoped admin: `users.wsa_id` set = admin limited to that authority (reports, alerts, CAP, risk, tickets). Users, audit log, AI question box and briefing are national-admin only (`get_current_national_admin`). `contractor` is a `UserRole`; new enum values are added with `ALTER TYPE ... ADD VALUE` in `apply_ai_schema_changes()`
+- Demo contractors, their logins and one Ekurhuleni-only admin are seeded at start only when `SEED_DEMO_DATA=true` (`seed_demo_contractors`, never under TESTING). Companies are invented, 2 per province + 3 metro (`PROVINCE_CONTRACTORS` / `METRO_CONTRACTORS` in main.py); logins are `<name>@contractors.hydrosentinel.co.za`; password is `DEMO_CONTRACTOR_PASSWORD`
