@@ -287,9 +287,10 @@ def test_reassign_still_works_with_the_one_open_ticket_rule(client, auth_headers
     assert active == 1
 
 
-def test_demo_seeding_is_off_unless_switched_on():
+def test_demo_seeding_is_off_unless_switched_on(monkeypatch):
     # the demo logins share one password, so they must never appear in a deployment that did not ask for them
     from app.config import Settings
+    monkeypatch.delenv("SEED_DEMO_DATA", raising=False)  # a shell that exported .env must not change what the default is
     assert Settings(_env_file=None).seed_demo_data is False
 
 
