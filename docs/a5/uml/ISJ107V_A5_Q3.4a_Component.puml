@@ -1,0 +1,82 @@
+@startuml
+skinparam shadowing false
+skinparam dpi 150
+skinparam defaultFontName Helvetica
+top to bottom direction
+skinparam nodesep 12
+skinparam ranksep 40
+title HydroSentinel: Component Diagram
+
+package "Front end (React 18, Vite, Tailwind)" {
+  [DashboardPage] as Dash
+  [ReportPage] as RepP
+  [AdminPage] as AdmP
+  [ContractorTicketsPage] as TickP
+  [NotificationBell] as Bell
+  [api/client.ts\n(axios, JWT, refresh)] as Client
+}
+package "Back end (FastAPI)" {
+  package "routers" {
+    [routes/auth.py] as RAuth
+    [routes/wsa.py] as RWsa
+    [routes/reports.py] as RRep
+    [routes/assignments.py] as RAssign
+    [routes/risk.py] as RRisk
+    [routes/alerts.py] as RAlert
+    [routes/audit.py] as RAudit
+    [routes/users.py] as RUsers
+    [routes/ai.py] as RAi
+  }
+  package "services" {
+    [app/auth.py] as SAuth
+    [app/assignment_helpers.py] as SAssign
+    [app/alert_helpers.py] as SAlert
+    [app/audit_helpers.py] as SAudit
+    [app/mailer.py] as SMail
+    [app/rate_limit.py] as SRate
+  }
+}
+package "AI" {
+  [ai/predict.py\n(XGBoost + heuristic)] as Pred
+  [ai/rag.py\n(regulatory PDFs)] as Rag
+  [ai/query_agent.py] as Agent
+}
+database "PostgreSQL" as DB
+folder "data/uploads" as Up
+artifact "ai/model.pkl" as Model
+cloud "OpenAI API (GPT-4o)" as OAI
+cloud "SMTP server (optional)" as Smtp
+
+Dash --> Client
+RepP --> Client
+AdmP --> Client
+TickP --> Client
+Bell --> Client
+Client --> RAssign : HTTP/JSON
+Client --> RRep
+Client --> RAi
+Client --> RAuth
+RAuth ..> SAuth
+RAssign ..> SAssign
+RAssign ..> SAudit
+RRep ..> SAudit
+RRisk ..> SAlert
+RRisk ..> Pred
+RAi ..> SRate
+RAi ..> Rag
+RAi ..> Agent
+SAssign ..> SMail
+RRep --> Up
+Pred --> Model
+RAi --> OAI
+SMail --> Smtp
+RAssign --> DB
+RRep --> DB
+RWsa --> DB
+RAlert --> DB
+RAudit --> DB
+RUsers --> DB
+RRisk --> DB
+RAuth --> DB
+note right of Client : also calls routes/wsa, risk,\nalerts, audit, users
+@enduml

@@ -1,0 +1,34 @@
+
+ RUN  v2.1.9 /Users/malo/Library/Caches/hydrosentinel-dev/fe
+
+ ✓ src/lib/alertCluster.test.ts (5 tests) 3ms
+ ✓ src/lib/reportDateRange.test.ts (5 tests) 4ms
+ ✓ src/lib/tickets.test.ts (5 tests) 3ms
+ ✓ src/lib/reportFilters.test.ts (9 tests) 5ms
+ ✓ src/lib/wsaSelection.test.ts (4 tests) 14ms
+ ✓ src/lib/managementReport.test.ts (12 tests) 18ms
+ ✓ src/lib/needsAttention.test.ts (4 tests) 29ms
+ ✓ src/lib/photoAnalysis.test.ts (4 tests) 2ms
+ ✓ src/lib/capDeadline.test.ts (5 tests) 16ms
+ ✓ src/lib/overviewStats.test.ts (3 tests) 18ms
+ ✓ src/lib/coverageSummary.test.ts (2 tests) 13ms
+ ✓ src/lib/reportAge.test.ts (15 tests) 3ms
+ ✓ src/lib/reportStats.test.ts (3 tests) 7ms
+ ✓ src/components/WSACard.test.ts (4 tests) 2ms
+ ✓ src/lib/auditFormat.test.ts (5 tests) 2ms
+ ✓ src/lib/ratingFacts.test.ts (3 tests) 2ms
+ ✓ src/lib/aiAssistant.test.ts (3 tests) 2ms
+ ✓ src/lib/nearestAuthority.test.ts (3 tests) 3ms
+ ✓ src/lib/capStats.test.ts (2 tests) 16ms
+ ✓ src/lib/pagination.test.ts (4 tests) 5ms
+ ✓ src/lib/provinceBlueDrop.test.ts (2 tests) 2ms
+ ✓ src/lib/publicStats.test.ts (1 test) 2ms
+ ✓ src/lib/riskTrend.test.ts (3 tests) 2ms
+ ✓ src/lib/mapBounds.test.ts (2 tests) 2ms
+ ✓ src/lib/riskByProvince.test.ts (1 test) 2ms
+
+ Test Files  25 passed (25)
+      Tests  109 passed (109)
+   Start at  14:34:50
+   Duration  2.88s (transform 468ms, setup 0ms, collect 1.04s, tests 177ms, environment 11.06s, prepare 1.43s)
+

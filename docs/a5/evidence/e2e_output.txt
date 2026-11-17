@@ -1,0 +1,29 @@
+PASS  WSAs are seeded  169 rows
+PASS  TC-01 submit report with photo  201 7 ms
+PASS  non-image upload is ignored  1 stored
+PASS  TC-02 invalid issue_type rejected  422
+PASS  TC-03 unknown WSA rejected  404
+PASS  public tracking by reference code  
+PASS  tracking hides location and description  
+PASS  admin list needs a token  
+PASS  wrong password rejected  401
+PASS  admin login  
+PASS  TC-04 admin triage  200
+PASS  invalid case status rejected  422
+PASS  TC-05 XGBoost risk score  !Kai! Garib LM medium p=0.8263 8 ms
+PASS  TC-06 GPT-4o CAP draft  200 5 items 2704 ms
+PASS  resolve report  
+PASS  tracking shows resolved  
+PASS  audit log records the actions  115 rows
+PASS  TC-10 admin assigns report to contractor  201
+PASS  tracker shows repair progress, not the company  
+PASS  contractor sees its ticket  
+PASS  TC-12 contractor cannot use admin routes  
+PASS  cannot fix before accepting  409
+PASS  TC-14 fix without a note rejected  422
+PASS  contractor marks fixed  
+PASS  fixed does not resolve the report  
+PASS  admin verifies, ticket closes  
+PASS  report is now resolved  
+
+27/27 passed

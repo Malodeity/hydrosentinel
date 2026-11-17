@@ -1,0 +1,229 @@
+<!doctype html><html><head><meta charset="utf-8"><title>HydroSentinel Final Presentation</title>
+<style>
+@page { size: 13.333in 7.5in; margin: 0; }
+:root{--fg:#14283e;--blue:#0f77c7;--sky:#38bdf8;--mut:#566881;--border:#d3e0ee;
+  --mx:.85in; --hy:.78in; --zt:2.35in; --zb:.95in}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;margin:0;padding:0}
+body{font-family:"DM Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;color:var(--fg)}
+/* slide frame */
+.s{width:13.333in;height:7.5in;page-break-after:always;break-after:page;position:relative;overflow:hidden}
+.s:last-child{page-break-after:auto}
+.light{background:radial-gradient(circle at 8% 0%,rgba(59,130,246,.12),transparent 38%),linear-gradient(180deg,#fbfdff,#eef5fe)}
+.dark{background:radial-gradient(circle at 85% 0%,rgba(15,119,199,.38),transparent 45%),radial-gradient(circle at 0% 100%,rgba(56,189,248,.14),transparent 40%),linear-gradient(180deg,#0e1f33,#0a1626);color:#fff}
+/* header: identical position and size on every content slide */
+.hd{position:absolute;left:var(--mx);right:var(--mx);top:var(--hy)}
+.eyebrow{font-size:20px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--blue);line-height:1;height:20px;margin-bottom:18px}
+.dark .eyebrow{color:var(--sky)}
+h1,h2{font-weight:700;letter-spacing:-2.5px;line-height:1.05}
+h2{font-size:60px;white-space:nowrap}
+.g{color:var(--blue)} .dark .g{color:var(--sky)}
+/* content zone: identical box on every content slide */
+.ct{position:absolute;left:var(--mx);right:var(--mx);top:var(--zt);bottom:var(--zb)}
+/* footer */
+.foot{position:absolute;left:var(--mx);right:var(--mx);bottom:.4in;display:flex;justify-content:space-between;font-size:18px;font-weight:500;color:#6c829a;letter-spacing:.2px;line-height:1}
+/* cards */
+.card{background:#fff;border-radius:22px;box-shadow:0 8px 30px rgba(15,40,70,.10),0 0 0 1px rgba(20,40,62,.08)}
+.dark .card{background:rgba(255,255,255,.07);box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+/* title / closing */
+.hero{position:absolute;left:var(--mx);right:var(--mx);top:0;bottom:0;display:flex;flex-direction:column;justify-content:center}
+.hero h1{font-size:132px;letter-spacing:-6px}
+.sub{font-size:30px;line-height:1.3;color:var(--mut);font-weight:500;letter-spacing:-.3px}
+.dark .sub{color:#a9bdd1}
+/* slide 2 */
+.rows{display:grid;grid-template-rows:repeat(3,1fr);gap:.2in;height:100%}
+.row{display:grid;grid-template-columns:2in 1fr;gap:.3in;align-items:center;padding:0 .4in}
+.row i{font-style:normal;font-size:20px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue)}
+.row p{font-size:30px;font-weight:500;letter-spacing:-.4px;line-height:1.25}
+/* slide 3 */
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.3in;height:100%}
+.step{padding:.4in .4in}
+.n1{flex:none;width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:21px;display:flex;align-items:center;justify-content:center}
+.dark .n1{background:var(--sky);color:#0a1626}
+.step .n1{width:54px;height:54px;font-size:28px;margin-bottom:.28in}
+.step em{display:block;font-style:normal;font-size:20px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:.08in}.step b{display:block;font-size:44px;letter-spacing:-.8px;line-height:1.15;margin-bottom:.14in}
+.step span.d{display:block;font-size:25px;color:var(--mut);line-height:1.35;font-weight:500}
+/* slide 5 */
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.3in;height:100%}
+.pane{padding:.38in .45in}
+.pane h3{font-size:22px;color:var(--sky);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.2in;font-weight:700}
+.big{font-size:104px;font-weight:700;letter-spacing:-4px;line-height:1;color:var(--sky);margin-bottom:.14in}
+.pane p{font-size:27px;line-height:1.32;font-weight:500;letter-spacing:-.2px;color:#e8f1fa}
+.pane ul{list-style:none}
+.pane li{font-size:27px;line-height:1.3;font-weight:500;letter-spacing:-.2px;margin-bottom:.16in}
+.pane .note{color:var(--sky);margin-top:.1in}
+/* slide 6 */
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.2in}
+.tile{padding:.26in .28in}
+.tile b{display:block;font-size:26px;white-space:nowrap;letter-spacing:-.6px;line-height:1.15;margin-bottom:.09in}
+.tile span{display:block;font-size:20px;color:var(--mut);line-height:1.3;font-weight:500}
+.legend{display:flex;align-items:center;gap:.16in;margin-top:.34in;font-size:22px;color:var(--mut);font-weight:500}
+.badge{display:inline-block;border-radius:999px;padding:5px 15px;font-size:16px;font-weight:700;border:1px solid;letter-spacing:.2px}
+.part{background:#fef3c7;border-color:#fde68a;color:#92400e}.next{background:#eef2f7;border-color:#d3e0ee;color:#566881}
+.legend .gap{width:.3in}
+/* slides 7-9 */
+.wk{display:grid;grid-template-columns:4.5in 6.6in;justify-content:space-between;height:100%;align-items:start}
+.pts{list-style:none;display:grid;gap:.22in}
+.pts li{display:flex;gap:.16in;align-items:flex-start;font-size:28px;line-height:1.27;font-weight:500;letter-spacing:-.3px}
+.dark .pts li{color:#e8f1fa}
+.pts .n1{margin-top:2px}
+.win{background:#fff;border-radius:18px;box-shadow:0 30px 70px rgba(15,40,70,.28),0 0 0 1px rgba(20,40,62,.10);overflow:hidden;width:6.6in}
+.dark .win{box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.10)}
+.bar{height:.34in;background:#eef2f7;display:flex;align-items:center;gap:9px;padding:0 16px;border-bottom:1px solid #dfe6ee}
+.bar i{width:12px;height:12px;border-radius:50%;display:block}
+.bar i:nth-child(1){background:#ff5f57}.bar i:nth-child(2){background:#febc2e}.bar i:nth-child(3){background:#28c840}
+.shot{position:relative;line-height:0}
+.shot{width:6.6in;max-height:3.86in;overflow:hidden}.shot img{display:block;width:6.6in;height:auto}
+.mk.sm{width:28px;height:28px;font-size:16px;box-shadow:0 0 0 3px #14283e,0 4px 12px rgba(0,0,0,.5)}.mk{position:absolute;width:36px;height:36px;border-radius:50%;background:#0f77c7;color:#fff;font:700 21px "DM Sans",sans-serif;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);box-shadow:0 0 0 4px #fff,0 6px 16px rgba(15,40,70,.35);line-height:1}
+.dark .mk{background:#38bdf8;color:#0a1626;box-shadow:0 0 0 4px #14283e,0 6px 16px rgba(0,0,0,.5)}
+/* slide 10 */
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.3in}
+.stat{padding:.4in .4in}
+.stat b{display:block;font-size:92px;letter-spacing:-4px;line-height:1;font-weight:700;color:var(--blue);margin-bottom:.2in;white-space:nowrap}
+.stat span{display:block;font-size:27px;font-weight:500;line-height:1.28;letter-spacing:-.3px}
+.stat small{display:block;font-size:21px;color:var(--mut);margin-top:.12in;line-height:1.3;font-weight:500}
+/* slide 11 */
+.lim{display:grid;grid-template-rows:repeat(3,1fr);gap:.2in;height:100%}
+.lim .card{display:flex;flex-direction:column;justify-content:center;padding:0 .45in}
+.lim p{font-size:30px;font-weight:500;letter-spacing:-.4px;line-height:1.25;color:#fff}
+.lim small{display:block;font-size:23px;color:#a9bdd1;font-weight:500;margin-top:.08in;letter-spacing:0}
+
+/* appendix: full-size UML slides */
+.uml .hd{top:.32in}.uml h2{font-size:40px;white-space:nowrap}.uml .eyebrow{margin-bottom:8px;font-size:17px}
+.uml .pic{position:absolute;left:.45in;right:.45in;top:1.2in;bottom:.62in;background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(15,40,70,.10),0 0 0 1px rgba(20,40,62,.08);display:flex;align-items:center;justify-content:center;padding:.1in}
+.uml .pic img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+
+.pic2{position:absolute;left:.45in;right:.45in;top:1.15in;bottom:.62in;display:flex;flex-direction:column;gap:.12in}.pic2 .pic{min-height:0}
+.pic2 .pic{position:relative;inset:auto;flex:1;left:auto;right:auto;top:auto;bottom:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:24px}.tbl th{text-align:left;color:var(--blue);font-size:18px;letter-spacing:1.5px;text-transform:uppercase;padding:10px 14px;border-bottom:2px solid var(--border)}
+.tbl td{padding:11px 14px;border-bottom:1px solid var(--border);font-weight:500;line-height:1.25}
+.ok{color:#15803d;font-weight:700}.warn{color:#b45309;font-weight:700}
+.todo{background:#fef3c7;border:2px dashed #d97706;border-radius:10px;padding:2px 10px;color:#92400e;font-weight:700}
+.shotfull{position:absolute;left:.45in;right:.45in;top:1.2in;bottom:.62in;background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(15,40,70,.10),0 0 0 1px rgba(20,40,62,.08);overflow:hidden}
+.shotfull img{width:100%;display:block}
+</style></head><body>
+<!-- 1 -->
+<div class="s dark"><div class="hero">
+<div class="eyebrow" style="margin-bottom:26px">ISJ107V Integrated Software Project &middot; Assignment 5</div>
+<h1 class="g">HydroSentinel</h1>
+<div class="sub" style="font-size:40px;color:#fff;max-width:10.8in;margin-top:26px;line-height:1.22">Report water problems. See who is at risk. Get them fixed, and prove it.</div>
+<div class="sub" style="font-size:26px;margin-top:.5in">Malibongwe Mthethwa &middot; 213355813 &middot; Final presentation and demonstration</div></div>
+<div class="foot"><span>Final system</span><span>1</span></div></div>
+
+<!-- 2 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Problem, users, value</div><h2>Water failures are <span class="g">seen late and fixed slowly.</span></h2></div>
+<div class="ct"><div class="rows">
+<div class="row card"><i>Problem</i><p>Audit data sits in long PDFs. Residents have no simple way to report a fault and follow it up. Authorities hire contractors but have no one view of who is fixing what.</p></div>
+<div class="row card"><i>Users</i><p>Residents &middot; authority and national admins &middot; repair contractors.</p></div>
+<div class="row card"><i>Aim and value</i><p>One system from report to verified repair, with AI that rates risk and drafts work, and a person who always decides.</p></div></div></div>
+<div class="foot"><span>HydroSentinel</span><span>2</span></div></div>
+
+<!-- 3 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Scope and status</div><h2>What is <span class="g">done,</span> what changed, what is <span class="g">not.</span></h2></div>
+<div class="ct"><div class="two" style="grid-template-columns:1fr 1fr 1fr">
+<div class="pane card" style="background:#fff;color:var(--fg)"><h3 style="color:var(--blue)">Done (FR-01 to FR-08)</h3><ul><li>Dashboard, map, AI digest</li><li>Report, photos, tracking code</li><li>Admin sign-in, triage, alerts, CAP</li><li>Risk scoring button (new)</li></ul></div>
+<div class="pane card" style="background:#fff;color:var(--fg)"><h3 style="color:var(--blue)">Approved change (FR-12 to FR-18)</h3><ul><li>Contractor tickets: assign, accept, fix, verify</li><li>Authority-limited admins</li><li>Notifications, overdue alert</li><li>AI ticket draft, password change</li></ul></div>
+<div class="pane card" style="background:#fff;color:var(--fg)"><h3 style="color:#b45309">Not done</h3><ul><li>Scheduled re-scoring (FR-10)</li><li>Email to citizens (FR-11)</li><li>AI limit shared across servers (FR-09)</li><li>Photo on "fixed"</li></ul></div></div>
+<style>.pane li{color:var(--fg)!important;font-size:25px!important}</style></div>
+<div class="foot"><span>HydroSentinel</span><span>3</span></div></div>
+
+<!-- 4 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Roadmap, stack, emerging technology</div><h2>How the <span class="g">talk</span> and the <span class="g">stack</span> fit.</h2></div>
+<div class="ct"><div class="steps">
+<div class="step card"><div class="n1">1</div><em>Design</em><b>UML</b><span class="d">Use case, class, sequence, component, deployment. Then consistency with the code.</span></div>
+<div class="step card"><div class="n1">2</div><em>Live</em><b>Demo</b><span class="d">Report, validate, assign, fix, verify. Risk scoring. Audit log.</span></div>
+<div class="step card"><div class="n1">3</div><em>Evidence</em><b>Results</b><span class="d">279 + 109 tests, 27 end-to-end checks, measures, users, limits.</span></div></div></div>
+<div class="foot"><span>React 18 &middot; FastAPI &middot; PostgreSQL &middot; XGBoost &middot; GPT-4o</span><span>4</span></div></div>
+
+<!-- 5 -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.1 Use cases</div><h2>Who does what.</h2></div>
+<div class="pic"><img src="../uml/ISJ107V_A5_Q3.1_UseCase.png"></div><div class="foot"><span>HydroSentinel</span><span>5</span></div></div>
+
+<!-- 6 -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.2 Classes</div><h2>The data, drawn from the code.</h2></div>
+<div class="pic"><img src="../uml/ISJ107V_A5_Q3.2_Class.png"></div><div class="foot"><span>HydroSentinel</span><span>6</span></div></div>
+
+<!-- 7 -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.3 Sequence</div><h2>One report, from citizen to verified repair.</h2></div>
+<div class="pic"><img src="../uml/ISJ107V_A5_Q3.3_Sequence.png"></div><div class="foot"><span>HydroSentinel</span><span>7</span></div></div>
+
+<!-- 8 -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.4 Component and deployment</div><h2>Modules, and where they run.</h2></div>
+<div class="pic2"><div class="pic"><img src="../uml/ISJ107V_A5_Q3.4a_Component.png"></div><div class="pic"><img src="../uml/ISJ107V_A5_Q3.4b_Deployment.png"></div></div>
+<div class="foot"><span>Runs on the presenter laptop (or Docker Compose). No cloud hosting.</span><span>8</span></div></div>
+<!-- 9 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Q3.5 Consistency</div><h2>Requirements, diagrams and code <span class="g">agree.</span></h2></div>
+<div class="ct"><table class="tbl"><tr><th>Check</th><th>Result</th></tr>
+<tr><td>Names on diagrams exist in the code (routes, files, classes)</td><td class="ok">60 checked, 0 mismatches</td></tr>
+<tr><td>Class diagram generated from <code>models.py</code></td><td class="ok">cannot drift</td></tr>
+<tr><td>Ticket kept in its own table, not a new case status</td><td class="warn">Deviation: tracker and CSV keep working</td></tr>
+<tr><td>Switch-off stops new tickets only</td><td class="warn">Deviation: found in review, stranded repairs</td></tr>
+<tr><td>One open ticket per report, enforced by PostgreSQL</td><td class="warn">Added after the design</td></tr></table></div>
+<div class="foot"><span>HydroSentinel</span><span>9</span></div></div>
+
+<!-- 10 -->
+<div class="s dark"><div class="hd"><div class="eyebrow">Live demonstration</div><h2>About <span class="g">six minutes,</span> one story.</h2></div>
+<div class="ct"><ul class="pts" style="font-size:30px">
+<li><span class="n1">1</span>Dashboard and map, realistic data</li>
+<li><span class="n1">2</span>Report form: blocked when wrong, then fixed and sent</li>
+<li><span class="n1">3</span>Admin signs in, AI drafts the ticket, assigns</li>
+<li><span class="n1">4</span>Contractor accepts, fixes. Admin verifies. Report resolved</li>
+<li><span class="n1">5</span>Risk scoring (XGBoost) and the audit log</li></ul></div>
+<div class="foot"><span>Fallback: recorded video, template text without AI</span><span>10</span></div></div>
+
+<!-- 11 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Q4.1 Test results</div><h2>Everything passes. <span class="g">Nothing hidden.</span></h2></div>
+<div class="ct"><table class="tbl"><tr><th>Level</th><th>Passed</th><th>Failed</th><th>Unresolved</th></tr>
+<tr><td>Backend (pytest)</td><td class="ok">279</td><td>0</td><td>0</td></tr>
+<tr><td>Frontend (Vitest)</td><td class="ok">109</td><td>0</td><td>0</td></tr>
+<tr><td>End-to-end on the live system</td><td class="ok">27 of 27</td><td>0</td><td>0</td></tr>
+<tr><td>User acceptance (3 testers, 4 tasks)</td><td><span class="todo">__ of 12</span></td><td><span class="todo">__</span></td><td><span class="todo">__</span></td></tr></table>
+<p class="sub" style="margin-top:.25in;font-size:22px">Not covered by automation: a real mail server, and the browser screens (checked by hand and by the testers).</p></div>
+<div class="foot"><span>HydroSentinel</span><span>11</span></div></div>
+
+<!-- 12 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Q4.2 Measures</div><h2>Fast, and the model <span class="g">beats the rule.</span></h2></div>
+<div class="ct"><div class="stats">
+<div class="stat card"><b>7 ms</b><span>Median to list 169 authorities (p95 9 ms, 50 calls)</span><small>43 ms for the admin report list</small></div>
+<div class="stat card"><b>89.7%</b><span>XGBoost held-out accuracy (26 of 29)</span><small>80.6% cross-validated, rule baseline 34.5%</small></div>
+<div class="stat card"><b>27/27</b><span>End-to-end checks, including contractor loop</span><small>One laptop, server and client together</small></div></div></div>
+<div class="foot"><span>HydroSentinel</span><span>12</span></div></div>
+
+<!-- 13 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Q4.3 Benefit and privacy</div><h2>Residents are <span class="g">protected</span> by design.</h2></div>
+<div class="ct"><div class="rows">
+<div class="row card"><i>Benefit</i><p>A report no longer vanishes: it becomes a ticket with an owner, a due time and a check.</p></div>
+<div class="row card"><i>Privacy</i><p>The public tracker hides location and photos. A contractor sees them only for its own ticket (others return 404).</p></div>
+<div class="row card"><i>AI control</i><p>AI only drafts. Photos go to OpenAI only on request. A person confirms every assignment and every repair.</p></div></div></div>
+<div class="foot"><span>HydroSentinel</span><span>13</span></div></div>
+
+<!-- 14 -->
+<div class="s dark"><div class="hd"><div class="eyebrow">Q4.4 Limits and next step</div><h2>The <span class="g">honest</span> limits.</h2></div>
+<div class="ct"><div class="lim">
+<div class="card"><p>Model accuracy rests on 29 held-out authorities.<small>One authority moves it 3.4 points. Cross-validation is shown next to it.</small></p></div>
+<div class="card"><p>Scoring is manual; the AI limit lives in one process; email never tested on a real server.<small>FR-09, FR-10 and FR-15 stay open.</small></p></div>
+<div class="card"><p>Next: scheduled re-scoring, then citizen notices when a ticket is verified.<small>Both build on the existing alert and notification tables.</small></p></div></div></div>
+<div class="foot"><span>HydroSentinel</span><span>14</span></div></div>
+
+<!-- 15 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Q5.4 My contribution</div><h2>What I did, learned and <span class="g">decided.</span></h2></div>
+<div class="ct"><div class="rows">
+<div class="row card"><i>Contribution</i><p>Defined the problem and requirements, chose the architecture, designed the ticket rules, directed and reviewed AI-assisted code, ran the tests and the user sessions.</p></div>
+<div class="row card"><i>Lesson</i><p>Check the real data first (NRW was empty for all 169 authorities). Enforce the rules that matter on the server, not only in the screen.</p></div>
+<div class="row card"><i>Key decision</i><p>A person always decides. A contractor can mark fixed; only the authority can verify and resolve.</p></div></div></div>
+<div class="foot"><span>HydroSentinel</span><span>15</span></div></div>
+
+<!-- 16 -->
+<div class="s dark"><div class="hero"><h1 class="g" style="font-size:110px">Questions</h1>
+<div class="sub" style="margin-top:26px">Repository, UML sources and evidence are in the submission.</div></div>
+<div class="foot"><span>HydroSentinel</span><span>16</span></div></div>
+
+<!-- 17 -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Backup</div><h2>Contractors tab: coverage by province</h2></div>
+<div class="shotfull"><img src="../screens/06-contractors.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>17</span></div></div>
+<!-- 18 -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Backup</div><h2>Contractor's own tickets</h2></div>
+<div class="shotfull"><img src="../screens/07-contractor-tickets.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>18</span></div></div>
+<!-- 19 -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Backup</div><h2>Audit log</h2></div>
+<div class="shotfull"><img src="../screens/08-audit-log.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>19</span></div></div>
+</body></html>

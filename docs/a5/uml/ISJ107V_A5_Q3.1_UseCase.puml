@@ -1,0 +1,79 @@
+@startuml
+skinparam shadowing false
+skinparam dpi 150
+skinparam defaultFontName Helvetica
+skinparam packageStyle rectangle
+top to bottom direction
+title HydroSentinel: Use-Case Diagram
+
+actor "Citizen" as Citizen
+actor "Authority admin" as AuthAdmin
+actor "Admin (national)" as Admin
+actor "Contractor" as Contractor
+actor "GPT-4o (OpenAI)" as GPT <<external>>
+actor "XGBoost model" as ML <<internal>>
+
+rectangle "HydroSentinel" {
+  usecase "View dashboard and map" as UC1
+  usecase "Submit report" as UC2
+  usecase "Track report by code" as UC3
+  usecase "Sign in" as UC4
+  usecase "Triage report (case_status)" as UC5
+  usecase "Assign report to contractor" as UC6
+  usecase "Draft ticket with AI" as UC7
+  usecase "Verify or send back repair" as UC8
+  usecase "Work ticket (accept, reject, start, fix)" as UC9
+  usecase "Manage contractors and coverage" as UC10
+  usecase "Manage CAP status" as UC11
+  usecase "Score risk" as UC12
+  usecase "Read alerts and notifications" as UC13
+  usecase "Read audit log" as UC14
+  usecase "Manage users and passwords" as UC15
+  usecase "Ask AI assistant" as UC16
+  usecase "Change own password" as UC17
+}
+
+Citizen --> UC1
+Citizen --> UC2
+Citizen --> UC3
+AuthAdmin --> UC5
+AuthAdmin --> UC6
+AuthAdmin --> UC8
+AuthAdmin --> UC10
+AuthAdmin --> UC11
+AuthAdmin --> UC12
+AuthAdmin --> UC13
+AuthAdmin --> UC17
+Admin --|> AuthAdmin
+Admin --> UC14
+Admin --> UC15
+Admin --> UC16
+Contractor --> UC9
+Contractor --> UC13
+Contractor --> UC17
+UC5 ..> UC4 : <<include>>
+UC6 ..> UC4 : <<include>>
+UC9 ..> UC4 : <<include>>
+UC7 .> UC6 : <<extend>>
+UC12 ..> UC13 : <<include>>
+UC7 --> GPT
+UC16 --> GPT
+UC12 --> ML
+UC1 -[hidden]down- UC5
+UC2 -[hidden]down- UC6
+UC3 -[hidden]down- UC7
+UC4 -[hidden]down- UC8
+UC5 -[hidden]down- UC10
+UC6 -[hidden]down- UC11
+UC7 -[hidden]down- UC12
+UC8 -[hidden]down- UC13
+UC9 -[hidden]down- UC17
+UC10 -[hidden]down- UC14
+UC11 -[hidden]down- UC15
+UC12 -[hidden]down- UC16
+note bottom of AuthAdmin
+  Authority admin = an admin account tied to one
+  authority (users.wsa_id). Admin (national) can do all of
+  it plus the audit log, users and AI assistant.
+end note
+@enduml

@@ -1,0 +1,31 @@
+@startuml
+skinparam shadowing false
+skinparam dpi 150
+skinparam defaultFontName Helvetica
+skinparam maxMessageSize 260
+skinparam sequenceMessageAlign left
+title HydroSentinel: Sequence Diagram, a report becomes a repaired ticket
+
+actor Citizen
+actor Admin
+actor Contractor
+control "FastAPI\n(routes/reports.py, routes/assignments.py,\nroutes/ai.py)" as API
+participant "GPT-4o\n(OpenAI API)" as AI
+database "PostgreSQL" as DB
+
+Citizen -> API : POST /reports (issue, pin, photos)
+API -> DB : INSERT CitizenReport (open)
+API --> Citizen : reference code
+Admin -> API : GET /ai/reports/{report_id}/work-order
+API -> AI : report details
+AI --> API : instructions (or plain template if OpenAI fails)
+API --> Admin : draft + suggested contractor
+Admin -> API : POST /reports/{report_id}/assign (a person confirms)
+API -> DB : INSERT ReportAssignment, Notification, AuditLog
+Contractor -> API : PATCH /my/tickets/{assignment_id} (accept, start, fix + note)
+API -> DB : UPDATE ReportAssignment (fixed), Notification to admins
+Admin -> API : PATCH /assignments/{assignment_id}/review (verify)
+API -> DB : ticket closed, CitizenReport resolved, AuditLog
+Citizen -> API : GET /reports/track/{reference_code}
+API --> Citizen : resolved (no company, no location)
+@enduml
