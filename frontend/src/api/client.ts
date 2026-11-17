@@ -1,12 +1,18 @@
+// The one axios instance every API file uses. It (1) adds the login token to each request, (2) on a 401 tries POST /auth/refresh once and retries,
+// and (3) sends you to /login if that fails. authStorage keeps the tokens in the browser's localStorage.
+// The backend address comes from VITE_API_URL (default http://localhost:8000).
+
 import axios from "axios";
 
-export type UserRole = "admin" | "viewer";
+export type UserRole = "admin" | "viewer" | "contractor";
 
 export interface StoredUser {
   id: string;
   email: string;
   role: UserRole;
   is_active: boolean;
+  wsa_id?: string | null; // set = an admin who only manages that one authority
+  contractor_id?: string | null; // set on a contractor account
   last_login_at: string | null;
   created_at: string;
 }
@@ -27,11 +33,14 @@ const TOKEN_KEY = "hydrosentinel_token";
 const REFRESH_TOKEN_KEY = "hydrosentinel_refresh_token";
 const USER_KEY = "hydrosentinel_user";
 
+// one axios instance for every api call. the base url comes from VITE_API_URL (default http://localhost:8000);
+// the interceptors below add the login token to each request and renew it when it expires
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:8000",
   headers: { "Content-Type": "application/json" },
 });
 
+// attach the saved login token to every request
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem(TOKEN_KEY);
   if (token) {
@@ -75,6 +84,7 @@ apiClient.interceptors.response.use(
   },
 );
 
+// keeps the login in the browser's localStorage: the access token, the refresh token and the user (the role decides which pages show)
 export const authStorage = {
   setSession(response: LoginResponse) {
     localStorage.setItem(TOKEN_KEY, response.access_token);

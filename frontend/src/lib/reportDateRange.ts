@@ -1,3 +1,5 @@
+// The 'Today / Last 7 days / Last 30 days / All time' filter on the Citizen reports tab.
+
 import type { CitizenReport } from "@/api/reports";
 
 export function isReportInsideRange(report: CitizenReport, range: string) {

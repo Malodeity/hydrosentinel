@@ -1,14 +1,26 @@
+// The page frame: top navigation, the headline on the dashboard, and the route table.
+//   /          public dashboard (pages/DashboardPage.tsx)
+//   /reports   resident report form + status lookup (pages/ReportPage.tsx)
+//   /login     admin sign-in (pages/LoginPage.tsx)
+//   /admin     admin console, login required (pages/AdminPage.tsx); /admin/report is the printable management report
+//   /tickets   a contractor's own repair tickets (pages/ContractorTicketsPage.tsx)
+
 import { Link, Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { ShieldCheck, Waves, MapPinned } from "lucide-react";
+import { ShieldCheck, Waves, MapPinned, Wrench } from "lucide-react";
 
 import { authStorage } from "@/api/client";
+import { ChangePassword } from "@/components/ChangePassword";
+import { NotificationBell } from "@/components/NotificationBell";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { ReportPage } from "@/pages/ReportPage";
 import { AdminPage } from "@/pages/AdminPage";
+import { ManagementReportPage } from "@/pages/ManagementReportPage";
+import { ContractorTicketsPage } from "@/pages/ContractorTicketsPage";
 
+// the page frame: header, navigation and the route table. print:hidden hides the header when an admin prints the management report
 function AppShell() {
   // this reads the current route and saved user so the nav and sign-out button stay in sync
   const location = useLocation();
@@ -18,7 +30,7 @@ function AppShell() {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-border/70 bg-background/90 backdrop-blur-md">
+      <header className="relative z-[1200] border-b border-border/70 bg-background/90 backdrop-blur-md print:hidden">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-5 lg:flex-row lg:items-center lg:justify-between">
           <Link to="/" className="text-xl font-semibold tracking-tight">
             HydroSentinel
@@ -36,12 +48,23 @@ function AppShell() {
                 Report Issue
               </Link>
             </Button>
-            <Button asChild variant={location.pathname === "/admin" ? "default" : "outline"}>
-              <Link to="/admin">
-                <ShieldCheck className="h-4 w-4" />
-                Admin
-              </Link>
-            </Button>
+            {user?.role === "contractor" ? (
+              <Button asChild variant={location.pathname.startsWith("/tickets") ? "default" : "outline"}>
+                <Link to="/tickets">
+                  <Wrench className="h-4 w-4" />
+                  My tickets
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild variant={location.pathname.startsWith("/admin") ? "default" : "outline"}>
+                <Link to="/admin">
+                  <ShieldCheck className="h-4 w-4" />
+                  Admin
+                </Link>
+              </Button>
+            )}
+            {user ? <NotificationBell /> : null}
+            {user ? <ChangePassword /> : null}
             {user ? (
               <Button
                 variant="ghost"
@@ -62,10 +85,14 @@ function AppShell() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8">
+      <main className="mx-auto max-w-7xl px-4 py-8 print:max-w-none print:p-0">
         {showHero ? (
           <section className="mb-8">
-            <h2 className="text-4xl font-semibold tracking-tight">South Africa's water services, tracked in real time.</h2>
+            <h2 className="text-4xl font-semibold tracking-tight">South Africa's water services, at a glance.</h2>
+            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+              Built from the Department of Water and Sanitation's 2023 audits (Blue Drop, Green Drop, No Drop) and National Treasury data, plus reports from residents.
+              Risk levels are AI-assisted estimates, not official ratings.
+            </p>
           </section>
         ) : null}
 
@@ -78,6 +105,24 @@ function AppShell() {
             element={
               <ProtectedRoute requireRole="admin">
                 <AdminPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* admin only: the management report, which prints to a four-page A4 pdf */}
+          <Route
+            path="/admin/report"
+            element={
+              <ProtectedRoute requireRole="admin">
+                <ManagementReportPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* contractor accounts only: their own repair tickets */}
+          <Route
+            path="/tickets"
+            element={
+              <ProtectedRoute requireRole="contractor">
+                <ContractorTicketsPage />
               </ProtectedRoute>
             }
           />

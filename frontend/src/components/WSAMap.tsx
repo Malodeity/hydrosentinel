@@ -1,8 +1,12 @@
-import { useEffect } from "react";
-import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from "react-leaflet";
+// The Leaflet risk map: one coloured marker per authority (clustered when zoomed out). Clicking a marker selects that authority.
+
+import { useEffect, useRef, useState } from "react";
+import type { Map as LeafletMap } from "leaflet";
+import { CircleMarker, MapContainer, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 
 import type { RiskLevel, WSA } from "@/api/wsa";
+import { MapViewSummary } from "@/components/MapViewSummary";
 import { RiskBadge } from "@/components/RiskBadge";
 import { dataCompleteness } from "@/components/WSACard";
 
@@ -13,6 +17,7 @@ interface WSAMapProps {
   showDataGaps?: boolean;
 }
 
+// when an authority is selected (from the list or by clicking a circle) the map flies to it
 function FlyToSelected({ wsa }: { wsa: WSA | null }) {
   const map = useMap();
 
@@ -24,6 +29,12 @@ function FlyToSelected({ wsa }: { wsa: WSA | null }) {
   return null;
 }
 
+function MoveWatcher({ onMove }: { onMove: () => void }) {
+  useMapEvents({ moveend: onMove });
+  return null;
+}
+
+// the same three colours are used for risk everywhere: green low, amber medium, red high
 const riskColorMap: Record<RiskLevel, string> = {
   low: "#16a34a",
   medium: "#f59e0b",
@@ -36,17 +47,26 @@ const LEGEND_ITEMS: { level: RiskLevel; label: string }[] = [
   { level: "high", label: "High" },
 ];
 
+// the dashboard map: one circle per authority coloured by risk. nearby circles are grouped when zoomed out, clicking one selects the authority,
+// and the button at the top right asks the AI to describe whatever is currently in view
 export function WSAMap({ wsas, selectedWsaId, onSelect, showDataGaps }: WSAMapProps) {
   const selectedWsa = wsas.find((wsa) => wsa.id === selectedWsaId) ?? null;
+  const mapRef = useRef<LeafletMap | null>(null);
+  const [viewVersion, setViewVersion] = useState(0);
+  const getBounds = () => {
+    const bounds = mapRef.current?.getBounds();
+    return bounds ? { south: bounds.getSouth(), north: bounds.getNorth(), west: bounds.getWest(), east: bounds.getEast() } : null;
+  };
 
   return (
     <div className="relative">
-      <MapContainer center={[-29.0, 24.0]} zoom={5} scrollWheelZoom className="h-[580px] w-full rounded-[1.5rem]">
+      <MapContainer ref={mapRef} center={[-29.0, 24.0]} zoom={5} scrollWheelZoom className="h-[580px] w-full rounded-[1.5rem]">
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <FlyToSelected wsa={selectedWsa} />
+        <MoveWatcher onMove={() => setViewVersion((version) => version + 1)} />
         <MarkerClusterGroup chunkedLoading spiderfyOnMaxZoom disableClusteringAtZoom={14}>
           {wsas.map((wsa) => {
             const isSelected = wsa.id === selectedWsaId;
@@ -79,6 +99,8 @@ export function WSAMap({ wsas, selectedWsaId, onSelect, showDataGaps }: WSAMapPr
           })}
         </MarkerClusterGroup>
       </MapContainer>
+
+      <MapViewSummary getBounds={getBounds} viewVersion={viewVersion} />
 
       <div className="pointer-events-none absolute bottom-4 left-4 z-[1000] flex gap-3 rounded-full border border-border/70 bg-white/95 px-4 py-2 shadow-soft backdrop-blur-sm">
         {LEGEND_ITEMS.map(({ level, label }) => (

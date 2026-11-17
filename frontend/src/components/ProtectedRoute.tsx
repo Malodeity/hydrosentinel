@@ -1,3 +1,5 @@
+// Wraps a page that needs login: sends you to /login when there is no token or the user is not an admin. (The server checks again on every call.)
+
 import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
@@ -21,7 +23,7 @@ export function ProtectedRoute({ children, requireRole }: ProtectedRouteProps) {
 
   // this blocks users who are logged in but do not have the required role
   if (requireRole && user.role !== requireRole) {
-    return <Navigate replace to="/" />;
+    return <Navigate replace to={user.role === "contractor" ? "/tickets" : "/"} />;
   }
 
   return <>{children}</>;

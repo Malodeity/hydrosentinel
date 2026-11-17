@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
+// admin sign-in. on success the tokens are saved and the user goes back to the page they asked for (or /admin)
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,6 +15,7 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // ProtectedRoute remembers which page the visitor tried to open, so we can send them there after they sign in
   const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? "/admin";
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -23,7 +25,8 @@ export function LoginPage() {
     try {
       const response = await authApi.login({ email, password });
       authStorage.setSession(response);
-      navigate(from, { replace: true });
+      // a contractor has no admin console: send them to their tickets whatever page they asked for
+      navigate(response.user.role === "contractor" ? "/tickets" : from, { replace: true });
     } catch {
       setError("Login failed. Check your email and password and try again.");
     } finally {

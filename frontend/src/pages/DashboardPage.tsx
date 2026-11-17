@@ -1,10 +1,16 @@
+// The public dashboard, top to bottom: headline numbers, what residents are reporting, AI insights tabs, the risk map with search and 'Find my area',
+// the selected authority's card, and Blue Drop by province. Public data only: nothing here needs a login.
+
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search } from "lucide-react";
+import { LocateFixed, Search } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
-import { fetchAiDigest, fetchProvinceDigest, fetchRiskExplanation, fetchWsaComparison } from "@/api/ai";
+import { fetchAiDigest, fetchProvinceDigest, fetchWsaComparison } from "@/api/ai";
+import { fetchPublicReportStats, type PublicReportStats } from "@/api/reports";
 import { fetchWsas, type WSA } from "@/api/wsa";
 import { AITextBlock } from "@/components/AITextBlock";
+import { BlueDropByProvince } from "@/components/BlueDropByProvince";
+import { CitizenActivity } from "@/components/CitizenActivity";
 import { WSACard } from "@/components/WSACard";
 import { WSAMap } from "@/components/WSAMap";
 import { Button } from "@/components/ui/button";
@@ -12,17 +18,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { nearestAuthority } from "@/lib/nearestAuthority";
+import { provinceBlueDrop } from "@/lib/provinceBlueDrop";
+import { publicStats } from "@/lib/publicStats";
 import { pickDefaultWsa } from "@/lib/wsaSelection";
 
-type AiTab = "national" | "province" | "insight" | "comparison";
+// the authority-level explanation now lives in the authority card ("Explain this rating"), so there is no separate tab for it
+type AiTab = "national" | "province" | "comparison";
 
 const TAB_LABELS: Record<AiTab, string> = {
   national: "National digest",
   province: "Province digest",
-  insight: "WSA insight",
   comparison: "Provincial comparison",
 };
 
+// the public dashboard: the risk map, the selected authority's card, and the AI insight tabs (national, province, authority, comparison).
+// results are cached per tab so switching back does not call the AI again
 export function DashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [wsas, setWsas] = useState<WSA[]>([]);
@@ -30,6 +41,8 @@ export function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoadingWsas, setIsLoadingWsas] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [reportStats, setReportStats] = useState<PublicReportStats | null>(null);
+  const [locateMessage, setLocateMessage] = useState<string | null>(null);
 
   // keeps ?wsa=<id> in the URL in sync so a selected WSA is shareable/bookmarkable
   function setSelectedWsa(wsa: WSA | null) {
@@ -37,27 +50,15 @@ export function DashboardPage() {
     setSearchParams(wsa ? { wsa: wsa.id } : {}, { replace: true });
   }
 
+  const stats = useMemo(() => publicStats(wsas), [wsas]);
+
   const searchMatches = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return [];
-    return wsas.filter((wsa) => wsa.name.toLowerCase().includes(query)).slice(0, 8);
+    return wsas.filter((wsa) => wsa.name.toLowerCase().includes(query) || wsa.province.toLowerCase().includes(query)).slice(0, 8);
   }, [searchQuery, wsas]);
 
-  const provinceAverages = useMemo(() => {
-    const byProvince = new Map<string, number[]>();
-    for (const wsa of wsas) {
-      if (wsa.blue_drop_score === null) continue;
-      const scores = byProvince.get(wsa.province) ?? [];
-      scores.push(wsa.blue_drop_score);
-      byProvince.set(wsa.province, scores);
-    }
-    return Array.from(byProvince.entries())
-      .map(([province, scores]) => ({
-        province,
-        average: scores.reduce((sum, score) => sum + score, 0) / scores.length,
-      }))
-      .sort((a, b) => b.average - a.average);
-  }, [wsas]);
+  const provinceAverages = useMemo(() => provinceBlueDrop(wsas), [wsas]);
 
   // ai section state
   const [activeTab, setActiveTab] = useState<AiTab>("national");
@@ -69,6 +70,8 @@ export function DashboardPage() {
   const lastProvinceRef = useRef<string | null>(null);
 
   useEffect(() => {
+    // resident-report numbers are a bonus: if they fail to load the rest of the page is unaffected
+    fetchPublicReportStats().then(setReportStats).catch(() => setReportStats(null));
     fetchWsas()
       .then((data) => {
         setWsas(data);
@@ -96,16 +99,14 @@ export function DashboardPage() {
     if (!province || province === lastProvinceRef.current) return;
     lastProvinceRef.current = province;
     aiCache.current.delete("province");
-    aiCache.current.delete("insight");
     aiCache.current.delete("comparison");
   }, [selectedWsa?.province]);
 
   // when wsa changes, invalidate wsa-specific cache entries
   useEffect(() => {
-    aiCache.current.delete("insight");
     aiCache.current.delete("comparison");
     // if the active tab is wsa-specific and wsa changed, re-fetch
-    if (selectedWsa && (activeTab === "insight" || activeTab === "comparison")) {
+    if (selectedWsa && activeTab === "comparison") {
       loadTab(activeTab);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -118,7 +119,7 @@ export function DashboardPage() {
       return;
     }
 
-    if ((tab === "insight" || tab === "comparison" || tab === "province") && !selectedWsa) {
+    if ((tab === "comparison" || tab === "province") && !selectedWsa) {
       setAiContent(null);
       return;
     }
@@ -133,9 +134,6 @@ export function DashboardPage() {
         content = data.content;
       } else if (tab === "province" && selectedWsa) {
         const data = await fetchProvinceDigest(selectedWsa.province);
-        content = data.content;
-      } else if (tab === "insight" && selectedWsa) {
-        const data = await fetchRiskExplanation(selectedWsa.id);
         content = data.content;
       } else if (tab === "comparison" && selectedWsa) {
         const data = await fetchWsaComparison(selectedWsa.id);
@@ -155,17 +153,58 @@ export function DashboardPage() {
     loadTab(tab);
   }
 
-  const wsaSpecificTabs: AiTab[] = ["province", "insight", "comparison"];
+  // "find my area": uses the browser's location (only when the visitor clicks) and selects the nearest authority on the map
+  function locateMe() {
+    if (!navigator.geolocation) {
+      setLocateMessage("Your browser cannot share its location. Search for your municipality instead.");
+      return;
+    }
+    setLocateMessage("Finding your location...");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const nearest = nearestAuthority(wsas, coords.latitude, coords.longitude);
+        if (!nearest) return setLocateMessage("No authorities are loaded yet.");
+        setSelectedWsa(nearest.wsa);
+        setLocateMessage(`Nearest authority to you: ${nearest.wsa.name}, about ${Math.round(nearest.km)} km away. Boundaries are not mapped, so check the name is right.`);
+      },
+      () => setLocateMessage("Location was blocked. Search for your municipality instead."),
+      { timeout: 10000 },
+    );
+  }
+
+  const wsaSpecificTabs: AiTab[] = ["province", "comparison"];
 
   return (
     <div className="space-y-6">
-      {/* AI insights section — between hero and map */}
+      {/* headline numbers: the first thing a visitor sees, before any AI text */}
+      <div>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {isLoadingWsas
+            ? [0, 1, 2, 3].map((n) => <Skeleton key={n} className="h-[92px] rounded-2xl" />)
+            : [
+                { label: "Authorities tracked", value: stats.total, hint: "Water service authorities", color: "" },
+                { label: "High risk", value: stats.high, hint: `${stats.total ? Math.round((stats.high / stats.total) * 100) : 0}% of all authorities`, color: "text-rose-700" },
+                { label: "Critical drinking water", value: stats.criticalWater, hint: "Blue Drop score under 31", color: "text-rose-700" },
+                { label: "Plans completed", value: stats.capCompleted, hint: "Corrective action plans", color: "text-emerald-700" },
+              ].map((tile) => (
+                <div key={tile.label} className="rounded-2xl bg-card p-4 shadow-soft">
+                  <p className="text-sm text-muted-foreground">{tile.label}</p>
+                  <p className={`mt-1 text-3xl font-semibold ${tile.color}`}>{tile.value}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{tile.hint}</p>
+                </div>
+              ))}
+        </div>
+      </div>
+
+      {reportStats ? <CitizenActivity stats={reportStats} /> : null}
+
+      {/* AI insights section */}
       <Card>
         <CardHeader className="border-b border-border/60 pb-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle>AI insights</CardTitle>
-              <CardDescription>{selectedWsa ? selectedWsa.name : "Select a WSA on the map"}</CardDescription>
+              <CardDescription>{activeTab === "national" ? "A plain-language summary of the whole country" : selectedWsa ? selectedWsa.name : "Select a WSA on the map"}</CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
               {(Object.keys(TAB_LABELS) as AiTab[]).map((tab) => {
@@ -210,16 +249,21 @@ export function DashboardPage() {
           <CardHeader className="border-b border-border/60 bg-card/70">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <CardTitle>Risk map</CardTitle>
+              <div className="flex w-full items-center gap-2 sm:w-auto">
+              <Button type="button" variant="outline" size="sm" onClick={locateMe} className="shrink-0">
+                <LocateFixed className="h-4 w-4" />
+                Find my area
+              </Button>
               <div className="relative w-full sm:w-64">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search a WSA"
+                  placeholder="Search name or province"
                   className="pl-9"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                 />
                 {searchMatches.length > 0 ? (
-                  <div className="absolute z-[1000] mt-2 w-full overflow-hidden rounded-2xl border border-border bg-white shadow-soft">
+                  <div className="absolute z-[1100] mt-2 w-full overflow-hidden rounded-2xl border border-border bg-white shadow-soft">
                     {searchMatches.map((wsa) => (
                       <button
                         key={wsa.id}
@@ -237,7 +281,9 @@ export function DashboardPage() {
                   </div>
                 ) : null}
               </div>
+              </div>
             </div>
+            {locateMessage ? <p className="mt-2 text-xs text-muted-foreground">{locateMessage}</p> : null}
           </CardHeader>
           <CardContent className="p-4">
             {error ? (
@@ -252,57 +298,8 @@ export function DashboardPage() {
 
         <ScrollArea className="h-[690px] rounded-[1.5rem]">
           <div className="space-y-4 pr-4">
-            <WSACard wsa={selectedWsa} />
-            <Card>
-              <CardHeader>
-                <CardTitle>Snapshot</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                {isLoadingWsas ? (
-                  <>
-                    <Skeleton className="h-[76px]" />
-                    <Skeleton className="h-[76px]" />
-                    <Skeleton className="h-[76px]" />
-                  </>
-                ) : (
-                  <>
-                    <div className="rounded-3xl border border-primary/15 bg-primary/5 p-4">
-                      <p className="text-sm text-muted-foreground">Total WSAs</p>
-                      <p className="text-3xl font-semibold text-primary">{wsas.length}</p>
-                    </div>
-                    <div className="rounded-3xl border border-rose-200 bg-rose-50 p-4">
-                      <p className="text-sm text-muted-foreground">High risk</p>
-                      <p className="text-3xl font-semibold text-rose-700">{wsas.filter((item) => item.risk_level === "high").length}</p>
-                    </div>
-                    <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4">
-                      <p className="text-sm text-muted-foreground">CAP completed</p>
-                      <p className="text-3xl font-semibold text-emerald-700">{wsas.filter((item) => item.cap_status === "completed").length}</p>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            {!isLoadingWsas && provinceAverages.length > 0 ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Blue Drop by province</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {provinceAverages.map(({ province, average }) => (
-                    <div key={province}>
-                      <div className="mb-1 flex items-center justify-between text-sm">
-                        <span className="text-foreground">{province}</span>
-                        <span className="font-medium text-muted-foreground">{average.toFixed(0)}%</span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-secondary/60">
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${average}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            ) : null}
+            <WSACard wsa={selectedWsa} reportCounts={selectedWsa ? reportStats?.by_wsa[selectedWsa.id] ?? { open: 0, resolved: 0 } : undefined} />
+            {!isLoadingWsas && provinceAverages.length > 0 ? <BlueDropByProvince rows={provinceAverages} /> : null}
           </div>
         </ScrollArea>
       </div>

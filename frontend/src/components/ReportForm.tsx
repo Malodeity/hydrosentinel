@@ -1,4 +1,7 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+// The resident's report form: province -> authority, issue type, description, a map pin (click, search an address, or use your location) and photos.
+// `initialWsaId` pre-selects an authority when the visitor comes from the 'Report a problem' button on the dashboard card.
+
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import { divIcon, type LatLngLiteral } from "leaflet";
 import { Loader2 } from "lucide-react";
@@ -15,6 +18,7 @@ interface ReportFormProps {
   wsas: WSA[];
   isSubmitting: boolean;
   onSubmit: (payload: CreateCitizenReportPayload, photos: File[]) => Promise<void>;
+  initialWsaId?: string; // pre-selects an authority, e.g. when the resident came from its card on the dashboard
 }
 
 const defaultLocation: LatLngLiteral = { lat: -26.2041, lng: 28.0473 };
@@ -58,10 +62,14 @@ function MapViewportSync({ location }: { location: LatLngLiteral }) {
   return null;
 }
 
-export function ReportForm({ wsas, isSubmitting, onSubmit }: ReportFormProps) {
+// the citizen's report form: province, then authority, issue type and description, plus a map pin the resident can click or find by address
+// (OpenStreetMap Nominatim) and optional photos. the submit button stays disabled until the required fields are filled
+export function ReportForm({ wsas, isSubmitting, onSubmit, initialWsaId }: ReportFormProps) {
   // this stores the current form values until the user submits the report
-  const [wsaId, setWsaId] = useState<string>("");
-  const [province, setProvince] = useState<string>("");
+  // when the authorities are already loaded and a pre-selected authority was passed in, start with it chosen (no effect-order tricks needed)
+  const initialMatch = initialWsaId ? wsas.find((wsa) => wsa.id === initialWsaId) : undefined;
+  const [wsaId, setWsaId] = useState<string>(initialMatch?.id ?? "");
+  const [province, setProvince] = useState<string>(initialMatch?.province ?? "");
   const [issueType, setIssueType] = useState<IssueType>("leak");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState<LatLngLiteral>(defaultLocation);
@@ -109,6 +117,18 @@ export function ReportForm({ wsas, isSubmitting, onSubmit }: ReportFormProps) {
       setWsaId("");
     }
   }, [province, filteredWsas, wsaId]);
+
+  // declared AFTER the effect above on purpose: effects run in order, and that one clears the authority while the province is still empty.
+  // once the authorities have loaded, apply the pre-selected one (province first, so the authority dropdown has it in its list)
+  const appliedInitial = useRef(Boolean(initialMatch));
+  useEffect(() => {
+    if (appliedInitial.current || !initialWsaId) return;
+    const match = wsas.find((wsa) => wsa.id === initialWsaId);
+    if (!match) return;
+    appliedInitial.current = true;
+    setProvince(match.province);
+    setWsaId(match.id);
+  }, [initialWsaId, wsas]);
 
   useEffect(() => {
     const query = addressQuery.trim();
@@ -218,7 +238,8 @@ export function ReportForm({ wsas, isSubmitting, onSubmit }: ReportFormProps) {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Water Services Authority</label>
-              <Select value={wsaId} onValueChange={setWsaId}>
+              {/* Radix reports an empty value when the options change under a pre-selected authority; clearing is the effect's job, so ignore it here */}
+              <Select value={wsaId} onValueChange={(value) => value && setWsaId(value)}>
                 <SelectTrigger>
                   <SelectValue placeholder={province ? "Select a WSA" : "Select a province first"} />
                 </SelectTrigger>

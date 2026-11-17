@@ -1,6 +1,8 @@
+// Alerts API: list alerts and acknowledge one (backend/app/routes/alerts.py).
+
 import { apiClient } from "./client";
 
-export type AlertType = "risk_level_high" | "risk_level_increased" | "report_volume_spike" | "cap_overdue" | "geo_cluster_incident";
+export type AlertType = "risk_level_high" | "risk_level_increased" | "report_volume_spike" | "cap_overdue" | "geo_cluster_incident" | "assignment_overdue";
 
 export interface Alert {
   id: string;

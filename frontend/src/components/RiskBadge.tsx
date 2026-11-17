@@ -1,3 +1,5 @@
+// The coloured Low / Medium / High pill used wherever a risk level is shown.
+
 import { Badge } from "@/components/ui/badge";
 import type { RiskLevel } from "@/api/wsa";
 
@@ -13,10 +15,18 @@ const riskClassMap: Record<RiskLevel, string> = {
   high: "border-rose-200 bg-rose-100 text-rose-800",
 };
 
+const compactLabelMap: Record<RiskLevel, string> = {
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+};
+
 interface RiskBadgeProps {
   riskLevel: RiskLevel;
+  // inside a table whose column is already headed "Risk", say "Medium" instead of "Medium risk"
+  compact?: boolean;
 }
 
-export function RiskBadge({ riskLevel }: RiskBadgeProps) {
-  return <Badge className={riskClassMap[riskLevel]} variant="outline">{riskLabelMap[riskLevel]}</Badge>;
+export function RiskBadge({ riskLevel, compact }: RiskBadgeProps) {
+  return <Badge className={riskClassMap[riskLevel]} variant="outline">{(compact ? compactLabelMap : riskLabelMap)[riskLevel]}</Badge>;
 }

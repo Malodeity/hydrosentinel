@@ -1,3 +1,5 @@
+// Audit log API: read-only list of admin changes (backend/app/routes/audit.py).
+
 import { apiClient } from "@/api/client";
 
 export type AuditAction =
@@ -7,7 +9,10 @@ export type AuditAction =
   | "risk_score_run"
   | "wsa_updated"
   | "user_created"
-  | "summary_generated";
+  | "summary_generated"
+  | "contractor_saved"
+  | "report_assigned"
+  | "assignment_updated";
 
 export interface AuditLogEntry {
   id: string;

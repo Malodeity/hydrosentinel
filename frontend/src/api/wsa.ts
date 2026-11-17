@@ -1,3 +1,6 @@
+// Authorities API (backend/app/routes/wsa.py) and the risk endpoints: list authorities, update a CAP, risk scores and history, CSV export.
+// WSA mirrors backend schemas.WSARead; keep the two in step by hand.
+
 import { apiClient } from "@/api/client";
 
 export type CapStatus = "none" | "submitted" | "in_progress" | "completed";
@@ -10,6 +13,9 @@ export interface WSA {
   blue_drop_score: number | null;
   green_drop_score: number | null;
   nrw_percent: number | null;
+  // set only when the authority has no NRW of its own: its province average, shown as an estimate (see backend/app/nrw_benchmark.py)
+  nrw_estimate_percent?: number | null;
+  nrw_estimate_note?: string | null;
   cap_status: CapStatus;
   cap_due_date: string | null;
   maint_pct: number | null;
@@ -27,6 +33,7 @@ export interface RiskScore {
   risk_level: RiskLevel;
 }
 
+// public: all authorities, for the map and the dropdowns
 export async function fetchWsas() {
   const { data } = await apiClient.get<WSA[]>("/wsa");
   return data;
@@ -37,8 +44,15 @@ export async function fetchWsa(wsaId: string) {
   return data;
 }
 
+// admin only: set an authority's corrective action plan status and due date
 export async function updateWsaCapStatus(wsaId: string, capStatus: CapStatus, capDueDate: string | null = null) {
   const { data } = await apiClient.patch<WSA>(`/wsa/${wsaId}`, { cap_status: capStatus, cap_due_date: capDueDate });
+  return data;
+}
+
+// admin only: score one authority now (XGBoost, or the rule-based fallback), save it to its history and return the result
+export async function scoreWsaRisk(wsaId: string) {
+  const { data } = await apiClient.post<{ risk_level: RiskLevel; probability: number; model_source: "xgboost" | "heuristic" }>(`/risk/score/${wsaId}`);
   return data;
 }
 
