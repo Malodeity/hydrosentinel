@@ -1,3 +1,6 @@
+# The FastAPI application. Start here: it wires the routers (one file per area in app/routes/), runs start-up setup in lifespan(),
+# and applies column additions to an existing database in apply_ai_schema_changes(). Run with: uvicorn main:app --port 8000
+
 from contextlib import asynccontextmanager
 
 from pathlib import Path
@@ -11,8 +14,8 @@ from ai.predict import load_serialized_model
 from app.auth import get_password_hash
 from app.config import settings
 from app.database import Base, SessionLocal, engine
-from app.models import CAPStatus, RiskLevel, User, UserRole, WSA
-from app.routes import ai, alerts, audit, auth, reports, risk, users, wsa
+from app.models import CAPStatus, Contractor, ContractorCoverage, RiskLevel, User, UserRole, WSA
+from app.routes import ai, alerts, assignments, audit, auth, reports, risk, users, wsa
 
 
 def seed_default_admin() -> None:
@@ -81,6 +84,99 @@ def seed_wsas() -> None:
         db.close()
 
 
+# starter contractors so the assign / accept / fix flow and the per-authority view work out of the box. the companies are invented (they only
+# look like the local firms an authority hires). an admin adds, edits or switches off real ones on the Contractors tab.
+# each entry: (company, contact person, login name, phone, earlier name, earlier login, areas). the earlier name and login let an existing record be renamed in place.
+LOGIN_DOMAIN = "contractors.hydrosentinel.co.za"
+METRO_CONTRACTORS = [
+    ("Radebe Plumbing Services (Pty) Ltd", "Sipho Radebe", "radebe-plumbing", "011 555 0114",
+     "Demo Plumbing Services (sample data)", "contractor1", [("City of Ekurhuleni", "leak,outage"), ("City of Johannesburg", "leak")]),
+    ("Molapo Rapid Response Repairs (Pty) Ltd", "Lerato Molapo", "molapo-repairs", "012 555 0127",
+     "Demo Rapid Response Repairs (sample data)", "contractor2", [("City of Ekurhuleni", "leak,outage,quality"), ("City of Tshwane", "leak,outage")]),
+    ("Tshabalala Water Quality Services (Pty) Ltd", "Nomsa Tshabalala", "tshabalala-water", "011 555 0138",
+     "Demo Water Quality Services (sample data)", "contractor3", [("City of Johannesburg", "quality"), ("City of Tshwane", "quality")]),
+]
+# two per province, each covering every authority there: repairs (leaks, outages) and water quality
+PROVINCE_CONTRACTORS = {
+    "Eastern Cape": [("Mkhonto Civils & Plumbing (Pty) Ltd", "Thandeka Mkhonto", "mkhonto-civils", "041 555 0142"),
+                     ("Nqabeni Water Testing Services (Pty) Ltd", "Andile Nqabeni", "nqabeni-testing", "041 555 0156")],
+    "Free State": [("Mokoena Pipe & Drain Contractors (Pty) Ltd", "Tumelo Mokoena", "mokoena-pipe", "051 555 0163"),
+                   ("Lekhanya Environmental Laboratories (Pty) Ltd", "Palesa Lekhanya", "lekhanya-labs", "051 555 0177")],
+    "Gauteng": [("Sibanyoni Civils Holdings (Pty) Ltd", "Bheki Sibanyoni", "sibanyoni-civils", "011 555 0181"),
+                ("Dlamini-Pretorius Analytical Services (Pty) Ltd", "Zanele Dlamini", "dlamini-pretorius", "012 555 0195")],
+    "KwaZulu-Natal": [("Zondi & Sons Plumbing Contractors (Pty) Ltd", "Sbusiso Zondi", "zondi-plumbing", "031 555 0108"),
+                      ("Ngcobo Water Quality Solutions (Pty) Ltd", "Nokuthula Ngcobo", "ngcobo-water", "031 555 0119")],
+    "Limpopo": [("Maluleke Engineering & Construction (Pty) Ltd", "Tsakani Maluleke", "maluleke-engineering", "015 555 0121"),
+                ("Mashaba Environmental Testing (Pty) Ltd", "Kgomotso Mashaba", "mashaba-testing", "015 555 0133")],
+    "Mpumalanga": [("Mahlangu Pipelines (Pty) Ltd", "Sifiso Mahlangu", "mahlangu-pipelines", "013 555 0146"),
+                   ("Nkosi Water Analytics (Pty) Ltd", "Thulisile Nkosi", "nkosi-analytics", "013 555 0158")],
+    "North West": [("Tlhapi Civil Works (Pty) Ltd", "Kabelo Tlhapi", "tlhapi-civils", "018 555 0164"),
+                   ("Molefe Aqua Laboratories (Pty) Ltd", "Boitumelo Molefe", "molefe-aqua", "018 555 0172")],
+    "Northern Cape": [("Van Wyk Pipe & Plumbing (Pty) Ltd", "Johan van Wyk", "vanwyk-plumbing", "053 555 0185"),
+                      ("Cloete Environmental Laboratories (Pty) Ltd", "Elmarie Cloete", "cloete-labs", "053 555 0191")],
+    "Western Cape": [("Jacobs & Abrahams Plumbing (Pty) Ltd", "Riaan Jacobs", "jacobs-abrahams", "021 555 0103"),
+                     ("Adams Water Quality Laboratory (Pty) Ltd", "Fatima Adams", "adams-laboratory", "021 555 0116")],
+}
+AUTHORITY_ADMIN = ("ekurhuleni.admin@hydrosentinel.co.za", "ekurhuleni.admin@demo.hydrosentinel.co.za", "City of Ekurhuleni")
+
+
+def seed_demo_contractors() -> None:
+    # safe to run on every start: it adds only what is missing, and renames records that still carry an earlier version's names or logins
+    db = SessionLocal()
+    try:
+        password_hash = get_password_hash(settings.demo_contractor_password)
+
+        def ensure(name: str, contact: str, login_name: str, phone: str, was: str | None, old_login: str | None,
+                   areas: list[tuple[WSA, str]]) -> None:
+            login = f"{login_name}@{LOGIN_DOMAIN}"
+            contractor = db.query(Contractor).filter(Contractor.name == name).first()
+            if contractor is None and was:
+                contractor = db.query(Contractor).filter(Contractor.name == was).first()
+            if contractor is None:
+                contractor = Contractor(name=name, contact_name=contact, phone=phone, email=login, is_active=True)
+                db.add(contractor)
+                db.flush()
+            elif contractor.name == was:
+                contractor.name, contractor.contact_name, contractor.phone, contractor.email = name, contact, phone, login
+            have = {row.wsa_id for row in db.query(ContractorCoverage).filter(ContractorCoverage.contractor_id == contractor.id)}
+            for wsa, issues in areas:
+                if wsa.id not in have:
+                    db.add(ContractorCoverage(contractor_id=contractor.id, wsa_id=wsa.id, issue_types=issues))
+            user = db.query(User).filter(User.email.in_([login, old_login or login])).first()
+            if user is None:
+                db.add(User(email=login, hashed_password=password_hash, role=UserRole.contractor, contractor_id=contractor.id))
+            elif user.email != login:
+                user.email = login
+
+        for name, contact, login_name, phone, was, was_login, areas in METRO_CONTRACTORS:
+            found = [(w, issues) for wsa_name, issues in areas if (w := db.query(WSA).filter(WSA.name == wsa_name).first())]
+            ensure(name, contact, login_name, phone, was, f"{was_login}@demo.hydrosentinel.co.za", found)
+
+        by_province: dict[str, list[WSA]] = {}
+        for wsa in db.query(WSA).order_by(WSA.name).all():
+            by_province.setdefault(wsa.province, []).append(wsa)
+        for province, members in sorted(by_province.items()):
+            if province not in PROVINCE_CONTRACTORS:
+                continue
+            slug = province.lower().replace(" ", "-")
+            (r_name, r_contact, r_login, r_phone), (q_name, q_contact, q_login, q_phone) = PROVINCE_CONTRACTORS[province]
+            ensure(r_name, r_contact, r_login, r_phone, f"Demo {province} Water Repairs (sample data)",
+                   f"repairs.{slug}@demo.hydrosentinel.co.za", [(w, "leak,outage") for w in members])
+            ensure(q_name, q_contact, q_login, q_phone, f"Demo {province} Water Quality Lab (sample data)",
+                   f"quality.{slug}@demo.hydrosentinel.co.za", [(w, "quality") for w in members])
+
+        admin_email, old_admin_email, admin_wsa_name = AUTHORITY_ADMIN
+        admin_wsa = db.query(WSA).filter(WSA.name == admin_wsa_name).first()
+        existing_admin = db.query(User).filter(User.email.in_([admin_email, old_admin_email])).first()
+        if existing_admin is not None:
+            existing_admin.email = admin_email
+        elif admin_wsa:
+            db.add(User(email=admin_email, hashed_password=password_hash, role=UserRole.admin, wsa_id=admin_wsa.id))
+        db.commit()
+    finally:
+        db.close()
+
+
 def create_database_extensions() -> None:
     # this enables the postgres uuid function used by the real schema defaults
     with engine.begin() as connection:
@@ -122,6 +218,7 @@ def apply_ai_schema_changes() -> None:
         # citizen_reports columns added in earlier releases
         connection.execute(text("ALTER TABLE citizen_reports ADD COLUMN IF NOT EXISTS case_status VARCHAR(50) NOT NULL DEFAULT 'open';"))
         connection.execute(text("ALTER TABLE citizen_reports ADD COLUMN IF NOT EXISTS admin_comment TEXT;"))
+        connection.execute(text("ALTER TABLE citizen_reports ADD COLUMN IF NOT EXISTS photo_analysis JSONB;"))
         # alerts table
         connection.execute(text("""
             DO $$ BEGIN
@@ -228,6 +325,16 @@ def apply_ai_schema_changes() -> None:
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_audit_log_user_id ON audit_log(user_id);"))
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_audit_log_record_id ON audit_log(record_id);"))
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_audit_log_created_at ON audit_log(created_at);"))
+        # contractor tickets: new enum values (a new value cannot be used in the transaction that adds it, and nothing here does)
+        connection.execute(text("ALTER TYPE user_role_enum ADD VALUE IF NOT EXISTS 'contractor';"))
+        connection.execute(text("ALTER TYPE alert_type_enum ADD VALUE IF NOT EXISTS 'assignment_overdue';"))
+        for value in ("contractor_saved", "report_assigned", "assignment_updated", "password_changed"):
+            connection.execute(text(f"ALTER TYPE audit_action_enum ADD VALUE IF NOT EXISTS '{value}';"))
+        connection.execute(text(
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_report_active_ticket ON report_assignments(report_id) "
+            "WHERE status IN ('assigned','accepted','in_progress','sent_back','fixed');"))
+        connection.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS wsa_id UUID REFERENCES wsa(id) ON DELETE SET NULL;"))
+        connection.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS contractor_id UUID REFERENCES contractors(id) ON DELETE SET NULL;"))
 
 
 @asynccontextmanager
@@ -237,11 +344,22 @@ async def lifespan(app: FastAPI):
     import os as _os
     if not _os.getenv("TESTING"):
         create_database_extensions()
+        # tables must exist before the ALTER TABLE migrations run, or a blank database fails to start
+        Base.metadata.create_all(bind=engine)
         apply_ai_schema_changes()
     Base.metadata.create_all(bind=engine)
     seed_default_admin()
     seed_wsas()
     app.state.risk_model = load_serialized_model(settings.model_path)
+    if not _os.getenv("TESTING"):
+        if settings.seed_demo_data:
+            seed_demo_contractors()
+        # read the regulatory PDFs in the background so the first "Ask the regulations" question is not the one that waits for them
+        import threading
+
+        from ai.rag import get_index
+
+        threading.Thread(target=get_index, daemon=True, name="rag-warmup").start()
     yield
 
 
@@ -256,6 +374,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# each router groups related endpoints: auth, wsa, reports, risk, ai, alerts, audit, users, assignments (contractors and repair tickets)
 app.include_router(auth.router)
 app.include_router(wsa.router)
 app.include_router(reports.router)
@@ -264,6 +383,7 @@ app.include_router(ai.router)
 app.include_router(alerts.router)
 app.include_router(audit.router)
 app.include_router(users.router)
+app.include_router(assignments.router)
 app.mount("/uploads", StaticFiles(directory=str(Path(__file__).resolve().parent / "data" / "uploads")), name="uploads")
 
 

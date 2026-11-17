@@ -8,6 +8,7 @@ as "low"), and trusting a low-confidence or feature-starved prediction
 instead of falling back to the heuristic.
 """
 import numpy as np
+import pytest
 
 from ai.predict import predict_wsa_risk
 from app.models import CAPStatus, ModelSource, RiskLevel, WSA
@@ -87,3 +88,12 @@ def test_probability_is_clamped_below_one():
     result = predict_wsa_risk(wsa, model)
 
     assert result["probability"] <= 0.99
+
+
+def test_missing_configured_model_path_falls_back_to_bundled_model(tmp_path):
+    # a Docker-only MODEL_PATH must not silently turn off the trained model when running locally
+    from ai.predict import _BUNDLED_MODEL, load_serialized_model
+
+    if not _BUNDLED_MODEL.exists():
+        pytest.skip("no bundled model.pkl in this checkout")
+    assert load_serialized_model(tmp_path / "does-not-exist.pkl") is not None

@@ -1,3 +1,8 @@
+# Search over the DWS PDFs, for the 'Ask the regulations' box. Pages are split into chunks, indexed with TF-IDF, and the best matches are returned
+# with their file and page so the answer can cite them. The index takes minutes to build, so it is saved to data/rag_index.pkl and reused until the PDFs change.
+
+import pickle
+import threading
 from pathlib import Path
 
 import pdfplumber
@@ -5,6 +10,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 RAW_DIR = Path("data/raw")
+
 
 # page text shorter than this is almost always a cover/blank/figure-only
 # page — not useful as a retrievable excerpt
@@ -47,13 +53,43 @@ def _directory_fingerprint() -> frozenset:
     return frozenset((p.name, p.stat().st_mtime) for p in RAW_DIR.glob("*.pdf"))
 
 
+_index_lock = threading.Lock()
+
+
+def _index_file() -> Path:
+    # the finished index is saved next to the PDFs so a restart loads it in a second instead of re-reading ~120 MB of them (minutes).
+    # derived from RAW_DIR on every call, so a test that points RAW_DIR at a temp folder never overwrites the real saved index
+    return RAW_DIR.parent / "rag_index.pkl"
+
+
+def _load_saved_index(fingerprint: frozenset) -> dict | None:
+    # the saved copy is only trusted if it was built from exactly the PDFs that are there now
+    try:
+        with _index_file().open("rb") as handle:
+            saved = pickle.load(handle)
+        return saved if saved.get("_fingerprint") == fingerprint else None
+    except Exception:  # noqa: BLE001 — missing or unreadable file just means "build it again"
+        return None
+
+
 def get_index() -> dict:
     fingerprint = _directory_fingerprint()
-    if not _index_cache or _index_cache.get("_fingerprint") != fingerprint:
-        _index_cache.clear()
-        _index_cache.update(build_index_from_chunks(_extract_chunks()))
-        _index_cache["_fingerprint"] = fingerprint
-    return _index_cache
+    with _index_lock:  # the start-up warm-up and a first request must not both build it
+        if not _index_cache or _index_cache.get("_fingerprint") != fingerprint:
+            built = _load_saved_index(fingerprint)
+            if built is None:
+                built = build_index_from_chunks(_extract_chunks())
+                built["_fingerprint"] = fingerprint
+                try:
+                    if not built["chunks"]:
+                        raise OSError  # an empty index means the read failed; never save it, or it would be served as the real one
+                    with _index_file().open("wb") as handle:
+                        pickle.dump(built, handle)
+                except OSError:
+                    pass  # saving is an optimisation; the in-memory index still works
+            _index_cache.clear()
+            _index_cache.update(built)
+        return _index_cache
 
 
 def retrieve(query: str, top_k: int = 5, index: dict | None = None) -> list[dict]:

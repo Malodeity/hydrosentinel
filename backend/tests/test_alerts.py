@@ -1,5 +1,6 @@
 """Tests for alert auto-generation and acknowledgement."""
 import uuid
+from datetime import date, timedelta
 from app import models
 
 
@@ -137,3 +138,104 @@ def test_report_volume_spike_alert_does_not_fire_below_five_reports(db, sample_w
         models.Alert.wsa_id == sample_wsa.id,
         models.Alert.alert_type == models.AlertType.report_volume_spike,
     ).count() == 0
+
+
+# --- "risk increased" alert: raised when a score moves an authority to a worse tier ---
+from unittest.mock import patch  # noqa: E402
+
+
+def _score_as(client, auth_headers, wsa, level):
+    # force the scoring result so each test controls the exact before/after, instead of hoping the heuristic lands on a tier
+    result = {"risk_level": level, "probability": 0.5, "model_source": models.ModelSource.heuristic}
+    with patch("app.routes.risk.predict_wsa_risk", return_value=result):
+        return client.post(f"/risk/score/{wsa.id}", headers=auth_headers)
+
+
+def _increase_alerts(db, wsa):
+    return db.query(models.Alert).filter(
+        models.Alert.wsa_id == wsa.id,
+        models.Alert.alert_type == models.AlertType.risk_level_increased,
+    ).all()
+
+
+def test_moving_to_a_worse_tier_raises_a_risk_increased_alert(client, auth_headers, db, sample_wsa):
+    sample_wsa.risk_level = models.RiskLevel.low
+    db.flush()
+
+    _score_as(client, auth_headers, sample_wsa, models.RiskLevel.medium)
+
+    alerts = _increase_alerts(db, sample_wsa)
+    assert len(alerts) == 1
+    assert "low to medium" in alerts[0].message
+
+
+def test_staying_the_same_or_improving_raises_no_risk_increased_alert(client, auth_headers, db, sample_wsa):
+    sample_wsa.risk_level = models.RiskLevel.medium
+    db.flush()
+
+    _score_as(client, auth_headers, sample_wsa, models.RiskLevel.medium)  # same tier
+    _score_as(client, auth_headers, sample_wsa, models.RiskLevel.low)  # better tier
+
+    assert _increase_alerts(db, sample_wsa) == []
+
+
+def test_a_second_increase_is_not_duplicated_until_the_first_is_acknowledged(client, auth_headers, db, sample_wsa):
+    sample_wsa.risk_level = models.RiskLevel.low
+    db.flush()
+    _score_as(client, auth_headers, sample_wsa, models.RiskLevel.medium)
+
+    sample_wsa.risk_level = models.RiskLevel.low  # drops back, then rises again
+    db.flush()
+    _score_as(client, auth_headers, sample_wsa, models.RiskLevel.medium)
+    assert len(_increase_alerts(db, sample_wsa)) == 1
+
+    first = _increase_alerts(db, sample_wsa)[0]
+    client.patch(f"/alerts/{first.id}/acknowledge", headers=auth_headers)
+    sample_wsa.risk_level = models.RiskLevel.low
+    db.flush()
+    _score_as(client, auth_headers, sample_wsa, models.RiskLevel.high)
+    assert len(_increase_alerts(db, sample_wsa)) == 2  # the handled one stays as history, a fresh one is raised
+
+
+def test_cap_overdue_alert_closes_itself_once_the_plan_is_completed(client, auth_headers, db, sample_wsa):
+    # an alert saying "CAP overdue" about a plan that is now complete is wrong and trains admins to ignore alerts
+    sample_wsa.cap_due_date = date.today() - timedelta(days=3)
+    sample_wsa.cap_status = models.CAPStatus.in_progress
+    db.flush()
+    still_open = [a for a in client.get("/alerts", headers=auth_headers).json() if a["alert_type"] == "cap_overdue" and not a["acknowledged_at"]]
+    assert len(still_open) == 1  # genuinely overdue: stays open
+
+    sample_wsa.cap_status = models.CAPStatus.completed
+    db.flush()
+    alerts = [a for a in client.get("/alerts", headers=auth_headers).json() if a["alert_type"] == "cap_overdue"]
+    assert alerts and all(a["acknowledged_at"] for a in alerts)
+
+
+def test_cap_overdue_alert_closes_when_the_deadline_moves_into_the_future(client, auth_headers, db, sample_wsa):
+    sample_wsa.cap_due_date = date.today() - timedelta(days=3)
+    sample_wsa.cap_status = models.CAPStatus.submitted
+    db.flush()
+    client.get("/alerts", headers=auth_headers)
+    sample_wsa.cap_due_date = date.today() + timedelta(days=30)
+    db.flush()
+    alerts = [a for a in client.get("/alerts", headers=auth_headers).json() if a["alert_type"] == "cap_overdue"]
+    assert alerts and all(a["acknowledged_at"] for a in alerts)
+
+
+def test_high_risk_alert_closes_when_the_authority_is_no_longer_high_risk(client, auth_headers, db, sample_wsa):
+    sample_wsa.risk_level = models.RiskLevel.high
+    db.add(models.Alert(wsa_id=sample_wsa.id, alert_type=models.AlertType.risk_level_high, message="high"))
+    db.flush()
+    assert not [a for a in client.get("/alerts", headers=auth_headers).json() if a["alert_type"] == "risk_level_high"][0]["acknowledged_at"]
+    sample_wsa.risk_level = models.RiskLevel.medium
+    db.flush()
+    assert [a for a in client.get("/alerts", headers=auth_headers).json() if a["alert_type"] == "risk_level_high"][0]["acknowledged_at"]
+
+
+def test_an_authority_with_no_plan_is_never_overdue(client, auth_headers, db, sample_wsa):
+    # a leftover deadline on an authority with no CAP must not raise "CAP overdue": there is no plan to be late
+    sample_wsa.cap_status = models.CAPStatus.none
+    sample_wsa.cap_due_date = date.today() - timedelta(days=10)
+    db.flush()
+    alerts = [a for a in client.get("/alerts", headers=auth_headers).json() if a["alert_type"] == "cap_overdue" and a["wsa_id"] == str(sample_wsa.id)]
+    assert alerts == []

@@ -1,3 +1,6 @@
+# Passwords and login tokens. get_current_user turns the 'Authorization: Bearer ...' header into a User; get_current_admin_user adds the admin check.
+# Every protected endpoint declares one of these as a dependency, which is how 'admin only' is enforced.
+
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
@@ -66,3 +69,23 @@ def get_current_admin_user(current_user: models.User = Depends(get_current_user)
     if current_user.role != models.UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return current_user
+
+
+def get_current_national_admin(current_user: models.User = Depends(get_current_admin_user)) -> models.User:
+    # accounts, the audit log and national AI tools are for admins who are not tied to one authority
+    if current_user.wsa_id is not None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="National admin access required")
+    return current_user
+
+
+def get_current_contractor(current_user: models.User = Depends(get_current_user)) -> models.User:
+    # tickets are only for contractor accounts that point at a company
+    if current_user.role != models.UserRole.contractor or current_user.contractor_id is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Contractor access required")
+    return current_user
+
+
+def require_wsa_access(user: models.User, wsa_id) -> None:
+    # an admin tied to one authority may only touch that authority. a national admin (no wsa_id) may touch all
+    if user.wsa_id is not None and user.wsa_id != wsa_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only manage your own authority")

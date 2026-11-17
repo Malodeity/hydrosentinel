@@ -1,3 +1,6 @@
+# Merges the parsed sources into one row per authority and saves it to the database. authority_key() is the single definition of 'the same authority'
+# (province + name without 'Local Municipality' etc. + metro aliases), used both when merging sources and when matching rows already in the database.
+
 import pandas as pd
 from sqlalchemy.orm import Session
 

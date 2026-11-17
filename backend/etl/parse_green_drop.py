@@ -1,3 +1,5 @@
+# Reads the DWS Green Drop PDFs (wastewater quality). Output: one row per authority with green_drop_score.
+
 import re
 from pathlib import Path
 

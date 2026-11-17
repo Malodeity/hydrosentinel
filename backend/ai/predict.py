@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -7,6 +8,9 @@ from ai.features import build_feature_frame
 from ai.train import RISK_TO_TARGET
 from app.models import ModelSource, RiskLevel, WSA
 
+logger = logging.getLogger(__name__)
+_BUNDLED_MODEL = Path(__file__).with_name("model.pkl")
+
 _TARGET_TO_RISK = {v: RiskLevel(k) for k, v in RISK_TO_TARGET.items()}
 
 # below this confidence in the model's top predicted class, prefer the
@@ -15,9 +19,15 @@ _CONFIDENCE_FLOOR = 0.5
 
 
 def load_serialized_model(model_path: str | Path) -> Any | None:
-    # this loads the saved model once at startup and returns None when no model file exists yet
+    # loads the saved model once at startup; a configured path that doesn't exist (e.g. the Docker
+    # path in .env when running locally) falls back to the model beside this file instead of
+    # silently scoring everything with the heuristic
     path = Path(model_path)
+    if not path.exists() and _BUNDLED_MODEL.exists():
+        logger.warning("MODEL_PATH %s not found; using %s", path, _BUNDLED_MODEL)
+        path = _BUNDLED_MODEL
     if not path.exists():
+        logger.warning("No risk model found at %s; scoring uses the heuristic", path)
         return None
     return joblib.load(path)
 

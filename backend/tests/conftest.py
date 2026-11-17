@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-os.environ.setdefault("DATABASE_URL", "postgresql://malo:Unlimitedphos%401@localhost:5433/hydrosentinel")
+os.environ.setdefault("DATABASE_URL", "postgresql://postgres:change-me@localhost:5432/hydrosentinel")
 os.environ["TESTING"] = "1"
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key")
 os.environ.setdefault("JWT_ALGORITHM", "HS256")
@@ -36,6 +36,8 @@ def ensure_schema():
     """Run migrations and create all tables once per test session — no per-test deadlocks."""
     from main import apply_ai_schema_changes, create_database_extensions
     create_database_extensions()
+    # tables first, then the column/enum additions that point at them (same order as the app start-up)
+    Base.metadata.create_all(bind=engine)
     apply_ai_schema_changes()
     Base.metadata.create_all(bind=engine)
 
@@ -108,3 +110,24 @@ def sample_wsa(db):
     db.add(wsa)
     db.flush()
     return wsa
+
+
+# the AI limiter keeps its counts in memory for the whole test run, so reset it around every test or one test's calls would block the next
+@pytest.fixture(autouse=True)
+def _reset_ai_rate_limits():
+    from app.rate_limit import _call_log
+
+    _call_log.clear()
+    yield
+    _call_log.clear()
+
+
+# the saved regulatory index sits next to the real PDFs; tests must never read or overwrite it, so point it at a throwaway folder
+@pytest.fixture(autouse=True)
+def _isolate_rag_index_file(tmp_path, monkeypatch):
+    from ai import rag
+
+    monkeypatch.setattr(rag, "_index_file", lambda: tmp_path / "rag_index.pkl")
+    rag._index_cache.clear()
+    yield
+    rag._index_cache.clear()

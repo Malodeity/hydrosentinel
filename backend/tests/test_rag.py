@@ -7,6 +7,7 @@ index. Also must degrade to an empty result when no PDFs are indexed
 """
 from unittest.mock import patch
 
+from ai import rag
 from ai.rag import build_index_from_chunks, retrieve
 
 
@@ -148,4 +149,27 @@ def test_get_index_does_not_rebuild_when_fingerprint_is_unchanged():
         rag.get_index()
 
     assert mock_extract.call_count == 1
+    rag._index_cache.clear()
+
+
+def test_saved_index_is_reused_only_when_the_pdfs_are_unchanged(tmp_path, monkeypatch):
+    # a restart must not re-read the PDFs (minutes) unless they changed, and a stale saved index must never be served
+    raw = tmp_path / "raw"
+    raw.mkdir()
+    monkeypatch.setattr(rag, "RAW_DIR", raw)
+    calls = []
+    monkeypatch.setattr(rag, "_extract_chunks", lambda: calls.append(1) or [{"text": "blue drop certification needs 95 percent " * 10, "source": "a.pdf", "page": 1}])
+
+    rag._index_cache.clear()
+    rag.get_index()
+    assert len(calls) == 1 and (tmp_path / "rag_index.pkl").exists()
+
+    rag._index_cache.clear()  # simulates a restart
+    rag.get_index()
+    assert len(calls) == 1  # loaded from the saved copy
+
+    (raw / "new.pdf").write_bytes(b"%PDF-1.4")  # a PDF is added: the saved copy no longer matches
+    rag._index_cache.clear()
+    rag.get_index()
+    assert len(calls) == 2
     rag._index_cache.clear()

@@ -1,3 +1,6 @@
+# Early-warning forecast: fits a straight line through an authority's past scores and projects the next one.
+# Used by GET /risk/trending (Overview tab) and by the AI question box. It only says 'crosses_tier' when the projection lands in a worse risk level.
+
 import numpy as np
 
 from ai.predict import _probability_to_risk

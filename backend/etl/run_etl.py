@@ -1,3 +1,8 @@
+# The data pipeline entry point: python -m etl.run_etl
+# Reads the DWS audit PDFs in data/raw/ (Blue Drop, No Drop, Green Drop, BDRR) and National Treasury finance data, matches authorities
+# across the sources by name (name_matching.py / load.authority_key), merges them (load.merge_sources) and saves them to the wsa table (load.upsert_wsa_rows).
+# Run it again after adding or replacing a PDF; existing rows are updated, not duplicated.
+
 from pathlib import Path
 
 import pandas as pd

@@ -95,3 +95,17 @@ def test_deactivated_user_cannot_log_in(client, auth_headers, db):
 def test_deactivate_unknown_user_returns_404(client, auth_headers):
     resp = client.patch("/users/00000000-0000-0000-0000-000000000000", json={"is_active": False}, headers=auth_headers)
     assert resp.status_code == 404
+
+
+def test_admin_cannot_deactivate_their_own_account(client, auth_headers, admin_user, db):
+    # deactivating yourself locks you out of the admin page with no way back except editing the database
+    resp = client.patch(f"/users/{admin_user.id}", json={"is_active": False}, headers=auth_headers)
+    assert resp.status_code == 400
+
+    db.refresh(admin_user)
+    assert admin_user.is_active is True
+
+
+def test_admin_can_still_reactivate_themselves_noop(client, auth_headers, admin_user):
+    resp = client.patch(f"/users/{admin_user.id}", json={"is_active": True}, headers=auth_headers)
+    assert resp.status_code == 200

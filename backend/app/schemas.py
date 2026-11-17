@@ -1,13 +1,19 @@
+# API shapes (Pydantic). Each class describes the JSON one endpoint accepts or returns, and is the contract with the frontend (frontend/src/api/*.ts
+# mirrors these by hand). *Read classes are responses, *Create / *Update classes are request bodies. Validation (lengths, allowed values) lives here.
+
 from datetime import date, datetime
 from uuid import UUID
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, computed_field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, computed_field, model_validator
 
+from app.nrw_benchmark import NRW_ESTIMATE_NOTE, PROVINCE_NRW_PERCENT
 from app.models import AlertType, AuditAction, BDCertification, CAPStatus, DWSCAPStatus, IssueType, ModelSource, NDPerformance, RiskLevel, UserRole
 
 
+# pydantic models: they define what each endpoint accepts and returns. fastapi rejects anything that does not match,
+# which is where the 422 validation errors come from
 class WSARead(BaseModel):
     id: UUID
     name: str
@@ -37,6 +43,19 @@ class WSARead(BaseModel):
 
     @computed_field
     @property
+    def nrw_estimate_percent(self) -> float | None:
+        # only when the authority has no NRW of its own: its province's average, shown as an estimate (display only, never stored or scored)
+        if self.nrw_percent is not None:
+            return None
+        return PROVINCE_NRW_PERCENT.get(self.province)
+
+    @computed_field
+    @property
+    def nrw_estimate_note(self) -> str | None:
+        return NRW_ESTIMATE_NOTE if self.nrw_estimate_percent is not None else None
+
+    @computed_field
+    @property
     def maint_gap_pct(self) -> float | None:
         if self.maint_pct is None:
             return None
@@ -56,6 +75,16 @@ class CitizenReportCreate(BaseModel):
     lng: float
 
 
+class PhotoAnalysis(BaseModel):
+    issue_type: Literal["leak", "quality", "outage", "not_water_related", "unclear"]
+    severity: Literal["low", "medium", "high"]
+    confidence: Literal["low", "medium", "high"]
+    summary: str
+    verdict: Literal["matches", "mismatch", "inconclusive"]  # decided by the server, not the model
+    photo: str
+    analysed_at: datetime
+
+
 class CitizenReportRead(BaseModel):
     id: UUID
     wsa_id: UUID
@@ -72,6 +101,8 @@ class CitizenReportRead(BaseModel):
     lng: float
     created_at: datetime
     photo_urls: list[str] = []
+    photo_analysis: PhotoAnalysis | None = None
+    assignment: "AssignmentSummary | None" = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -82,8 +113,27 @@ class CitizenReportTrackRead(BaseModel):
     case_status: Literal["open", "in_review", "resolved"]
     admin_comment: str | None
     created_at: datetime
+    # public repair progress, with no company name or contact details: assigned, in_progress or awaiting_check
+    repair_status: str | None = None
+    repair_due_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class WsaReportCounts(BaseModel):
+    open: int
+    resolved: int
+
+
+# public, aggregate only: counts and a median, never a description, location, photo or reference code
+class PublicReportStats(BaseModel):
+    received_7d: int
+    total: int
+    open: int
+    resolved: int
+    median_days_to_resolve: float | None  # None until at least one resolved report has a recorded resolution time
+    resolved_sample: int  # how many reports the median is based on
+    by_wsa: dict[str, WsaReportCounts]
 
 
 class CitizenReportAdminUpdate(BaseModel):
@@ -96,6 +146,8 @@ class UserRead(BaseModel):
     email: EmailStr
     role: UserRole
     is_active: bool
+    wsa_id: UUID | None = None
+    contractor_id: UUID | None = None
     last_login_at: datetime | None = None
     created_at: datetime
 
@@ -106,6 +158,29 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8)
     role: UserRole = UserRole.viewer
+    # admin tied to one authority (empty = national admin)
+    wsa_id: UUID | None = None
+    # required for a contractor account: the company it belongs to
+    contractor_id: UUID | None = None
+
+    @model_validator(mode="after")
+    def _check_scope(self):
+        if self.role == UserRole.contractor and self.contractor_id is None:
+            raise ValueError("A contractor account needs a contractor_id")
+        if self.role != UserRole.contractor and self.contractor_id is not None:
+            raise ValueError("Only contractor accounts have a contractor_id")
+        if self.role != UserRole.admin and self.wsa_id is not None:
+            raise ValueError("Only admin accounts can be tied to one authority")
+        return self
+
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8)
+
+
+class PasswordReset(BaseModel):
+    new_password: str = Field(min_length=8)
 
 
 class UserStatusUpdate(BaseModel):
@@ -194,8 +269,33 @@ class AlertRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AIUsage(BaseModel):
+    used: int
+    limit: int
+    resets_in_minutes: int
+
+
+# the briefing keeps the plain numbers next to the AI wording, so the facts can be checked without trusting the text
+class AdminBriefing(BaseModel):
+    content: str
+    facts: dict[str, int]
+
+
 class AITextResponse(BaseModel):
     content: str
+
+
+class MapViewStats(BaseModel):
+    total: int
+    high: int
+    medium: int
+    low: int
+    open_reports: int
+
+
+class MapViewSummaryResponse(BaseModel):
+    stats: MapViewStats
+    content: str | None = None  # None when OpenAI is unavailable; the counts still hold
 
 
 class AIRecommendationsResponse(BaseModel):
@@ -238,3 +338,137 @@ class AIQueryToolCall(BaseModel):
 class AIQueryResponse(BaseModel):
     answer: str
     tool_calls: list[AIQueryToolCall]
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# contractors and repair tickets
+# ---------------------------------------------------------------------------------------------------------------------
+AssignmentStatus = Literal["assigned", "accepted", "in_progress", "fixed", "sent_back", "rejected", "cancelled", "closed"]
+_ISSUES = {"leak", "outage", "quality", "billing"}
+
+
+class CoverageWrite(BaseModel):
+    wsa_id: UUID
+    issue_types: list[IssueType] = Field(min_length=1)
+
+
+class CoverageRead(BaseModel):
+    wsa_id: UUID
+    wsa_name: str
+    issue_types: list[str]
+
+
+class ContractorWrite(BaseModel):
+    name: str = Field(min_length=2, max_length=255)
+    contact_name: str | None = Field(default=None, max_length=255)
+    phone: str | None = Field(default=None, max_length=50)
+    email: EmailStr | None = None
+    is_active: bool = True
+
+
+class ContractorRead(BaseModel):
+    id: UUID
+    name: str
+    contact_name: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    is_active: bool
+    coverage: list[CoverageRead] = []
+    open_tickets: int = 0
+
+
+class AssignRequest(BaseModel):
+    contractor_id: UUID
+    instructions: str | None = Field(default=None, max_length=2_000)
+    due_at: datetime | None = None
+
+
+class BulkAssignRequest(AssignRequest):
+    report_ids: list[UUID] = Field(min_length=1, max_length=50)
+
+
+class AssignmentSummary(BaseModel):
+    id: UUID
+    status: AssignmentStatus
+    contractor_id: UUID
+    contractor_name: str
+    due_at: datetime | None = None
+    overdue: bool = False
+    contractor_note: str | None = None
+    rejected_reason: str | None = None
+
+
+class AssignmentRead(AssignmentSummary):
+    report_id: UUID
+    wsa_id: UUID
+    wsa_name: str
+    reference_code: str
+    issue_type: IssueType
+    description: str | None = None
+    lat: float
+    lng: float
+    photo_urls: list[str] = []
+    instructions: str | None = None
+    admin_note: str | None = None
+    created_at: datetime
+    accepted_at: datetime | None = None
+    started_at: datetime | None = None
+    fixed_at: datetime | None = None
+    closed_at: datetime | None = None
+
+
+class TicketAction(BaseModel):
+    action: Literal["accept", "reject", "start", "fix"]
+    note: str | None = Field(default=None, max_length=2_000)
+
+    @model_validator(mode="after")
+    def _need_reason(self):
+        if self.action == "reject" and not (self.note and self.note.strip()):
+            raise ValueError("Say why you are rejecting the ticket")
+        if self.action == "fix" and not (self.note and self.note.strip()):
+            raise ValueError("Say what was done")
+        return self
+
+
+class TicketReview(BaseModel):
+    action: Literal["verify", "send_back", "cancel"]
+    note: str | None = Field(default=None, max_length=2_000)
+
+    @model_validator(mode="after")
+    def _need_note(self):
+        if self.action == "send_back" and not (self.note and self.note.strip()):
+            raise ValueError("Tell the contractor what is still wrong")
+        return self
+
+
+class NotificationRead(BaseModel):
+    id: UUID
+    title: str
+    body: str | None = None
+    assignment_id: UUID | None = None
+    read_at: datetime | None = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ContractorPerformance(BaseModel):
+    contractor_id: UUID
+    name: str
+    total: int
+    open: int
+    overdue: int
+    fixed: int
+    rejected: int
+    fixed_on_time_pct: float | None = None
+    avg_hours_to_fix: float | None = None
+
+
+class WorkOrderDraft(BaseModel):
+    instructions: str
+    suggested_contractor_id: UUID | None = None
+    suggested_contractor_name: str | None = None
+    reason: str
+    due_at: datetime
+
+CitizenReportRead.model_rebuild()

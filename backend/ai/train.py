@@ -1,3 +1,6 @@
+# Offline trainer for the XGBoost risk model: python -m ai.train. Writes ai/model.pkl. (The version used in production is ai/train_from_bdrr.py,
+# which trains on DWS's own BDRR ratings.)
+
 import sys
 from pathlib import Path
 

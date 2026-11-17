@@ -1,3 +1,5 @@
+# Reads the DWS No Drop PDF (water losses). Output: nrw_percent (non-revenue water: water lost before billing) and an nd_performance band per authority.
+
 import re
 from pathlib import Path
 

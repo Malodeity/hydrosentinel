@@ -1,3 +1,6 @@
+# Database connection. engine = the connection pool, SessionLocal = a factory for sessions, Base = the parent class of every table in models.py.
+# get_db() is the FastAPI dependency that gives each request its own session and always closes it.
+
 from collections.abc import Generator
 
 from sqlalchemy import create_engine

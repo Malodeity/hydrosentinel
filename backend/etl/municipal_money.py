@@ -1,3 +1,6 @@
+# National Treasury's Municipal Money API: repairs-and-maintenance and operating expenditure per municipality, giving maint_pct on the WSA table.
+# (The API has no usable asset value, so maint_pct is a share of operating spend, not of assets.)
+
 from pathlib import Path
 
 import pandas as pd

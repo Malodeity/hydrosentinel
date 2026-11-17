@@ -1,9 +1,12 @@
+# Turns an authority row into the six numbers the XGBoost model uses. The column ORDER here must match the order the saved model was trained with.
+
 from collections.abc import Iterable
 
 import pandas as pd
 
 from app.models import CAPStatus, WSA
 
+# the six inputs the xgboost model is trained on and scores with. the order matters: the model was trained with exactly this column order
 FEATURE_COLUMNS = [
     "blue_drop_score",
     "nrw_percent",
@@ -13,6 +16,7 @@ FEATURE_COLUMNS = [
     "lng",
 ]
 
+# xgboost needs numbers, so the cap status becomes 0 (none) up to 3 (completed)
 CAP_STATUS_TO_CODE = {
     CAPStatus.none: 0,
     CAPStatus.submitted: 1,
@@ -21,6 +25,8 @@ CAP_STATUS_TO_CODE = {
 }
 
 
+# turns one authority row into the six numbers. a missing value becomes 0.0 here; ai/predict.py separately refuses to trust
+# the model when the blue drop score is missing, so a made-up zero never drives a prediction
 def wsa_to_feature_dict(wsa: WSA) -> dict[str, float]:
     return {
         "blue_drop_score": float(wsa.blue_drop_score or 0.0),

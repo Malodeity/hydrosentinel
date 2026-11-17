@@ -1,3 +1,6 @@
+# write_audit(): adds one row to the audit log. called from the routes that change data (CAP, report status, risk scoring, users).
+# It only adds the row to the session; the caller commits, so the change and its audit entry are saved together or not at all.
+
 import uuid
 from typing import Any
 
@@ -6,6 +9,8 @@ from sqlalchemy.orm import Session
 from app import models
 
 
+# adds one row to the append-only audit_log: who did what, the old and new value, and from which ip.
+# it only adds to the session; the calling route commits, so the change and its audit row are saved together
 def write_audit(
     db: Session,
     user_id: uuid.UUID,

@@ -12,6 +12,10 @@ from ai.query_agent import (
     TOOL_FUNCTIONS,
     run_query_agent,
     tool_compare_provinces,
+    tool_count_wsas,
+    tool_get_open_reports,
+    tool_get_overdue_caps,
+    tool_get_wsa_detail,
     tool_get_alerts,
     tool_get_audit_summary,
     tool_get_report_counts,
@@ -50,7 +54,7 @@ def test_tool_get_wsas_filters_by_cap_status(db):
     _make_wsa(db, name="No CAP WSA Unique12345", cap_status=models.CAPStatus.none)
     _make_wsa(db, name="Completed CAP WSA Unique12345", cap_status=models.CAPStatus.completed)
 
-    results = tool_get_wsas(db, cap_status="none", limit=10000)
+    results = tool_get_wsas(db, cap_status="none", name_contains="Unique12345")
 
     names = {r["name"] for r in results}
     assert "No CAP WSA Unique12345" in names
@@ -204,3 +208,50 @@ def test_query_endpoint_returns_answer_and_trace(client, auth_headers):
 def test_query_endpoint_rejects_too_short_question(client, auth_headers):
     resp = client.post("/ai/query", json={"question": "hi"}, headers=auth_headers)
     assert resp.status_code == 422
+
+
+# ---- tools added for the AI assistant tab -------------------------------------------------------------------------------
+
+def test_count_wsas_is_exact_and_not_cut_off_like_the_list_tool(db):
+    # the list tool stops at 50 rows, so a "how many" question must use the count, which has no such limit
+    before = tool_count_wsas(db, province="Countland")["count"]
+    for i in range(55):
+        _make_wsa(db, name=f"Countland WSA {i}", province="Countland")
+    assert tool_count_wsas(db, province="Countland")["count"] == before + 55
+    assert len(tool_get_wsas(db, province="Countland", limit=1000)) == 50  # the list is capped, the count is not
+
+
+def test_overdue_caps_uses_the_one_rule_no_plan_and_completed_plans_are_never_overdue(db):
+    from datetime import date, timedelta
+
+    past = date.today() - timedelta(days=9)
+    _make_wsa(db, name="Overdue Plan Unique77", cap_status=models.CAPStatus.in_progress, cap_due_date=past)
+    _make_wsa(db, name="Done Plan Unique77", cap_status=models.CAPStatus.completed, cap_due_date=past)
+    _make_wsa(db, name="No Plan Unique77", cap_status=models.CAPStatus.none, cap_due_date=past)
+    names = {r["name"]: r for r in tool_get_overdue_caps(db)}
+    assert names["Overdue Plan Unique77"]["days_overdue"] == 9
+    assert "Done Plan Unique77" not in names and "No Plan Unique77" not in names
+
+
+def test_open_reports_returns_the_true_total_and_excludes_resolved(db, sample_wsa):
+    for i, status in enumerate(["open", "in_review", "resolved"]):
+        db.add(models.CitizenReport(wsa_id=sample_wsa.id, issue_type=models.IssueType.leak, description="d", reference_code=f"HS-AGT0000{i}", case_status=status, lat=0, lng=0))
+    db.flush()
+    result = tool_get_open_reports(db, wsa_name=sample_wsa.name, limit=1)
+    assert result["total_matching"] == 2  # the resolved one is not counted
+    assert len(result["reports"]) == 1  # but only `limit` rows are shown, and the total says so
+
+
+def test_wsa_detail_returns_candidates_instead_of_guessing_when_a_name_is_ambiguous(db):
+    _make_wsa(db, name="Ambiguous Alpha Unique88")
+    _make_wsa(db, name="Ambiguous Beta Unique88")
+    result = tool_get_wsa_detail(db, "Unique88")
+    assert "candidates" in result and len(result["candidates"]) == 2
+    assert "error" in tool_get_wsa_detail(db, "Zzz No Such Place")
+    assert tool_get_wsa_detail(db, "Ambiguous Alpha Unique88")["name"] == "Ambiguous Alpha Unique88"
+
+
+def test_every_tool_in_the_schema_has_a_function_and_vice_versa():
+    from ai.query_agent import TOOLS_SCHEMA
+
+    assert {t["function"]["name"] for t in TOOLS_SCHEMA} == set(TOOL_FUNCTIONS)

@@ -1,3 +1,6 @@
+# Reads the DWS Blue Drop PDF (drinking water quality). Output: one row per authority with blue_drop_score and its certification band
+# (certified 95+, non-certified 50-94, poor 31-49, critical under 31). PDF tables are messy, so most of this file is defensive column-finding.
+
 import re
 from pathlib import Path
 

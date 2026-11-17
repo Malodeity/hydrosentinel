@@ -1,3 +1,6 @@
+# Fuzzy matching of authority names between sources ('Emfuleni LM' in one PDF, 'Emfuleni Local Municipality' in another).
+# normalize_name() strips the noise words; match_to_known_names() maps a source's labels onto names already known.
+
 import re
 
 import pandas as pd

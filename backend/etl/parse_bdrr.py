@@ -1,3 +1,6 @@
+# Reads the DWS Blue Drop Risk Rating (BDRR) PDF. The BDRR is DWS's own audited risk rating, kept as bdrr_score / bdrr_risk_level on each authority
+# and used as the answer key when the XGBoost model is trained (ai/train_from_bdrr.py). It is separate from our own risk_level.
+
 import re
 from pathlib import Path
 
