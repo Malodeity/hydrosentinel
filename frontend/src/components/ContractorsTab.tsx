@@ -21,6 +21,7 @@ import {
 import type { CitizenReport, IssueType } from "@/api/reports";
 import { createUser } from "@/api/users";
 import type { WSA } from "@/api/wsa";
+import { TabSkeleton } from "@/components/TabSkeleton";
 import { TicketStatus } from "@/components/TicketStatus";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -255,13 +256,7 @@ export function ContractorsTab({ wsas, reports, isNational, onChanged }: Props) 
   );
 
   if (loading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading contractors...
-        </CardContent>
-      </Card>
-    );
+    return <TabSkeleton tab="contractors" />;
   }
 
   return (

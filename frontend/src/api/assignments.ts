@@ -122,6 +122,18 @@ export const uploadRepairPhotos = async (id: string, files: File[]) => {
   return (await apiClient.post<Ticket>(`/my/tickets/${id}/photos`, form)).data;
 };
 
+// ---- contractor AI helpers (only drafts: the contractor checks and decides) ----
+export interface JobBrief {
+  summary: string;
+  steps: string[];
+  safety: string[];
+  ai: boolean; // false = a plain standard checklist because the AI was unavailable
+}
+export const fetchJobBrief = async (ticketId: string) => (await apiClient.get<JobBrief>(`/ai/my/tickets/${ticketId}/brief`)).data;
+export const draftFixNote = async (ticketId: string, rough: string) =>
+  (await apiClient.post<{ note: string; ai: boolean }>(`/ai/my/tickets/${ticketId}/fix-note`, { rough })).data;
+export const fetchMySummary = async (days: 7 | 30 | 90) => (await apiClient.get<{ text: string; days: number; ai: boolean }>("/ai/my/summary", { params: { days } })).data;
+
 // ---- everyone ----
 export const fetchNotifications = async () => (await apiClient.get<AppNotification[]>("/notifications")).data;
 export const markNotificationRead = async (id: string) => (await apiClient.patch<AppNotification>(`/notifications/${id}/read`)).data;

@@ -38,6 +38,7 @@ import { dataCompleteness } from "@/components/WSACard";
 import { AdminTabs, type AdminTab } from "@/components/AdminTabs";
 import { ContractorsTab } from "@/components/ContractorsTab";
 import { ReportTicketPanel } from "@/components/ReportTicketPanel";
+import { TabSkeleton } from "@/components/TabSkeleton";
 import { TicketStatus } from "@/components/TicketStatus";
 import { OverviewSummary, type OverviewTarget } from "@/components/OverviewSummary";
 import { ReportCharts } from "@/components/ReportCharts";
@@ -585,8 +586,11 @@ export function AdminPage() {
         </button>
       </p>
 
+      {/* while the first load is still running every tab shows its own placeholder shapes instead of a blank page */}
+      {isLoading ? <TabSkeleton tab={activeTab} /> : null}
+
       {/* ============ TAB: Overview. summary tiles, alerts, longest-waiting reports (the trending list is inside OverviewSummary) ============ */}
-      {activeTab === "overview" ? (
+      {!isLoading && activeTab === "overview" ? (
         <div role="tabpanel" id="admin-panel-overview" aria-labelledby="admin-tab-overview" className="space-y-6">
       <OverviewSummary wsas={wsas} reports={reports} alerts={alerts} trending={trendingWsas} loading={isLoading} onNavigate={handleOverviewNavigate} />
 
@@ -755,14 +759,14 @@ export function AdminPage() {
       ) : null}
 
       {/* ============ TAB: AI assistant (components/AiAssistantTab.tsx) ============ */}
-      {activeTab === "ai" ? (
+      {!isLoading && activeTab === "ai" ? (
         <div role="tabpanel" id="admin-panel-ai" aria-labelledby="admin-tab-ai" className="space-y-6">
           <AiAssistantTab wsas={wsas} />
         </div>
       ) : null}
 
       {/* ============ TAB: Citizen reports. filters + charts, the list on the left, the selected report on the right ============ */}
-      {activeTab === "reports" ? (
+      {!isLoading && activeTab === "reports" ? (
         <div role="tabpanel" id="admin-panel-reports" aria-labelledby="admin-tab-reports" className="space-y-6">
       <Card>
         <CardHeader>
@@ -1164,13 +1168,13 @@ export function AdminPage() {
 
       {/* ============ TAB: CAP management. filters, charts, the selected authority's card, then the table where plans are edited ============ */}
       {/* ============ TAB: Contractors. the companies that do repairs, where they work, their tickets and how they are doing ============ */}
-      {activeTab === "contractors" ? (
+      {!isLoading && activeTab === "contractors" ? (
         <div role="tabpanel" id="admin-panel-contractors" aria-labelledby="admin-tab-contractors" className="space-y-6">
           <ContractorsTab wsas={wsas} reports={reports} isNational={isNationalAdmin} onChanged={loadData} />
         </div>
       ) : null}
 
-      {activeTab === "cap" ? (
+      {!isLoading && activeTab === "cap" ? (
         <div role="tabpanel" id="admin-panel-cap" aria-labelledby="admin-tab-cap" className="space-y-6">
       <Card>
         <CardHeader>
@@ -1567,7 +1571,7 @@ export function AdminPage() {
       ) : null}
 
       {/* ============ TAB: Users. create accounts, activate / deactivate ============ */}
-      {activeTab === "users" ? (
+      {!isLoading && activeTab === "users" ? (
         <div role="tabpanel" id="admin-panel-users" aria-labelledby="admin-tab-users" className="space-y-6">
       {/* User management */}
       <Card>
@@ -1716,7 +1720,7 @@ export function AdminPage() {
       ) : null}
 
       {/* ============ TAB: Audit log. read-only history of admin changes ============ */}
-      {activeTab === "audit" ? (
+      {!isLoading && activeTab === "audit" ? (
         <div role="tabpanel" id="admin-panel-audit" aria-labelledby="admin-tab-audit" className="space-y-6">
       {/* Audit log */}
       <Card>

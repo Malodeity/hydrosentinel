@@ -117,3 +117,18 @@
 @media (prefers-reduced-motion: no-preference) {
   .admin-check { animation: admin-check 450ms cubic-bezier(0.34, 1.56, 0.64, 1) 120ms backwards; }
 }
+
+/* grey placeholder shapes shown while data loads: a soft light sweeps across them. Still (no sweep) for people who ask for reduced motion */
+.skeleton-shimmer {
+  background-image: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.75) 50%, transparent 80%);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  background-position: 120% 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton-shimmer { animation: skeleton-sweep 1.4s ease-in-out infinite; }
+  [aria-busy="true"] { animation: admin-fade 250ms ease-out; }
+}
+@keyframes skeleton-sweep {
+  to { background-position: -120% 0; }
+}

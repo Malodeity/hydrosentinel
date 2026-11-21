@@ -41,6 +41,7 @@ export interface CreateCitizenReportPayload {
   description: string;
   lat: number;
   lng: number;
+  contact_email?: string; // optional: the citizen asked to be emailed when the report changes
 }
 
 // a report with photos has to be sent as multipart form data (not json), so the fields and files go into a FormData
@@ -51,6 +52,7 @@ export async function createCitizenReport(payload: CreateCitizenReportPayload, p
   formData.append("description", payload.description);
   formData.append("lat", String(payload.lat));
   formData.append("lng", String(payload.lng));
+  if (payload.contact_email) formData.append("contact_email", payload.contact_email);
   photos.forEach((photo) => formData.append("photos", photo));
 
   const { data } = await apiClient.post<CitizenReport>("/reports", formData, {

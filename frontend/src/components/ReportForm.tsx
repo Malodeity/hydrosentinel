@@ -72,6 +72,7 @@ export function ReportForm({ wsas, isSubmitting, onSubmit, initialWsaId }: Repor
   const [province, setProvince] = useState<string>(initialMatch?.province ?? "");
   const [issueType, setIssueType] = useState<IssueType>("leak");
   const [description, setDescription] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
   const [location, setLocation] = useState<LatLngLiteral>(defaultLocation);
   const [addressQuery, setAddressQuery] = useState("");
   const [searchingAddress, setSearchingAddress] = useState(false);
@@ -170,9 +171,11 @@ export function ReportForm({ wsas, isSubmitting, onSubmit, initialWsaId }: Repor
       description,
       lat: location.lat,
       lng: location.lng,
+      contact_email: contactEmail.trim() || undefined,
     }, photos);
 
     setDescription("");
+    setContactEmail("");
     setPhotos([]);
   };
 
@@ -295,6 +298,12 @@ export function ReportForm({ wsas, isSubmitting, onSubmit, initialWsaId }: Repor
               maxLength={1000}
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="contact-email">Email me updates (optional)</label>
+            <Input id="contact-email" type="email" autoComplete="email" placeholder="you@example.com" value={contactEmail} onChange={(event) => setContactEmail(event.target.value)} maxLength={255} />
+            <p className="text-sm text-muted-foreground">We email you when the authority looks at your report and when it is resolved. We use the address only for this, and it is never shown to anyone else.</p>
           </div>
 
           <div className="space-y-3">
