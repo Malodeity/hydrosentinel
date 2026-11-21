@@ -7,7 +7,7 @@ from uuid import UUID
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -15,6 +15,7 @@ from app import assignment_helpers as helpers
 from app import auth, models, schemas
 from app.audit_helpers import write_audit
 from app.database import get_db
+from app.mailer import notify_citizen
 from app.routes import reports as reports_routes
 from app.routes.reports import photo_urls_for, repair_photo_urls_for
 
@@ -415,6 +416,7 @@ def review_assignment(
     assignment_id: UUID,
     payload: schemas.TicketReview,
     request: Request,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_admin_user),
 ) -> schemas.AssignmentRead:
@@ -441,6 +443,7 @@ def review_assignment(
             if note and not report.admin_comment:
                 report.admin_comment = note
             db.add(report)
+            background_tasks.add_task(notify_citizen, report.contact_email, report.reference_code, "resolved")  # FR-11
         helpers.notify(db, contractor_staff, f"Ticket {report.reference_code} verified", "The authority confirmed the repair. Thank you.", ticket)
     elif payload.action == "send_back":
         if ticket.status != "fixed":

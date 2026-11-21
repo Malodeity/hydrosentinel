@@ -45,6 +45,15 @@ def enforce_ai_rate_limit(
     return current_user
 
 
+# the same hourly limit for a contractor's own AI helpers (job brief, fix note, summary), counted in the same table under the contractor's login
+def enforce_contractor_ai_limit(
+    current_user: models.User = Depends(auth.get_current_contractor),
+    db: Session = Depends(get_db),
+) -> models.User:
+    _take(db, f"user:{current_user.id}", _MAX_CALLS, f"AI request limit reached ({_MAX_CALLS} per hour). Try again later.")
+    return current_user
+
+
 # how much of this admin's hourly AI allowance is used, so the screen can show it instead of surprising them with a 429.
 # reading it does not count as a call
 def ai_usage(current_user: models.User, db: Session) -> dict:

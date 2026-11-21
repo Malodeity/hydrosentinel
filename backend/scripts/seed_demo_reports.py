@@ -45,6 +45,42 @@ LAT_LNG_FALLBACK = (-26.2, 28.0)
 ISSUE = {"leak": models.IssueType.leak, "outage": models.IssueType.outage, "quality": models.IssueType.quality, "billing": models.IssueType.billing}
 
 
+# older, already verified repairs spread over the last 3 months, so a contractor's dashboard has a week, a month and 3 months of history to show.
+# a few are fixed after their due time on purpose, so "fixed on time" is not 100%
+HISTORY_AGES = [2, 4, 6, 9, 12, 17, 23, 31, 40, 52, 65, 80]
+
+
+def add_history(db, admin, now) -> int:
+    contractors = [c for c in db.query(models.Contractor).filter(models.Contractor.is_active).order_by(models.Contractor.name) if c.coverage][:6]
+    count = 0
+    for ci, contractor in enumerate(contractors):
+        row = contractor.coverage[0]
+        issue = helpers.coverage_issue_types(row) and sorted(helpers.coverage_issue_types(row))[0]
+        wsa = db.query(models.WSA).filter(models.WSA.id == row.wsa_id).first()
+        if not issue or wsa is None:
+            continue
+        for k in range(5 + ci % 3):
+            age = HISTORY_AGES[(ci * 2 + k * 2) % len(HISTORY_AGES)] + k % 2
+            given = now - timedelta(days=age, hours=ci)
+            due = given + timedelta(hours=helpers.DEFAULT_DUE_HOURS[issue])
+            fixed = given + timedelta(hours=5 + (k * 7 + ci * 3) % 30 + (30 if (k + ci) % 4 == 3 else 0))   # every fourth one runs past its due time
+            report = models.CitizenReport(
+                wsa_id=wsa.id, issue_type=ISSUE[issue], description=f"Earlier {issue} report, repaired and checked.", reference_code=f"HS-{uuid.uuid4().hex[:8].upper()}",
+                case_status="resolved", lat=wsa.lat or LAT_LNG_FALLBACK[0], lng=wsa.lng or LAT_LNG_FALLBACK[1], created_at=given - timedelta(hours=2),
+                reviewed_by=admin.id if admin else None, reviewed_at=given, resolved_by=admin.id if admin else None, resolved_at=fixed + timedelta(hours=8),
+                admin_comment="Repair checked on site and confirmed.",
+            )
+            db.add(report)
+            db.flush()
+            db.add(models.ReportAssignment(
+                report_id=report.id, contractor_id=contractor.id, assigned_by=admin.id if admin else None, status="closed",
+                instructions="Isolate the section, repair, and photograph the finished work.", created_at=given, due_at=due, accepted_at=given + timedelta(minutes=30),
+                started_at=given + timedelta(hours=1), fixed_at=fixed, closed_at=fixed + timedelta(hours=8), contractor_note="Repaired and tested the pressure.",
+            ))
+            count += 1
+    return count
+
+
 def main(apply: bool) -> None:
     db = SessionLocal()
     try:
@@ -117,8 +153,9 @@ def main(apply: bool) -> None:
                 ticket.fixed_at = given + timedelta(hours=2)
                 ticket.contractor_note = "Replaced the damaged section and tested pressure."
             db.add(ticket)
+        added = add_history(db, admin, now)
         db.commit()
-        print("seeded:", sum(made.values()), "reports", made)
+        print("seeded:", sum(made.values()), "reports", made, "plus", added, "past verified repairs for the contractor dashboard")
     finally:
         db.close()
 

@@ -16,7 +16,7 @@ from app.auth import get_password_hash
 from app.config import settings
 from app.database import Base, SessionLocal, engine
 from app.models import CAPStatus, Contractor, ContractorCoverage, RiskLevel, User, UserRole, WSA
-from app.routes import ai, alerts, assignments, audit, auth, reports, risk, users, wsa
+from app.routes import ai, alerts, assignments, audit, auth, contractor_ai, reports, risk, users, wsa
 
 
 def seed_default_admin() -> None:
@@ -208,6 +208,7 @@ def apply_ai_schema_changes() -> None:
         """))
         # wsa columns added in earlier releases
         connection.execute(text("ALTER TABLE wsa ADD COLUMN IF NOT EXISTS summary TEXT;"))
+        connection.execute(text("ALTER TABLE citizen_reports ADD COLUMN IF NOT EXISTS contact_email VARCHAR(255);"))
         # wsa regulatory data columns
         connection.execute(text("ALTER TABLE wsa ADD COLUMN IF NOT EXISTS green_drop_score NUMERIC(5,2);"))
         connection.execute(text("ALTER TABLE wsa ADD COLUMN IF NOT EXISTS dws_cap_status dws_cap_status_enum NOT NULL DEFAULT 'none';"))
@@ -392,7 +393,25 @@ app.include_router(alerts.router)
 app.include_router(audit.router)
 app.include_router(users.router)
 app.include_router(assignments.router)
+app.include_router(contractor_ai.router)
 app.mount("/uploads", StaticFiles(directory=str(Path(__file__).resolve().parent / "data" / "uploads")), name="uploads")
+
+
+# GET /health: is the system able to do its job? A missing risk model or an unreachable database makes it return 503, so a monitor (or Docker) sees the
+# problem instead of every authority being scored by the weaker fallback rule without anyone noticing
+@app.get("/health")
+def health():
+    from fastapi import HTTPException
+
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=503, detail="Database is not reachable") from exc
+    model_loaded = getattr(app.state, "risk_model", None) is not None
+    if not model_loaded:
+        raise HTTPException(status_code=503, detail="Risk model is not loaded: scores would use the fallback rule")
+    return {"status": "ok", "database": "ok", "risk_model": "loaded", "rescoring_interval_hours": settings.rescore_interval_hours}
 
 
 @app.get("/")

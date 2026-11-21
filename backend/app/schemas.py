@@ -479,3 +479,26 @@ CitizenReportRead.model_rebuild()
 class RiskSchedule(BaseModel):
     interval_hours: float
     last_automatic_run: datetime | None = None
+
+
+# the contractor's own AI helpers (routes/contractor_ai.py). ai is False when the text is the plain fallback because OpenAI was unavailable or its answer failed a check
+class JobBrief(BaseModel):
+    summary: str
+    steps: list[str]
+    safety: list[str]
+    ai: bool
+
+
+class FixNoteRequest(BaseModel):
+    rough: str = Field(min_length=3, max_length=500)
+
+
+class FixNoteDraft(BaseModel):
+    note: str
+    ai: bool
+
+
+class ContractorSummary(BaseModel):
+    text: str
+    days: int
+    ai: bool

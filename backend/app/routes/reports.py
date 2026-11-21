@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 from statistics import median
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -18,10 +18,24 @@ from app import assignment_helpers, auth, models, schemas
 from app.alert_helpers import raise_geo_cluster_alert, raise_report_volume_spike_alert
 from app.audit_helpers import write_audit
 from app.database import get_db
+from app.mailer import notify_citizen
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 # citizen photos are saved here, one folder per report, and served back under /uploads. the database stores no photo data
 UPLOAD_ROOT = Path(__file__).resolve().parents[2] / "data" / "uploads"
+
+
+# the optional "email me updates" address: empty means none; anything else must look like a real address (checked, not delivered to)
+def _valid_email(value: str | None) -> str | None:
+    value = (value or "").strip()
+    if not value:
+        return None
+    try:
+        from email_validator import EmailNotValidError, validate_email
+
+        return validate_email(value, check_deliverability=False).normalized
+    except EmailNotValidError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="That email address does not look right") from exc
 
 
 def _generate_reference_code() -> str:
@@ -76,11 +90,13 @@ def build_report_response(report: models.CitizenReport, db: Session | None = Non
 # run the two alert checks (report volume spike and geographic cluster), then store only image files and ignore anything else
 @router.post("", response_model=schemas.CitizenReportRead, status_code=status.HTTP_201_CREATED)
 async def create_report(
+    background_tasks: BackgroundTasks,
     wsa_id: uuid.UUID = Form(...),
     issue_type: models.IssueType = Form(...),
     description: str | None = Form(default=None),
     lat: float = Form(...),
     lng: float = Form(...),
+    contact_email: str | None = Form(default=None),
     photos: list[UploadFile] = File(default=[]),
     db: Session = Depends(get_db),
 ) -> models.CitizenReport:
@@ -88,6 +104,7 @@ async def create_report(
     if not wsa:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="WSA not found")
 
+    email = _valid_email(contact_email)
     report = models.CitizenReport(
         wsa_id=wsa_id,
         issue_type=issue_type,
@@ -96,6 +113,7 @@ async def create_report(
         case_status="open",
         lat=lat,
         lng=lng,
+        contact_email=email,
     )
     db.add(report)
     db.commit()
@@ -116,6 +134,8 @@ async def create_report(
             with target_path.open("wb") as target_file:
                 target_file.write(await photo.read())
 
+    if email:
+        background_tasks.add_task(notify_citizen, email, report.reference_code, "received")  # sent after the response, so a slow mail server never delays the citizen
     return build_report_response(report)
 
 
@@ -225,6 +245,7 @@ def update_report(
     report_id: uuid.UUID,
     payload: schemas.CitizenReportAdminUpdate,
     request: Request,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_admin_user),
 ) -> schemas.CitizenReportRead:
@@ -235,6 +256,7 @@ def update_report(
 
     old_status = report.case_status
     old_comment = report.admin_comment
+    citizen = (report.contact_email, report.reference_code)
     now = datetime.now(timezone.utc)
 
     report.case_status = payload.case_status
@@ -269,4 +291,6 @@ def update_report(
     db.add(report)
     db.commit()
     db.refresh(report)
+    if payload.case_status != old_status and payload.case_status in ("in_review", "resolved"):
+        background_tasks.add_task(notify_citizen, citizen[0], citizen[1], payload.case_status)  # FR-11: the citizen who asked is told when it moves
     return build_report_response(report, db)

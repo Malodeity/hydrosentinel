@@ -230,6 +230,8 @@ class CitizenReport(Base):
     issue_type: Mapped[IssueType] = mapped_column(SAEnum(IssueType, name="issue_type_enum"), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     reference_code: Mapped[str] = mapped_column(String(12), nullable=False, unique=True, index=True)
+    # optional: the citizen asked to be emailed when the report changes. never returned by any API (not even to admins) and never exported
+    contact_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     case_status: Mapped[str] = mapped_column(String(50), nullable=False, default="open", server_default=text("'open'"))
     admin_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     reviewed_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
