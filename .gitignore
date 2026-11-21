@@ -60,3 +60,6 @@ backend/data/rag_index.pkl
 
 # Neon settings (secrets)
 .env.neon
+
+# PDFs that contain the hosted logins (for MyTUTor only)
+docs/a5/submission_private/

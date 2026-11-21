@@ -12,6 +12,38 @@ I, Malibongwe Mthethwa (213355813), declare that this report and the system it d
 
 I used an AI assistant for code, design and diagrams, integrations, tests and documentation, and I reviewed and can explain all of it.
 
+## Access for the moderator
+
+The final system is online, so it can be tried at any time without installing anything.
+
+| What | Where |
+|---|---|
+| **The running system** | **https://hydrosentinel.onrender.com** |
+| Source code and documents | https://github.com/Malodeity/hydrosentinel |
+
+#### Logins
+
+| Role | Email | Password |
+|---|---|---|
+| National admin | `admin@hydrosentinel.co.za` | `@@ADMIN_PW@@` |
+| Authority admin (Ekurhuleni only) | `ekurhuleni.admin@hydrosentinel.co.za` | `@@DEMO_PW@@` |
+| Contractor | `dlamini-pretorius@contractors.hydrosentinel.co.za` | `@@DEMO_PW@@` |
+| Citizen | no login | open **Report Issue** |
+
+#### A five-minute path through the system
+1. **Citizen:** open the link, choose **Report Issue**, pick an authority, describe a leak, submit, and keep the reference code. Check it under **Track a report**.
+2. **Admin:** sign in, open the **Citizen reports** tab, find the new report, press **Assign to a contractor**, use **Draft with AI**, and assign.
+3. **Contractor:** in a second browser or a private window, sign in as the contractor. The dashboard shows the tickets, the numbers for 7 days, 30 days and 3 months, and an AI summary. Open the ticket, press **Job brief**, accept it, mark it fixed with **Help me write it**.
+4. **Admin:** press **Verify**. The report is resolved, and the citizen's tracking page shows it.
+5. **Risk:** on the **CAP management** tab press **Score risk now** to see the XGBoost result, and open **Audit log** to see every step recorded.
+
+#### Things to know
+- **First visit is slow.** The free server sleeps when nobody has used it for a while. The first page can take up to a minute to wake it. After that it is fast.
+- **Demo data.** The authorities and their Blue Drop scores are real (DWS reports). The 60 reports, tickets and contractors are demonstration data.
+- **Photos** uploaded on the hosted demo are lost when the server restarts. The reports themselves are kept in the database.
+- **AI buttons** are limited to 20 calls an hour per user. If one fails, a plain fallback text appears.
+- **Email updates** to citizens are switched off on the hosted demo, because no mail server is connected to it. The feature is tested separately against a real SMTP server (section 4.1).
+
 ## Question 1: Project Introduction and Roadmap
 
 ### 1.1 Project, problem, users, aim and value
