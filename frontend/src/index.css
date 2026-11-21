@@ -47,3 +47,73 @@
 .wsa-marker-selected {
   filter: drop-shadow(0 0 6px rgba(17, 24, 39, 0.55));
 }
+
+/* ---- admin console motion ----
+   Pure CSS, scoped to the admin tab panels (role="tabpanel"), tab bar, toasts and dropdowns. Only opacity and
+   transform are animated, `backwards` fill keeps nothing stuck after the end, and it all switches off for
+   people who ask their system for reduced motion. */
+@keyframes admin-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes admin-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes admin-toast {
+  from { opacity: 0; transform: translateX(24px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes admin-pop {
+  from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+
+  /* each section of a tab cascades in, top to bottom */
+  [role="tabpanel"] > * { animation: admin-rise 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+  [role="tabpanel"] > *:nth-child(2) { animation-delay: 60ms; }
+  [role="tabpanel"] > *:nth-child(3) { animation-delay: 120ms; }
+  [role="tabpanel"] > *:nth-child(4) { animation-delay: 180ms; }
+  [role="tabpanel"] > *:nth-child(n + 5) { animation-delay: 240ms; }
+
+  /* table rows fade in one after another (first ten only, so long lists do not drag) */
+  [role="tabpanel"] tbody tr { animation: admin-fade 260ms ease-out backwards; transition: background-color 150ms ease; }
+  [role="tabpanel"] tbody tr:nth-child(1) { animation-delay: 40ms; }
+  [role="tabpanel"] tbody tr:nth-child(2) { animation-delay: 70ms; }
+  [role="tabpanel"] tbody tr:nth-child(3) { animation-delay: 100ms; }
+  [role="tabpanel"] tbody tr:nth-child(4) { animation-delay: 130ms; }
+  [role="tabpanel"] tbody tr:nth-child(5) { animation-delay: 160ms; }
+  [role="tabpanel"] tbody tr:nth-child(6) { animation-delay: 190ms; }
+  [role="tabpanel"] tbody tr:nth-child(7) { animation-delay: 220ms; }
+  [role="tabpanel"] tbody tr:nth-child(8) { animation-delay: 250ms; }
+  [role="tabpanel"] tbody tr:nth-child(9) { animation-delay: 280ms; }
+  [role="tabpanel"] tbody tr:nth-child(n + 10) { animation-delay: 300ms; }
+  [role="tabpanel"] tbody tr:hover { background-color: hsl(var(--accent) / 0.45); }
+
+  /* buttons and tabs: soft colour changes, a small press, and a lift on hover for the pill tabs */
+  [role="tabpanel"] button,
+  [role="tab"] {
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 120ms ease, opacity 160ms ease;
+  }
+  [role="tabpanel"] button:not(:disabled):active,
+  [role="tab"]:active { transform: scale(0.96); }
+  [role="tab"]:not([aria-selected="true"]):hover { transform: translateY(-1px); }
+
+  /* messages, toasts and dropdowns ease in instead of snapping */
+  [role="status"], [role="alert"] { animation: admin-toast 280ms cubic-bezier(0.22, 1, 0.36, 1); }
+  [data-radix-popper-content-wrapper] > * { animation: admin-pop 160ms ease-out; }
+  [role="tabpanel"] details[open] > *:not(summary) { animation: admin-fade 220ms ease-out; }
+}
+
+/* the tick on a "sent" confirmation pops in with a small overshoot */
+@keyframes admin-check {
+  0% { opacity: 0; transform: scale(0.3) rotate(-20deg); }
+  60% { opacity: 1; transform: scale(1.25) rotate(0); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .admin-check { animation: admin-check 450ms cubic-bezier(0.34, 1.56, 0.64, 1) 120ms backwards; }
+}

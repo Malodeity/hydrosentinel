@@ -2,7 +2,7 @@
 // several waiting reports to one contractor. Assigning a single report is done on the Citizen reports tab (ReportTicketPanel).
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2, Search } from "lucide-react";
 
 import {
   apiErrorMessage,
@@ -27,6 +27,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { matchesContractor } from "@/lib/contractorSearch";
 import { summarizeCoverage } from "@/lib/coverageSummary";
 import { cn } from "@/lib/utils";
 import { describeDue, issueList, isActiveTicket } from "@/lib/tickets";
@@ -185,6 +186,9 @@ export function ContractorsTab({ wsas, reports, isNational, onChanged }: Props) 
   const [contact, setContact] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [newProvince, setNewProvince] = useState(""); // optional: set the new contractor up in a whole province at once
+  const [newIssues, setNewIssues] = useState<IssueType[]>(["leak", "outage"]);
+  const [search, setSearch] = useState("");
   const [ticketFilter, setTicketFilter] = useState("active");
   const [provinceFilter, setProvinceFilter] = useState("all");
   const [bulkIds, setBulkIds] = useState<string[]>([]);
@@ -237,14 +241,14 @@ export function ContractorsTab({ wsas, reports, isNational, onChanged }: Props) 
   const provinces = useMemo(() => [...new Set(wsas.map((w) => w.province))].sort((a, b) => a.localeCompare(b)), [wsas]);
   const groups = useMemo(() => {
     const map = new Map<string, Contractor[]>();
-    for (const c of contractors) {
+    for (const c of contractors.filter((item) => matchesContractor(item, search))) {
       const places = [...new Set(summarizeCoverage(c.coverage, wsas).map((p) => p.province))];
       for (const place of places.length ? places : ["Not set up yet"]) map.set(place, [...(map.get(place) ?? []), c]);
     }
     return [...map.entries()]
       .filter(([place]) => provinceFilter === "all" || place === provinceFilter)
       .sort(([a], [b]) => (a === "Not set up yet" ? 1 : b === "Not set up yet" ? -1 : a.localeCompare(b)));
-  }, [contractors, provinceFilter, wsas]);
+  }, [contractors, provinceFilter, search, wsas]);
 
   const shownTickets = tickets.filter((t) =>
     ticketFilter === "all" ? true : ticketFilter === "active" ? isActiveTicket(t.status) : ticketFilter === "overdue" ? t.overdue : t.status === ticketFilter,
@@ -263,7 +267,12 @@ export function ContractorsTab({ wsas, reports, isNational, onChanged }: Props) 
   return (
     <div className="space-y-6">
       {error ? <p className="rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</p> : null}
-      {message ? <p className="rounded-2xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800">{message}</p> : null}
+      {message ? (
+        <p role="status" className="sticky top-[4.5rem] z-[1000] flex items-center gap-2 rounded-2xl border border-emerald-300 bg-emerald-50 p-3 text-sm font-medium text-emerald-800 shadow-soft">
+          <CheckCircle2 className="admin-check h-4 w-4 shrink-0" />
+          {message}
+        </p>
+      ) : null}
 
       {/* the same tiles as the CAP tab: click one to show those tickets in the table at the bottom */}
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4" role="group" aria-label="Ticket summary">
@@ -311,12 +320,21 @@ export function ContractorsTab({ wsas, reports, isNational, onChanged }: Props) 
               onClick={async () => {
                 setBusy(true);
                 try {
-                  await createContractor({ name: name.trim(), contact_name: contact || null, phone: phone || null, email: email || null, is_active: true });
+                  const created = await createContractor({ name: name.trim(), contact_name: contact || null, phone: phone || null, email: email || null, is_active: true });
+                  const inProvince = wsas.filter((w) => w.province === newProvince);
+                  if (newProvince && newIssues.length > 0) {
+                    for (const wsa of inProvince) await setCoverage(created.id, wsa.id, newIssues);
+                  }
                   setName("");
                   setContact("");
                   setPhone("");
                   setEmail("");
-                  setMessage("Contractor added. Now say where it works.");
+                  setNewProvince("");
+                  setMessage(
+                    newProvince && newIssues.length > 0
+                      ? `${created.name} added and set up for ${inProvince.length} authorities in ${newProvince}.`
+                      : "Contractor added. Now say where it works.",
+                  );
                   await reload();
                 } catch (failure) {
                   setError(apiErrorMessage(failure, "Could not add that contractor."));
@@ -327,6 +345,49 @@ export function ContractorsTab({ wsas, reports, isNational, onChanged }: Props) 
             >
               Add contractor
             </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-dashed border-border p-3">
+            <p className="text-xs font-medium text-muted-foreground">Where it works (optional)</p>
+            <div className="w-52">
+              <Select value={newProvince} onValueChange={setNewProvince}>
+                <SelectTrigger aria-label="Province for the new contractor">
+                  <SelectValue placeholder="Whole province" />
+                </SelectTrigger>
+                <SelectContent>
+                  {provinces.map((place) => (
+                    <SelectItem key={place} value={place}>
+                      {place}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {ISSUES.map((issue) => (
+              <label key={issue} className="flex items-center gap-1.5 text-sm capitalize">
+                <input
+                  type="checkbox"
+                  checked={newIssues.includes(issue)}
+                  onChange={() => setNewIssues((current) => (current.includes(issue) ? current.filter((item) => item !== issue) : [...current, issue]))}
+                />
+                {issue}
+              </label>
+            ))}
+            {newProvince ? (
+              <Button size="sm" variant="ghost" onClick={() => setNewProvince("")}>
+                Clear province
+              </Button>
+            ) : null}
+          </div>
+
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="pl-10"
+              aria-label="Search contractors"
+              placeholder="Search contractors by name, contact, phone, email or authority"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
 
           <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by province">
@@ -351,6 +412,12 @@ export function ContractorsTab({ wsas, reports, isNational, onChanged }: Props) 
             ))}
           </div>
           {contractors.length === 0 ? <p className="text-sm text-muted-foreground">No contractors yet.</p> : null}
+          {contractors.length > 0 && groups.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No contractors match{search.trim() ? ` "${search.trim()}"` : ""}
+              {provinceFilter !== "all" ? ` in ${provinceFilter}` : ""}.
+            </p>
+          ) : null}
           {groups.map(([place, members]) => (
             <section key={place} className="space-y-3">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -546,7 +613,8 @@ export function ContractorsTab({ wsas, reports, isNational, onChanged }: Props) 
                 }
               }}
             >
-              Send {bulkIds.length || ""} ticket{bulkIds.length === 1 ? "" : "s"}
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {busy ? "Sending..." : <>Send {bulkIds.length || ""} ticket{bulkIds.length === 1 ? "" : "s"}</>}
             </Button>
             <p className="text-xs text-muted-foreground">Only contractors that can serve every ticked report are offered.</p>
           </div>

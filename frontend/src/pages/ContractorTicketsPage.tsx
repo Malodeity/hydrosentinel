@@ -2,22 +2,21 @@
 // the authority checks the work and does that.
 
 import { useCallback, useEffect, useState } from "react";
-import { ExternalLink, Loader2 } from "lucide-react";
+import { Camera, ExternalLink, Loader2 } from "lucide-react";
 
-import { actOnTicket, apiErrorMessage, fetchMyTickets, type Ticket, type TicketAction } from "@/api/assignments";
+import { actOnTicket, apiErrorMessage, fetchMyTickets, uploadRepairPhotos, type Ticket, type TicketAction } from "@/api/assignments";
+import { photoUrl, RepairPhotos } from "@/components/RepairPhotos";
 import { TicketStatus } from "@/components/TicketStatus";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ACTION_LABEL, ACTION_NEEDS_NOTE, contractorActions, describeDue, isActiveTicket } from "@/lib/tickets";
 
-const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
-const photoUrl = (url: string) => (url.startsWith("http") ? url : `${apiBaseUrl}${url}`);
-
 function TicketCard({ ticket, onChanged }: { ticket: Ticket; onChanged: (t: Ticket) => void }) {
   const [pending, setPending] = useState<TicketAction | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const due = describeDue(ticket.due_at);
   const actions = contractorActions(ticket.status);
@@ -33,6 +32,21 @@ function TicketCard({ ticket, onChanged }: { ticket: Ticket; onChanged: (t: Tick
       setError(apiErrorMessage(failure, "That did not work. Try again."));
     } finally {
       setBusy(false);
+    }
+  };
+
+  // "after" photos can be added while the job is the contractor's or waiting for the check
+  const canAddPhotos = ["accepted", "in_progress", "sent_back", "fixed"].includes(ticket.status);
+  const addPhotos = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    setError(null);
+    try {
+      onChanged(await uploadRepairPhotos(ticket.id, [...files]));
+    } catch (failure) {
+      setError(apiErrorMessage(failure, "The photos could not be added. Try again."));
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -79,6 +93,19 @@ function TicketCard({ ticket, onChanged }: { ticket: Ticket; onChanged: (t: Tick
               </a>
             ))}
           </div>
+        ) : null}
+        {ticket.repair_photo_urls.length > 0 ? (
+          <div className="space-y-1">
+            <p className="font-medium">Your repair photos</p>
+            <RepairPhotos urls={ticket.repair_photo_urls} label="Your repair photo" />
+          </div>
+        ) : null}
+        {canAddPhotos ? (
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border px-3 py-1.5 text-sm font-medium hover:bg-secondary">
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+            {uploading ? "Adding photos..." : ticket.repair_photo_urls.length > 0 ? "Add more repair photos" : "Add repair photos (shows the authority the work)"}
+            <input type="file" accept="image/*" multiple className="sr-only" disabled={uploading} onChange={(event) => { void addPhotos(event.target.files); event.target.value = ""; }} />
+          </label>
         ) : null}
         {ticket.status === "sent_back" && ticket.admin_note ? (
           <p className="rounded-xl border border-rose-200 bg-rose-50 p-2 text-rose-800">

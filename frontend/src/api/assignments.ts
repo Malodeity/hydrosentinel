@@ -43,6 +43,7 @@ export interface Ticket extends TicketSummary {
   lat: number;
   lng: number;
   photo_urls: string[];
+  repair_photo_urls: string[]; // the contractor's "after" photos
   instructions: string | null;
   admin_note: string | null;
   created_at: string;
@@ -114,6 +115,12 @@ export const fetchWorkOrderDraft = async (reportId: string) => (await apiClient.
 export const fetchMyTickets = async () => (await apiClient.get<Ticket[]>("/my/tickets")).data;
 export const actOnTicket = async (id: string, action: TicketAction, note?: string) =>
   (await apiClient.patch<Ticket>(`/my/tickets/${id}`, { action, note })).data;
+
+export const uploadRepairPhotos = async (id: string, files: File[]) => {
+  const form = new FormData();
+  files.forEach((file) => form.append("photos", file));
+  return (await apiClient.post<Ticket>(`/my/tickets/${id}/photos`, form)).data;
+};
 
 // ---- everyone ----
 export const fetchNotifications = async () => (await apiClient.get<AppNotification[]>("/notifications")).data;

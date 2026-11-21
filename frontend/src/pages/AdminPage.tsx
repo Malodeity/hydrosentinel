@@ -30,7 +30,7 @@ import { authStorage } from "@/api/client";
 import { fetchAuditLog, type AuditLogEntry } from "@/api/audit";
 import { createUser, fetchUsers, resetUserPassword, setUserActive, type AdminUser, type UserRole as AdminUserRole } from "@/api/users";
 import { downloadReportsCsv, fetchCitizenReports, type CaseStatus, type CitizenReport, type IssueType, updateCitizenReport } from "@/api/reports";
-import { downloadWsaCsv, fetchWsas, type CapStatus, type RiskLevel, type WSA, updateWsaCapStatus, fetchRiskHistory, scoreWsaRisk, type RiskScoreHistoryEntry } from "@/api/wsa";
+import { downloadWsaCsv, fetchWsas, type CapStatus, type RiskLevel, type WSA, updateWsaCapStatus, fetchRiskHistory, fetchRiskSchedule, scoreWsaRisk, type RiskSchedule, type RiskScoreHistoryEntry } from "@/api/wsa";
 import { AITextBlock } from "@/components/AITextBlock";
 import { AiAssistantTab } from "@/components/AiAssistantTab";
 import { RiskBadge } from "@/components/RiskBadge";
@@ -182,6 +182,10 @@ export function AdminPage() {
   const [riskHistory, setRiskHistory] = useState<RiskScoreHistoryEntry[]>([]);
   const [isScoring, setIsScoring] = useState(false);
   const [scoreMessage, setScoreMessage] = useState<string | null>(null);
+  const [riskSchedule, setRiskSchedule] = useState<RiskSchedule | null>(null);
+  useEffect(() => {
+    fetchRiskSchedule().then(setRiskSchedule).catch(() => setRiskSchedule(null)); // a missing schedule only hides the note below
+  }, []);
   const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [newUserEmail, setNewUserEmail] = useState("");
@@ -1056,7 +1060,7 @@ export function AdminPage() {
                   ) : null}
                   </div>
 
-                  <ReportTicketPanel report={selectedReport} onChanged={loadData} />
+                  <ReportTicketPanel report={selectedReport} onChanged={loadData} onSuccess={setSuccessMessage} />
 
                   <div className="border-t border-border/60 pt-4 text-sm font-medium">Update this case</div>
                   <div className="grid gap-4 xl:grid-cols-[220px_1fr]">
@@ -1325,6 +1329,13 @@ export function AdminPage() {
                     {isScoring ? "Scoring…" : "Score risk now"}
                   </Button>
                   {scoreMessage ? <p role="status" className="text-sm text-muted-foreground">{scoreMessage}</p> : null}
+                  {riskSchedule ? (
+                    <p className="text-xs text-muted-foreground">
+                      {riskSchedule.interval_hours > 0
+                        ? `Scores also refresh by themselves every ${riskSchedule.interval_hours} h${riskSchedule.last_automatic_run ? ` (last automatic run ${new Date(riskSchedule.last_automatic_run).toLocaleString()})` : ""}.`
+                        : "Automatic re-scoring is off. Scores change only when you press the button."}
+                    </p>
+                  ) : null}
                 </div>
                 {riskHistory.length > 0 && (
                   <div>

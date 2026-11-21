@@ -2,7 +2,7 @@
 // and the check-the-work buttons (verify / send back / cancel). Changes go through onChanged so the page reloads its numbers and audit log.
 
 import { useEffect, useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 
 import {
   apiErrorMessage,
@@ -16,6 +16,7 @@ import {
   type Ticket,
 } from "@/api/assignments";
 import type { CitizenReport } from "@/api/reports";
+import { RepairPhotos } from "@/components/RepairPhotos";
 import { TicketStatus } from "@/components/TicketStatus";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -25,12 +26,13 @@ import { describeDue, isActiveTicket } from "@/lib/tickets";
 interface Props {
   report: CitizenReport;
   onChanged: () => void | Promise<void>;
+  onSuccess?: (message: string) => void; // also shown as the page's floating message, so it is seen wherever the admin has scrolled to
 }
 
 // a datetime-local value ("2026-11-09T14:30") to an ISO time, or null when empty
 const toIso = (value: string) => (value ? new Date(value).toISOString() : null);
 
-export function ReportTicketPanel({ report, onChanged }: Props) {
+export function ReportTicketPanel({ report, onChanged, onSuccess }: Props) {
   const [history, setHistory] = useState<Ticket[]>([]);
   const [contractors, setContractors] = useState<Contractor[]>([]);
   const [contractorId, setContractorId] = useState("");
@@ -39,6 +41,7 @@ export function ReportTicketPanel({ report, onChanged }: Props) {
   const [reviewNote, setReviewNote] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [sent, setSent] = useState(false); // the Assign button turns into "Sent" for a moment before the form closes
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [aiReason, setAiReason] = useState<string | null>(null);
@@ -77,17 +80,28 @@ export function ReportTicketPanel({ report, onChanged }: Props) {
     [contractors, report.issue_type, report.wsa_id],
   );
 
-  const run = async (label: string, action: () => Promise<unknown>, done: string) => {
+  // the success message clears itself after a few seconds (errors stay until the next action)
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(() => setMessage(null), 6000);
+    return () => clearTimeout(timer);
+  }, [message]);
+
+  // returns true when the action worked, so callers do not close the form after a failure
+  const run = async (label: string, action: () => Promise<unknown>, done: string): Promise<boolean> => {
     setBusy(label);
     setError(null);
     setMessage(null);
     try {
       await action();
       setMessage(done);
+      onSuccess?.(done);
       await reload();
       await onChanged();
+      return true;
     } catch (failure) {
       setError(apiErrorMessage(failure, "That did not work. Try again."));
+      return false;
     } finally {
       setBusy(null);
     }
@@ -114,7 +128,7 @@ export function ReportTicketPanel({ report, onChanged }: Props) {
       setError("Tell the contractor what is still wrong before sending it back.");
       return;
     }
-    void run(action, () => reviewTicket(active.id, action, reviewNote.trim() || undefined), done).then(() => setReviewNote(""));
+    void run(action, () => reviewTicket(active.id, action, reviewNote.trim() || undefined), done).then((ok) => ok && setReviewNote(""));
   };
 
   return (
@@ -131,6 +145,12 @@ export function ReportTicketPanel({ report, onChanged }: Props) {
           </p>
           {active.instructions ? <p className="text-muted-foreground">Instructions: {active.instructions}</p> : null}
           {active.status === "sent_back" && active.admin_note ? <p className="text-rose-700">Sent back: {active.admin_note}</p> : null}
+          {active.repair_photo_urls.length > 0 ? (
+            <div className="space-y-1">
+              <p className="font-medium">Repair photos from the contractor</p>
+              <RepairPhotos urls={active.repair_photo_urls} />
+            </div>
+          ) : null}
           {active.contractor_note ? (
             <p className="rounded-xl bg-background p-2">
               <span className="font-medium">Contractor says:</span> {active.contractor_note}
@@ -220,17 +240,26 @@ export function ReportTicketPanel({ report, onChanged }: Props) {
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  disabled={!contractorId || busy !== null}
-                  onClick={() =>
+                  className={sent ? "bg-emerald-600 hover:bg-emerald-600" : undefined}
+                  disabled={!contractorId || busy !== null || sent}
+                  onClick={() => {
+                    const name = eligible.find((c) => c.id === contractorId)?.name ?? "the contractor";
                     void run(
                       "assign",
                       () => assignReport(report.id, { contractor_id: contractorId, instructions: instructions.trim() || undefined, due_at: toIso(dueLocal) }),
-                      "Ticket sent to the contractor.",
-                    ).then(() => setShowForm(false))
-                  }
+                      `Ticket sent to ${name}.`,
+                    ).then((ok) => {
+                      if (!ok) return;
+                      setSent(true); // show "Sent" on the button for a moment, then close the form
+                      setTimeout(() => {
+                        setSent(false);
+                        setShowForm(false);
+                      }, 1400);
+                    });
+                  }}
                 >
-                  {busy === "assign" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  {active ? "Reassign" : "Assign"}
+                  {busy === "assign" ? <Loader2 className="h-4 w-4 animate-spin" /> : sent ? <CheckCircle2 className="admin-check h-4 w-4" /> : null}
+                  {busy === "assign" ? "Sending..." : sent ? "Sent" : active ? "Reassign" : "Assign"}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setShowForm(false)}>
                   Close
@@ -241,7 +270,12 @@ export function ReportTicketPanel({ report, onChanged }: Props) {
         </div>
       ) : null}
 
-      {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
+      {message ? (
+        <p role="status" className="flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">
+          <CheckCircle2 className="admin-check h-4 w-4 shrink-0" />
+          {message}
+        </p>
+      ) : null}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
       {history.length > 1 ? (

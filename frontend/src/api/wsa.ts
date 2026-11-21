@@ -72,6 +72,15 @@ export interface RiskScoreHistoryEntry {
   scored_at: string;
 }
 
+// how the automatic re-scoring is set up (interval_hours 0 = off) and when it last ran
+export interface RiskSchedule {
+  interval_hours: number;
+  last_automatic_run: string | null;
+}
+export async function fetchRiskSchedule(): Promise<RiskSchedule> {
+  return (await apiClient.get<RiskSchedule>("/risk/schedule")).data;
+}
+
 export async function fetchRiskHistory(wsaId: string): Promise<RiskScoreHistoryEntry[]> {
   const { data } = await apiClient.get<RiskScoreHistoryEntry[]>(`/risk/history/${wsaId}`);
   return data;
