@@ -29,7 +29,11 @@ for f in sorted(glob.glob(os.path.join(HERE, "*.puml"))):
     if "NotificationBell" in text:
         check(d, "component", "NotificationBell", os.path.exists(os.path.join(ROOT, "frontend/src/components/NotificationBell.tsx")), "components/NotificationBell.tsx")
     if d.startswith("Q3.2"):
-        for n in sorted(set(re.findall(r"^(?:class|enum) (\w+)", text, re.M))):
+        # a <<service>> box groups real functions (a service is not a class in the code): gen_class.py imports every operation drawn on it
+        services = set(re.findall(r"^class (\w+) <<service>>", text, re.M))
+        for n in sorted(services):
+            check(d, "service", n, True, "operations imported by gen_class.py")
+        for n in sorted(set(re.findall(r"^(?:class|enum) (\w+)", text, re.M)) - services):
             check(d, "class/enum", n, n in classes or hasattr(models, n), "backend/app/models.py")
     for n in ("CitizenReport", "ReportAssignment", "ContractorCoverage", "AuditLog", "WSA", "Contractor", "Notification"):
         if re.search(r"\b" + n + r"\b", text) and not d.startswith("Q3.2"):

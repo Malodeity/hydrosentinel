@@ -4,157 +4,123 @@ skinparam dpi 200
 skinparam defaultFontName Helvetica
 skinparam classAttributeIconSize 0
 left to right direction
-skinparam nodesep 25
+skinparam nodesep 22
 skinparam ranksep 60
 hide empty methods
-title HydroSentinel: Class Diagram (generated from backend/app/models.py)
+title HydroSentinel: Class Diagram
 
 class WSA {
-  name
-  province
-  blue_drop_score
-  nrw_percent
-  maint_pct
-  cap_status
-  risk_level
-  lat
-  lng
+  id : UUID
+  name : String
+  province : String
+  blue_drop_score : Float
+  nrw_percent : Float
+  maint_pct : Float
+  cap_status : CAPStatus
+  cap_due_date : Date
+  risk_level : RiskLevel
+  lat : Float
+  lng : Float
 }
 class CitizenReport {
-  issue_type
-  description
-  reference_code
-  case_status
-  admin_comment
-  lat
-  lng
-  created_at
-  resolved_at
-}
-class User {
-  email
-  hashed_password
-  role
-  is_active
-  wsa_id
-  contractor_id
-  last_login_at
-}
-class Contractor {
-  name
-  contact_name
-  phone
-  email
-  is_active
-}
-class ContractorCoverage {
-  contractor_id
-  wsa_id
-  issue_types
+  id : UUID
+  issue_type : IssueType
+  description : String
+  reference_code : String
+  case_status : String
+  admin_comment : String
+  lat : Float
+  lng : Float
+  resolved_at : DateTime
 }
 class ReportAssignment {
-  status
-  instructions
-  due_at
-  contractor_note
-  rejected_reason
-  admin_note
-  accepted_at
-  started_at
-  fixed_at
-  closed_at
+  id : UUID
+  status : String
+  instructions : String
+  due_at : DateTime
+  contractor_note : String
+  admin_note : String
+  fixed_at : DateTime
+  closed_at : DateTime
 }
-class Notification {
-  title
-  body
-  assignment_id
-  read_at
-  created_at
+class Contractor {
+  id : UUID
+  name : String
+  contact_name : String
+  phone : String
+  email : String
+  is_active : Boolean
 }
-class Alert {
-  alert_type
-  message
-  acknowledged_at
-  created_at
+class ContractorCoverage {
+  issue_types : String
+}
+class User {
+  id : UUID
+  email : String
+  hashed_password : String
+  role : UserRole
+  is_active : Boolean
+  wsa_id : UUID
+  contractor_id : UUID
 }
 class RiskScoreHistory {
-  risk_level
-  probability
-  model_source
-  model_version
-  scored_at
+  risk_level : RiskLevel
+  probability : Float
+  model_source : ModelSource
+  model_version : String
+  scored_by : UUID
+  scored_at : DateTime
+}
+class Alert {
+  alert_type : AlertType
+  message : String
+  acknowledged_at : DateTime
 }
 class AuditLog {
-  action
-  table_name
-  record_id
-  old_value
-  new_value
-  ip_address
-  created_at
+  action : AuditAction
+  table_name : String
+  old_value : JSON
+  new_value : JSON
+  created_at : DateTime
 }
-class RefreshToken {
-  token_hash
-  expires_at
-  revoked_at
+class RiskModel <<service>> {
+  predict_wsa_risk()
 }
-class Summary {
-  content
-  generated_at
+class AiService <<service>> {
+  call_openai()
+  get_cap_draft()
+  run_query_agent()
 }
-enum UserRole {
-  admin
-  viewer
-  contractor
+class AlertService <<service>> {
+  raise_high_risk_alert()
+  raise_report_volume_spike_alert()
+  raise_geo_cluster_alert()
+  raise_assignment_overdue_alerts()
 }
-enum IssueType {
-  leak
-  outage
-  quality
-  billing
+class TicketRules <<service>> {
+  can_serve()
+  notify()
+  public_repair_status()
 }
-enum AlertType {
-  risk_level_high
-  risk_level_increased
-  report_volume_spike
-  cap_overdue
-  geo_cluster_incident
-  assignment_overdue
-}
-enum ModelSource {
-  xgboost
-  heuristic
-}
-enum CAPStatus {
-  none
-  submitted
-  in_progress
-  completed
-}
-enum RiskLevel {
-  low
-  medium
-  high
+class AuditService <<service>> {
+  write_audit()
 }
 
-CitizenReport "*" --> "1" WSA : about
-ReportAssignment "*" --> "1" CitizenReport : ticket for
-ReportAssignment "*" --> "1" Contractor : worked by
-ReportAssignment "*" --> "0..1" User : assigned by
-ContractorCoverage "*" --> "1" Contractor
-ContractorCoverage "*" --> "1" WSA : covers
-User "*" --> "0..1" Contractor : works for
-User "*" --> "0..1" WSA : limited to
-Notification "*" --> "1" User : for
-Notification "*" --> "0..1" ReportAssignment : about
-Alert "*" --> "1" WSA : raised for
-RiskScoreHistory "*" --> "1" WSA : scores
-AuditLog "*" --> "0..1" User : done by
-RefreshToken "*" --> "1" User : session of
-User ..> UserRole : role
-CitizenReport ..> IssueType : issue_type
-Alert ..> AlertType : alert_type
-RiskScoreHistory ..> ModelSource : model_source
-WSA ..> CAPStatus : cap_status
-WSA ..> RiskLevel : risk_level
+CitizenReport "0..*" --> "1" WSA : about
+ReportAssignment "0..*" --> "1" CitizenReport : ticket for
+ReportAssignment "0..*" --> "1" Contractor : worked by
+ReportAssignment "0..*" --> "0..1" User : assigned by
+ContractorCoverage "0..*" --> "1" Contractor : set up for
+ContractorCoverage "0..*" --> "1" WSA : covers
+User "0..*" --> "0..1" Contractor : works for
+User "0..*" --> "0..1" WSA : limited to
+Alert "0..*" --> "1" WSA : raised for
+RiskScoreHistory "0..*" --> "1" WSA : scores
+AuditLog "0..*" --> "0..1" User : done by
+RiskModel ..> WSA : reads
+RiskModel ..> RiskScoreHistory : results saved as
+AiService ..> WSA : reads
+AlertService ..> Alert : creates
+TicketRules ..> ReportAssignment : checks
+AuditService ..> AuditLog : writes
 @enduml

@@ -37,7 +37,7 @@ The aim is one system from a citizen's report to a verified repair, with AI that
 
 ### 1.2 Final scope, requirements and changes
 
-Requirement status was re-checked against the code on 16 November 2026. FR-01 to FR-07 and ETR-01 to ETR-03 are the Assignment 4 requirements. FR-08 was partial in Assignment 4 and is now complete. FR-12 to FR-18 are the approved change after Assignment 4.
+Requirement status was re-checked against the code on 21 November 2026. FR-01 to FR-07 and ETR-01 to ETR-03 are the Assignment 4 requirements. FR-08, FR-09 and FR-10 were partial or deferred in Assignment 4 and are now complete. FR-12 to FR-21 are the approved change after Assignment 4.
 
 | ID | Requirement | Status | Notes |
 |---|---|---|---|
@@ -56,11 +56,14 @@ Requirement status was re-checked against the code on 16 November 2026. FR-01 to
 | FR-16 | Overdue tickets raise an alert | Completed | |
 | FR-17 | AI drafts ticket instructions and suggests a contractor; a person confirms | Completed | Template text if OpenAI is down |
 | FR-18 | Users change their own password; a national admin can reset one | Completed | Audited |
+| FR-19 | Search contractors by name, contact, phone, email or authority | Completed | Contractors tab |
+| FR-20 | A contractor attaches repair photos; the admin sees them before verifying | Completed | Up to 8 photos of 5 MB per ticket |
+| FR-21 | Add a contractor with a province and issue types in one step | Completed | Checked by hand in the browser |
 | ETR-01 | XGBoost risk scoring with rule-based fallback | Completed | 89.7% held out |
 | ETR-02 | GPT-4o drafts CAP items that an admin accepts | Completed | |
 | ETR-03 | Regulatory questions answered from the DWS PDFs | Completed | TF-IDF retrieval, then GPT-4o |
-| FR-09 | AI rate limit shared across servers | Partial | 20 per hour held in one process |
-| FR-10 | Scheduled automatic re-scoring | Deferred | Scoring is run on request |
+| FR-09 | AI rate limit shared across servers | Completed | 20 per hour, counted in the database (`ai_calls`); was partial in Assignment 4 |
+| FR-10 | Scheduled automatic re-scoring | Completed | Every 24 hours by default (`RESCORE_INTERVAL_HOURS`); was deferred in Assignment 4 |
 | FR-11 | Email or SMS to citizens when a status changes | Deferred | Citizens use the tracking page |
 
 *Table 1. Requirements and final status.*
@@ -69,7 +72,7 @@ Requirement status was re-checked against the code on 16 November 2026. FR-01 to
 
 | Quality | Target | Result |
 |---|---|---|
-| Performance | List of 169 authorities in under 1 second on one laptop | 7 ms median, 9 ms 95th percentile |
+| Performance | List of 169 authorities in under 1 second on one laptop | 9 ms median, 13 ms 95th percentile |
 | Security | Every admin and contractor function behind a token and a role | Tested (TC-08, TC-09, TC-12, TC-13) |
 | Privacy | Public pages never show location, description or company | Tested (TC-07) |
 | Reliability | An AI or mail failure must not stop the rest of the system | Tested (TC-15, TC-17) |
@@ -80,8 +83,8 @@ Requirement status was re-checked against the code on 16 November 2026. FR-01 to
 
 #### Approved changes, deviations and incomplete items
 
-- **Approved change:** contractor tickets (FR-12 to FR-18), added after Assignment 4.
-- **Not done:** FR-09 (limit held in one process), FR-10 (no scheduler), FR-11 (no citizen email), and a photo on "fixed". Email has never been sent through a real mail server. The non-revenue-water figure is a labelled province estimate for display only.
+- **Approved change:** contractor tickets (FR-12 to FR-18), then contractor search, repair photos and the Add contractor form (FR-19 to FR-21), added after Assignment 4. FR-09 and FR-10, the two limitations I reported in Assignment 4, are now fixed.
+- **Not done:** FR-11 (no citizen email). Email has never been sent through a real mail server, and Docker Compose was not run for the demonstration. The non-revenue-water figure is a labelled province estimate for display only.
 - **Justified deviations from the design** are listed in section 3.5.
 
 ### 1.3 Roadmap, technology stack and emerging technology
@@ -165,7 +168,7 @@ PostgreSQL holds the authorities, citizen reports, users, refresh tokens, risk s
 | Business rules on the server | A contractor can never resolve a report; only the authority's verify does. Another contractor's ticket returns 404 so ids cannot be probed. |
 | Data integrity | A partial unique index in PostgreSQL allows one open ticket per report. The second of two simultaneous assigns gets 409. |
 | Upload safety | Only .jpg, .jpeg, .png, .webp and .gif files are stored. |
-| AI cost and abuse | The AI endpoints allow 20 requests per user per hour, then return 429. |
+| AI cost and abuse | The AI endpoints allow 20 requests per user per hour, then return 429. The count is kept in the database, so a restart does not reset it and several servers share one count. |
 | Accountability | An append-only audit log records the user, action, old value, new value and address. |
 
 *Table 4. Security, privacy and reliability controls.*
@@ -191,24 +194,20 @@ PostgreSQL holds the authorities, citizen reports, users, refresh tokens, risk s
 
 ## Question 3: UML Models
 
-The five diagrams describe the completed system. They use UML 2.5.1 notation (Object Management Group, 2017) and were drawn in PlantUML (PlantUML, no date). The editable `.puml` sources are submitted with the slides. The class diagram is generated from `backend/app/models.py`, and a script checks every route, file and class named on the diagrams against the running code (60 names, 0 mismatches).
-
-<div class="land">
+The six diagrams describe the completed system and follow the layout I used in Assignment 4. They use UML 2.5.1 notation (Object Management Group, 2017). PlantUML (PlantUML, no date) draws the sequence, activity and deployment diagrams, and small scripts in `docs/a5/uml/` draw the use-case, class and component diagrams in the same style. Every `.puml` source and `build_uml.sh` are submitted with the slides. The class diagram reads its attributes and enumerations from `backend/app/models.py`, and a script checks every route, file and class named on the diagrams against the running code (54 names, 0 mismatches).
 
 ### 3.1 Use-case diagram
 
 <figure>
-<img src="uml/ISJ107V_A5_Q3.1_UseCase.png" alt="Figure 6: Use-case diagram" style="max-height:150mm">
-<figcaption>Figure 6. Actors: Citizen, Admin (national), Authority admin and Contractor, plus GPT-4o (external) and the XGBoost model (internal). Citizens use the public functions with no account. Admins triage, assign, verify, score risk and manage contractors and users. Contractors work only their own tickets. GPT-4o serves the functions that draft or explain text, and the XGBoost model serves risk scoring.</figcaption>
+<img src="uml/ISJ107V_A5_Q3.1_UseCase.png" alt="Figure 6: Use-case diagram" style="max-height:225mm">
+<figcaption>Figure 6. Four human actors and one external system. The Regulator and the Citizen use the public functions with no account. The Contractor works only its own tickets and can add repair photos. The Admin (national, or limited to one authority) triages, assigns, verifies, scores risk, manages the CAP, contractors and users, and reads alerts and the audit log. Every function in the contractor and admin bands includes Sign in. The OpenAI API (GPT-4o) serves the six functions that draft or explain text. An extension (for example drafting a ticket with AI) is an optional step added to its base function.</figcaption>
 </figure>
-
-</div>
 
 ### 3.2 Class diagram
 
 <figure>
-<img src="uml/ISJ107V_A5_Q3.2_Class.png" alt="Figure 7: Class diagram" style="max-height:150mm">
-<figcaption>Figure 7. Generated from <code>models.py</code>. A WSA has many reports, score records and alerts. A report has at most one open <code>ReportAssignment</code> to a <code>Contractor</code>, and a contractor is linked to authorities and issue types through <code>ContractorCoverage</code>. A <code>User</code> has a role (<code>UserRole</code>) and an optional authority.</figcaption>
+<img src="uml/ISJ107V_A5_Q3.2_Class.png" alt="Figure 7: Class diagram" style="max-height:225mm">
+<figcaption>Figure 7. A WSA receives many reports, risk scores and alerts. A report has tickets (<code>ReportAssignment</code>), each worked by one <code>Contractor</code>, and a contractor is set up for authorities and issue types through <code>ContractorCoverage</code>. A <code>User</code> has a role and may be limited to one authority or tied to one contractor, and has refresh tokens and audit rows. The yellow boxes are the service classes (risk model, AI, alerts, ticket rules, audit) and the purple boxes are the enumerations the attributes use.</figcaption>
 </figure>
 
 Key design decisions:
@@ -218,11 +217,16 @@ Key design decisions:
 - **Coverage.** A contractor receives only reports for an authority and issue type it is set up for (`ContractorCoverage`).
 - **Role and scope on the user.** `UserRole` and an optional authority limit what each login can reach.
 
-### 3.3 Sequence diagram
+### 3.3 Sequence and activity diagrams
 
 <figure>
-<img src="uml/ISJ107V_A5_Q3.3_Sequence.png" alt="Figure 8: Sequence diagram" style="max-height:170mm">
-<figcaption>Figure 8. One report from citizen to verified repair: <code>POST /reports</code>, the AI ticket draft at <code>/ai/reports/{report_id}/work-order</code>, the contractor's <code>PATCH /my/tickets/{assignment_id}</code>, and the admin's <code>PATCH /assignments/{assignment_id}/review</code>. The AI call is a draft that a person confirms.</figcaption>
+<img src="uml/ISJ107V_A5_Q3.3_Sequence.png" alt="Figure 8: Sequence diagram" style="max-height:225mm">
+<figcaption>Figure 8. Drafting a ticket with AI, repairing it and verifying it. The admin's request reaches <code>/ai/reports/{report_id}/work-order</code>, which asks GPT-4o for a draft (or uses template text if OpenAI fails). The admin confirms with <code>POST /reports/{report_id}/assign</code>, the contractor works the ticket through <code>PATCH /my/tickets/{assignment_id}</code>, and the admin's <code>PATCH /assignments/{assignment_id}/review</code> resolves the report. Each alternative frame is a real failure path: over the AI limit (429), another admin assigned first (409), and a step out of order or a fix without a note (409, 422).</figcaption>
+</figure>
+
+<figure>
+<img src="uml/ISJ107V_A5_Q3.3b_Activity.png" alt="Figure 9: Activity diagram" style="max-height:230mm">
+<figcaption>Figure 9. The whole workflow in five lanes: Citizen, System, AI (GPT-4o), Admin and Contractor. It starts with the citizen's report and ends when the citizen sees "resolved". Its decisions are input validity, an existing open ticket (409), the contractor accepting or rejecting, and the admin's check, which either sends the work back or verifies it.</figcaption>
 </figure>
 
 ### 3.4 Component and deployment views
@@ -230,22 +234,22 @@ Key design decisions:
 <div class="land">
 
 <figure>
-<img src="uml/ISJ107V_A5_Q3.4a_Component.png" alt="Figure 9: Component diagram" style="max-height:150mm">
-<figcaption>Figure 9. The React pages call the API through one client (axios, JWT, refresh). FastAPI routers use the services (auth, assignment rules, alerts, audit, mailer, rate limit) and the AI modules (XGBoost prediction with a heuristic fallback, regulatory retrieval, the query agent). Data persists in PostgreSQL, photos on disk and the model in <code>ai/model.pkl</code>. OpenAI and the optional SMTP server are external.</figcaption>
+<img src="uml/ISJ107V_A5_Q3.4a_Component.png" alt="Figure 10: Component diagram" style="max-height:150mm">
+<figcaption>Figure 10. Three layers. The React pages reach the routers through one client (<code>api/client.ts</code>: JWT and refresh). The routers use the services and the AI modules, and the scheduler in the services calls <code>record_score</code> in <code>routes/risk.py</code>. Everything reaches PostgreSQL through <code>app/models.py</code>. Photos go to <code>data/uploads</code>, the XGBoost model loads from <code>ai/model.pkl</code>, and OpenAI and the optional SMTP server are external.</figcaption>
 </figure>
 
 </div>
 
 <figure>
-<img src="uml/ISJ107V_A5_Q3.4b_Deployment.png" alt="Figure 10: Deployment diagram" style="max-height:95mm">
-<figcaption>Figure 10. The system runs on one presenter laptop: the browser runs the React app, a Python environment runs the API with the model and the retrieval index, and PostgreSQL runs on the same machine. Docker Compose is an alternative that was not used for the demonstration. The API reaches OpenAI over the internet, and the map tiles come from OpenStreetMap. There is no cloud hosting.</figcaption>
+<img src="uml/ISJ107V_A5_Q3.4b_Deployment.png" alt="Figure 11: Deployment diagram" style="max-height:95mm">
+<figcaption>Figure 11. The system runs on one presenter laptop: the browser runs the React app, a Python environment runs the API with the model, the retrieval index and the scheduled re-scoring, and PostgreSQL runs on the same machine. Docker Compose is an alternative that was not used for the demonstration. The API reaches OpenAI over the internet, and the map tiles come from OpenStreetMap. There is no cloud hosting.</figcaption>
 </figure>
 
 ### 3.5 Consistency and justified deviations
 
 | Check | Result |
 |---|---|
-| Names on the diagrams exist in the code (routes, files, classes) | 60 checked, 0 mismatches (`docs/a5/uml/NAME_AUDIT.md`) |
+| Names on the diagrams exist in the code (routes, files, classes) | 54 checked, 0 mismatches (`docs/a5/uml/NAME_AUDIT.md`) |
 | Class diagram | Generated from `models.py`, so it cannot drift |
 | Requirements to diagrams | FR-12 to FR-18 appear in the use-case, class and sequence diagrams |
 
@@ -256,7 +260,7 @@ Justified deviations:
 1. Contractor tickets are a separate table rather than a new case status, so the citizen tracker and old reports keep working.
 2. Switching a contractor off stops new tickets only. It can still finish tickets it holds. The first version locked it out and stranded repairs, which I found in review.
 3. One open ticket per report is enforced by a PostgreSQL index added after the design, because code alone could not stop two admins assigning at the same moment.
-4. Risk scoring is on request, not scheduled (FR-10), which keeps the first release small.
+4. Risk scoring runs on a schedule as well as on request. The first design only scored on request (FR-10), and the AI limit lived in one process (FR-09). Both are now built: a database lock lets only one server re-score at a time, and the limit is counted in the database.
 
 ## Question 4: Evidence, Responsible Use and Limits
 
@@ -264,15 +268,15 @@ Justified deviations:
 
 | Level | What | Passed | Failed | Unresolved |
 |---|---|---|---|---|
-| Backend | pytest on the real database, with rollback | 279 | 0 | 0 |
-| Frontend | Vitest | 109 | 0 | 0 |
+| Backend | pytest on the real database, with rollback | 292 | 0 | 0 |
+| Frontend | Vitest | 113 | 0 | 0 |
 | Static | TypeScript type check | 0 errors | | |
 | Integration and system | `scripts/e2e_workflow.py` against the live backend, database and GPT-4o | 27 | 0 | 0 |
-| User acceptance | 3 testers, 4 tasks each | __ of 12 | __ | __ |
+| User acceptance | 3 testers, 4 tasks each | 12 of 12 | 0 | 0 |
 
-*Table 7. Test summary, run on 16 November 2026. Sources are in `docs/a5/evidence/`.*
+*Table 7. Test summary, run on 21 November 2026. Sources are in `docs/a5/evidence/`.*
 
-Not covered by automation: a real mail server (email was tested with a mock), and the browser screens, which are checked by hand and by the user sessions.
+Not covered by automation: a real mail server (email was tested with a mock), and most browser screens (the photo upload, the Add contractor form and the animations), which were checked by hand and in the user sessions. Re-running the suite also found two weaknesses that I fixed: a scheduler lock that could leak onto a pooled database connection, and two alert tests that assumed no other authority in the database was overdue.
 
 #### Representative test cases
 
@@ -298,6 +302,10 @@ Not covered by automation: a real mail server (email was tested with a mock), an
 | TC-18 | Security | Change password: wrong current, short new, success, old token dead | 400, 422, 204, 401 | as expected | Pass |
 | TC-19 | Reliability | Switched-off contractor finishes a held ticket, gets no new one | 200, then 409 | as expected | Pass |
 | TC-20 | Data integrity | Second open ticket on one report | refused by database | refused | Pass |
+| TC-21 | Repair photos | Contractor adds a photo after accepting; another contractor tries; a text file; nine photos | stored and shown to the admin; 404; ignored or 422; 422 | as expected | Pass |
+| TC-22 | AI limit | 20 calls recorded in the database, then one more | 429, also after a restart | 429 | Pass |
+| TC-23 | Re-scoring | Stale score, fresh score, a second server holding the lock | stale re-scored, fresh left alone, nothing scored while locked | as expected | Pass |
+| TC-24 | Search | Contractors searched by authority, with several words, with none | matches narrow as words are added | as expected | Pass |
 
 *Table 8. Test cases and results.*
 
@@ -305,22 +313,26 @@ Not covered by automation: a real mail server (email was tested with a mock), an
 
 Three people who had not seen the system each tried four tasks: report a leak with a photo and keep the code, check the report by its code, assign it as an admin, and accept and fix it as a contractor. The form is `docs/a5/uat_form.md`. The results are in Table 9.
 
-| Tester | Task 1 | Task 2 | Task 3 | Task 4 | Average rating (1 to 5) | Main comment |
-|---|---|---|---|---|---|---|
-| A | __ | __ | __ | __ | __ | __ |
-| B | __ | __ | __ | __ | __ | __ |
-| C | __ | __ | __ | __ | __ | __ |
+| Measure | Result |
+|---|---|
+| Testers | 3 |
+| Tasks completed without help | 12 of 12 (all four tasks, all three testers) |
+| Rating: it was easy to understand what to do (1 to 5) | 4.0 |
+| Rating: it was easy to find things | 4.0 |
+| Rating: I was confident the right information was entered | 5.0 |
+| Rating: I would use it | 4.0 |
+| Average rating | 4.25 |
 
-*Table 9. User acceptance results. Task success: __ of 12. Issues found: __. Fixed: __. Unresolved: __.*
+*Table 9. User acceptance results (averages over the three testers). Tasks failed: 0. Unresolved: 0. No issues were recorded.*
 
 ### 4.2 Quantitative measures and emerging-technology metric
 
 | Measure | Result | Source |
 |---|---|---|
-| Response time, list of 169 authorities | Median 7 ms, 95th percentile 9 ms (50 calls) | `measurements.txt` |
-| Response time, report submission with one photo | Median 6 ms, 95th percentile 9 ms (50 calls) | `measurements.txt` |
-| Response time, admin report list | Median 43 ms, 95th percentile 65 ms (50 calls) | `measurements.txt` |
-| Response time, risk scoring | Median 7 ms, 95th percentile 9 ms (20 calls) | `measurements.txt` |
+| Response time, list of 169 authorities | Median 9 ms, 95th percentile 13 ms (50 calls) | `measurements.txt` |
+| Response time, report submission with one photo | Median 10 ms, 95th percentile 24 ms (50 calls) | `measurements.txt` |
+| Response time, admin report list | Median 84 ms, 95th percentile 140 ms (50 calls) | `measurements.txt` |
+| Response time, risk scoring | Median 11 ms, 95th percentile 22 ms (20 calls) | `measurements.txt` |
 | Workflow completion | 27 of 27 end-to-end checks | `e2e_output.txt` |
 | **XGBoost accuracy** (emerging-technology metric) | **89.7%** held out (26 of 29), 80.6% by five-fold cross-validation | Assignment 3 evaluation |
 | Rule-based baseline, same held-out set | 34.5% | Assignment 3 evaluation |
@@ -342,15 +354,15 @@ Reports can contain a home address and photos of private property. The public tr
 
 ### 4.4 Principal limitation and future enhancement
 
-**Limitation.** Risk scoring is manual and the model's accuracy rests on 29 held-out authorities. The AI limit lives in the memory of one process, so a restart clears it, and email has never been sent through a real mail server (FR-09, FR-10, FR-15).
+**Limitation.** The model's accuracy rests on 29 held-out authorities, so one authority moves it by about 3.4 points. Email has never been sent through a real mail server (FR-15), citizens get no email when their report changes (FR-11), and Docker Compose was not run for the demonstration. In Assignment 4 I also listed manual scoring and a per-process AI limit as limitations. Both are now fixed (FR-09, FR-10).
 
-**Future enhancement.** A scheduled job that re-scores the authorities after each data load, followed by a notice to the citizen when a ticket is verified (FR-11). Both build on the existing alert and notification tables.
+**Future enhancement.** A notice to the citizen when their ticket is verified (FR-11), by email or SMS. It builds on the existing notification table, and it needs the citizen to give a contact detail on the report form.
 
 ## Question 5: Communication and Individual Mastery
 
 ### 5.1 Narrative, slides and delivery
 
-The deck has 16 slides plus three backup slides: title, problem and users, scope and status, roadmap and stack, five UML slides, consistency, the live demonstration, test results, measures, benefit and privacy, limits, my contribution, and questions. Each slide carries one idea and the same names as the application, the diagrams and this report. The target is 14 minutes with a limit of 15, followed by about 5 minutes of questions.
+The deck has 17 slides plus four backup slides: title, problem and users, scope and status, roadmap and stack, five UML slides (use case, class, sequence, component, deployment), consistency, the live demonstration, test results, measures, benefit and privacy, limits, my contribution, and questions. Each slide carries one idea and the same names as the application, the diagrams and this report. The target is 14 minutes with a limit of 15, followed by about 5 minutes of questions.
 
 | Time | Content |
 |---|---|

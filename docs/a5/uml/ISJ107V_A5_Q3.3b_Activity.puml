@@ -1,0 +1,70 @@
+@startuml
+skinparam shadowing false
+skinparam dpi 200
+skinparam defaultFontName Helvetica
+title HydroSentinel: Activity Diagram, report to verified repair
+
+|Citizen|
+start
+:Choose province, WSA, issue type;
+:Describe problem, pin location, add photos;
+:Submit report;
+|System|
+if (Valid input and WSA exists?) then (no)
+  :Return 422 or 404;
+  |Citizen|
+  :See error message;
+  stop
+else (yes)
+endif
+|System|
+:Save report, keep image files only,\ncreate reference code;
+|AI (GPT-4o)|
+:Write acknowledgement for the citizen;
+|Citizen|
+:See reference code and AI reply;
+|Admin|
+:Sign in, open the report, set "in review";
+:Press Draft with AI for the ticket;
+|AI (GPT-4o)|
+:Draft instructions, suggest a contractor\n(template text if OpenAI fails);
+|Admin|
+:Edit the draft and press Assign;
+|System|
+if (Report already has an open ticket?) then (yes)
+  :Return 409;
+  |Admin|
+  :Reload and check the ticket;
+  stop
+else (no)
+endif
+|System|
+:Save ticket, notify the contractor,\nwrite audit row;
+|Contractor|
+if (Accept the job?) then (no)
+  :Reject with a reason;
+  |System|
+  :Free the report for another contractor;
+  stop
+else (yes)
+endif
+|Contractor|
+:Start work, add repair photos;
+:Mark fixed with a note;
+|System|
+:Ticket becomes "fixed",\nreport stays "in review";
+|Admin|
+if (Work is correct?) then (no)
+  :Send back with a note;
+  |Contractor|
+  :Fix again;
+else (yes)
+endif
+|Admin|
+:Verify the repair;
+|System|
+:Close ticket, resolve report, write audit row;
+|Citizen|
+:Track report, see "resolved";
+stop
+@enduml

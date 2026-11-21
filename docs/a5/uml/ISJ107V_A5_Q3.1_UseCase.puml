@@ -1,79 +1,105 @@
 @startuml
+' Editable source of the use-case diagram. The picture in the report and slides is drawn by gen_usecase.py in the same layout as Assignment 4.
 skinparam shadowing false
-skinparam dpi 150
+skinparam dpi 200
 skinparam defaultFontName Helvetica
 skinparam packageStyle rectangle
-top to bottom direction
-title HydroSentinel: Use-Case Diagram
+left to right direction
+title HydroSentinel: Use-Case Diagram (final system)
 
-actor "Citizen" as Citizen
-actor "Authority admin" as AuthAdmin
-actor "Admin (national)" as Admin
-actor "Contractor" as Contractor
-actor "GPT-4o (OpenAI)" as GPT <<external>>
-actor "XGBoost model" as ML <<internal>>
+actor "Regulator" as Reg
+actor "Citizen" as Cit
+actor "Contractor" as Con
+actor "Admin\n(national, or limited to one authority)" as Adm
+actor "OpenAI API (GPT-4o)" as GPT <<system>>
 
 rectangle "HydroSentinel" {
-  usecase "View dashboard and map" as UC1
-  usecase "Submit report" as UC2
-  usecase "Track report by code" as UC3
-  usecase "Sign in" as UC4
-  usecase "Triage report (case_status)" as UC5
-  usecase "Assign report to contractor" as UC6
-  usecase "Draft ticket with AI" as UC7
-  usecase "Verify or send back repair" as UC8
-  usecase "Work ticket (accept, reject, start, fix)" as UC9
-  usecase "Manage contractors and coverage" as UC10
-  usecase "Manage CAP status" as UC11
-  usecase "Score risk" as UC12
-  usecase "Read alerts and notifications" as UC13
-  usecase "Read audit log" as UC14
-  usecase "Manage users and passwords" as UC15
-  usecase "Ask AI assistant" as UC16
-  usecase "Change own password" as UC17
+  rectangle "Public functions (no sign-in)" {
+    usecase "View risk map and AI summaries" as U1
+    usecase "Submit report with photos" as U2
+    usecase "Track report by reference code" as U3
+  }
+  rectangle "Any signed-in user" {
+    usecase "Work my tickets (accept, reject, start, fix)" as U4
+    usecase "Add repair photos" as U5
+    usecase "Read notifications" as U6
+    usecase "Change own password" as U7
+  }
+  rectangle "Admin functions" {
+    usecase "Triage report" as A1
+    usecase "Draft AI case note" as A2
+    usecase "Assign report to contractor" as A3
+    usecase "Draft ticket with AI" as A4
+    usecase "Verify or send back repair" as A5
+    usecase "Check photo with AI" as A6
+    usecase "Score WSA risk (XGBoost)" as A7
+    usecase "Update CAP status and deadline" as A8
+    usecase "Draft CAP with AI" as A9
+    usecase "Accept CAP item" as A10
+    usecase "Manage contractors and coverage" as A11
+    usecase "Ask AI about data or regulations" as A12
+    usecase "Get AI briefing and recommendations" as A13
+    usecase "Review and acknowledge alerts" as A14
+    usecase "View audit log" as A15
+    usecase "Manage users and passwords" as A16
+    usecase "Export data and management report" as A17
+  }
+  usecase "Sign in" as SI
 }
 
-Citizen --> UC1
-Citizen --> UC2
-Citizen --> UC3
-AuthAdmin --> UC5
-AuthAdmin --> UC6
-AuthAdmin --> UC8
-AuthAdmin --> UC10
-AuthAdmin --> UC11
-AuthAdmin --> UC12
-AuthAdmin --> UC13
-AuthAdmin --> UC17
-Admin --|> AuthAdmin
-Admin --> UC14
-Admin --> UC15
-Admin --> UC16
-Contractor --> UC9
-Contractor --> UC13
-Contractor --> UC17
-UC5 ..> UC4 : <<include>>
-UC6 ..> UC4 : <<include>>
-UC9 ..> UC4 : <<include>>
-UC7 .> UC6 : <<extend>>
-UC12 ..> UC13 : <<include>>
-UC7 --> GPT
-UC16 --> GPT
-UC12 --> ML
-UC1 -[hidden]down- UC5
-UC2 -[hidden]down- UC6
-UC3 -[hidden]down- UC7
-UC4 -[hidden]down- UC8
-UC5 -[hidden]down- UC10
-UC6 -[hidden]down- UC11
-UC7 -[hidden]down- UC12
-UC8 -[hidden]down- UC13
-UC9 -[hidden]down- UC17
-UC10 -[hidden]down- UC14
-UC11 -[hidden]down- UC15
-UC12 -[hidden]down- UC16
-note bottom of AuthAdmin
-  Authority admin = an admin account tied to one
-  authority (users.wsa_id). Admin (national) can do all of
-  it plus the audit log, users and AI assistant.
-end note
+Reg --> U1
+Cit --> U1
+Cit --> U2
+Cit --> U3
+Con --> U4
+Con --> U5
+Con --> U6
+Con --> U7
+Adm --> U6
+Adm --> U7
+Adm --> A1
+Adm --> A3
+Adm --> A5
+Adm --> A6
+Adm --> A7
+Adm --> A8
+Adm --> A9
+Adm --> A11
+Adm --> A12
+Adm --> A13
+Adm --> A14
+Adm --> A15
+Adm --> A16
+Adm --> A17
+
+A2 ..> A1 : <<extend>>
+A4 ..> A3 : <<extend>>
+A10 ..> A9 : <<extend>>
+U5 ..> U4 : <<extend>>
+U4 ..> SI : <<include>>
+U6 ..> SI : <<include>>
+U7 ..> SI : <<include>>
+A1 ..> SI : <<include>>
+A3 ..> SI : <<include>>
+A5 ..> SI : <<include>>
+A6 ..> SI : <<include>>
+A7 ..> SI : <<include>>
+A8 ..> SI : <<include>>
+A9 ..> SI : <<include>>
+A11 ..> SI : <<include>>
+A12 ..> SI : <<include>>
+A13 ..> SI : <<include>>
+A14 ..> SI : <<include>>
+A15 ..> SI : <<include>>
+A16 ..> SI : <<include>>
+A17 ..> SI : <<include>>
+
+U1 -- GPT
+U2 -- GPT
+A2 -- GPT
+A4 -- GPT
+A6 -- GPT
+A9 -- GPT
+A12 -- GPT
+A13 -- GPT
 @enduml

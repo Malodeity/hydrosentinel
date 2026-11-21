@@ -1,31 +1,49 @@
 @startuml
 skinparam shadowing false
-skinparam dpi 150
+skinparam dpi 200
 skinparam defaultFontName Helvetica
-skinparam maxMessageSize 260
-skinparam sequenceMessageAlign left
-title HydroSentinel: Sequence Diagram, a report becomes a repaired ticket
+title HydroSentinel: Sequence Diagram, draft a ticket with AI, repair it and verify it
 
-actor Citizen
 actor Admin
 actor Contractor
-control "FastAPI\n(routes/reports.py, routes/assignments.py,\nroutes/ai.py)" as API
+boundary "React UI\n(AdminPage,\nContractorTicketsPage)" as UI
+control "FastAPI\n(routes/ai.py,\nroutes/assignments.py)" as API
 participant "GPT-4o\n(OpenAI API)" as AI
 database "PostgreSQL" as DB
 
-Citizen -> API : POST /reports (issue, pin, photos)
-API -> DB : INSERT CitizenReport (open)
-API --> Citizen : reference code
-Admin -> API : GET /ai/reports/{report_id}/work-order
-API -> AI : report details
-AI --> API : instructions (or plain template if OpenAI fails)
-API --> Admin : draft + suggested contractor
-Admin -> API : POST /reports/{report_id}/assign (a person confirms)
-API -> DB : INSERT ReportAssignment, Notification, AuditLog
-Contractor -> API : PATCH /my/tickets/{assignment_id} (accept, start, fix + note)
-API -> DB : UPDATE ReportAssignment (fixed), Notification to admins
-Admin -> API : PATCH /assignments/{assignment_id}/review (verify)
-API -> DB : ticket closed, CitizenReport resolved, AuditLog
-Citizen -> API : GET /reports/track/{reference_code}
-API --> Citizen : resolved (no company, no location)
+Admin -> UI : Open a report, press Draft with AI
+UI -> API : GET /ai/reports/{report_id}/work-order (Bearer JWT)
+alt over 20 AI requests this hour
+  API --> UI : 429
+else within limit
+  API -> DB : load report, authority, contractors set up for it
+  alt OpenAI works
+    API -> AI : structured prompt (30 s timeout)
+    AI --> API : instructions + suggested contractor
+  else no key or OpenAI failure
+    API -> API : use template text
+  end
+  API --> UI : 200 draft
+end
+Admin -> UI : Edit the draft, press Assign
+UI -> API : POST /reports/{report_id}/assign
+alt another admin assigned it first
+  API --> UI : 409
+else assigned
+  API -> DB : INSERT ReportAssignment, Notification, AuditLog
+  API --> UI : 201 ticket
+end
+Contractor -> UI : Accept, start, mark fixed with a note
+UI -> API : PATCH /my/tickets/{assignment_id}
+alt step out of order or no note
+  API --> UI : 409 / 422
+else allowed
+  API -> DB : UPDATE ReportAssignment (fixed), Notification to admins
+  API --> UI : 200 (report stays in review)
+end
+Admin -> UI : Check the work, press Verify
+UI -> API : PATCH /assignments/{assignment_id}/review
+API -> DB : close ticket, resolve CitizenReport, INSERT AuditLog
+API --> UI : 200
+UI --> Admin : Report is resolved
 @enduml

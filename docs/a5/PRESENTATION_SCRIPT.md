@@ -5,14 +5,14 @@ Total target 14:00 (limit 15:00). Slide numbers match `slides/slides.html`.
 | Time | Slide | Say (one idea) |
 |---|---|---|
 | 0:00 | 1 to 2 | HydroSentinel closes the loop from a resident's report to a verified repair. Problem, users, aim. |
-| 0:45 | 3 | Done: FR-01 to FR-08. Approved change after A4: contractor tickets (FR-12 to FR-18). Not done: FR-09, FR-10, FR-11, photo on fixed. |
+| 0:45 | 3 | Done: FR-01 to FR-10. Approved change after A4: contractor tickets, search, repair photos (FR-12 to FR-21). Not done: FR-11 (citizen email). |
 | 1:15 | 4 | Talk order. Stack. Emerging tech: XGBoost scores risk, GPT-4o drafts text, a person decides. |
-| 1:45 | 5 to 8 | 20 s each on use case, class, component+deployment. Sequence 40 s: walk the 6 steps. Name the AI call. |
-| 3:30 | 9 | 60 names checked against the code, 0 mismatches. Three deviations and why. |
-| 4:15 | 10 | **Live demo** (about 6:15). |
-| 10:30 | 11 to 12 | Tests: 279, 109, 27 of 27, UAT __ of 12. Measures: 7 ms, 89.7% vs 34.5%. |
-| 12:00 | 13 to 14 | Privacy by design. Limits and next step. |
-| 13:00 | 15 | Contribution, lesson, decision (3 sentences each, out loud). |
+| 1:45 | 5 to 9 | 20 s each on use case, class, component+deployment. Sequence 40 s: walk the 6 steps. Name the AI call. |
+| 3:30 | 10 | 54 names checked against the code, 0 mismatches. Three deviations and why. |
+| 4:15 | 11 | **Live demo** (about 6:15). |
+| 10:30 | 12 to 13 | Tests: 292, 113, 27 of 27, UAT 12 of 12, average rating 4.25. Measures: 9 ms, 89.7% vs 34.5%. |
+| 12:00 | 14 to 15 | Privacy by design. Limits and next step. |
+| 13:00 | 16 | Contribution, lesson, decision (3 sentences each, out loud). |
 
 ## Demo script (reset first: `bash docs/a5/reset_demo.sh`, then `bash docs/a4/start_demo.sh`)
 

@@ -59,6 +59,11 @@ cd backend && PYTHONPATH=. .venv/bin/python -m scripts.seed_demo_reports --apply
 
 Everyone can change their own password (key icon in the header). A national admin can reset anyone's on the Users tab.
 
+### Automatic risk re-scoring
+A background task re-scores every authority whose latest score is older than `RESCORE_INTERVAL_HOURS` (default 24, `0` turns it off). It uses the same code as the **Score risk now** button, so it raises the same alerts. A history row with no user marks an automatic run, and the CAP tab shows when it last ran. It is safe with several servers: a database lock lets only one do the work.
+
+The 20-per-hour AI limit is also kept in the database (table `ai_calls`), so a restart does not reset it and several servers share one count.
+
 ### What works without an OpenAI key
 Everything except the AI text: the dashboard, reports, tickets, XGBoost scoring and alerts all run. AI buttons return a clear error, and the ticket draft falls back to a plain template.
 If `ai/model.pkl` is missing the API uses a rule-based fallback; retrain with `cd backend && PYTHONPATH=. .venv/bin/python ai/train_from_bdrr.py --deploy`.
@@ -66,8 +71,8 @@ The DWS audit PDFs (`backend/data/raw/`) are not committed (they are public DWS 
 
 ## Tests
 ```bash
-cd backend && .venv/bin/pytest tests/ -q          # 279 backend tests (rolled-back transactions on the real database)
-cd frontend && npx vitest run && npx tsc --noEmit # 109 frontend tests, type check
+cd backend && .venv/bin/pytest tests/ -q          # 292 backend tests (rolled-back transactions on the real database)
+cd frontend && npx vitest run && npx tsc --noEmit # 113 frontend tests, type check
 cd backend && python scripts/e2e_workflow.py      # end-to-end against the running system, includes the contractor ticket loop
 ```
 

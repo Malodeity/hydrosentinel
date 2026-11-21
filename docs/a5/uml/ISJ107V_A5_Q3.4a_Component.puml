@@ -1,82 +1,39 @@
 @startuml
 skinparam shadowing false
-skinparam dpi 150
+skinparam dpi 200
 skinparam defaultFontName Helvetica
+skinparam componentStyle rectangle
 top to bottom direction
-skinparam nodesep 12
-skinparam ranksep 40
+skinparam nodesep 30
+skinparam ranksep 45
 title HydroSentinel: Component Diagram
 
-package "Front end (React 18, Vite, Tailwind)" {
-  [DashboardPage] as Dash
-  [ReportPage] as RepP
-  [AdminPage] as AdmP
-  [ContractorTicketsPage] as TickP
-  [NotificationBell] as Bell
-  [api/client.ts\n(axios, JWT, refresh)] as Client
+package "Front end (React 18, Vite)" {
+  component "Pages\nDashboardPage, ReportPage,\nAdminPage, ContractorTicketsPage,\nNotificationBell" as Pages
+  component "api/client.ts\n(axios, JWT, refresh)" as Client
 }
 package "Back end (FastAPI)" {
-  package "routers" {
-    [routes/auth.py] as RAuth
-    [routes/wsa.py] as RWsa
-    [routes/reports.py] as RRep
-    [routes/assignments.py] as RAssign
-    [routes/risk.py] as RRisk
-    [routes/alerts.py] as RAlert
-    [routes/audit.py] as RAudit
-    [routes/users.py] as RUsers
-    [routes/ai.py] as RAi
-  }
-  package "services" {
-    [app/auth.py] as SAuth
-    [app/assignment_helpers.py] as SAssign
-    [app/alert_helpers.py] as SAlert
-    [app/audit_helpers.py] as SAudit
-    [app/mailer.py] as SMail
-    [app/rate_limit.py] as SRate
-  }
-}
-package "AI" {
-  [ai/predict.py\n(XGBoost + heuristic)] as Pred
-  [ai/rag.py\n(regulatory PDFs)] as Rag
-  [ai/query_agent.py] as Agent
+  component "Routers\nroutes/reports.py, routes/assignments.py,\nroutes/risk.py, routes/ai.py, routes/auth.py,\nroutes/wsa.py, routes/alerts.py,\nroutes/audit.py, routes/users.py" as Routers
+  component "Services\napp/auth.py, app/assignment_helpers.py,\napp/alert_helpers.py, app/audit_helpers.py,\napp/rate_limit.py, app/mailer.py,\napp/scheduler.py" as Services
+  component "AI modules\nai/predict.py (XGBoost + heuristic),\nai/rag.py, ai/query_agent.py" as AI
+  component "app/models.py\n(SQLAlchemy)" as Models
 }
 database "PostgreSQL" as DB
-folder "data/uploads" as Up
+folder "data/uploads\n(photos)" as Up
 artifact "ai/model.pkl" as Model
-cloud "OpenAI API (GPT-4o)" as OAI
-cloud "SMTP server (optional)" as Smtp
+cloud "OpenAI API\n(GPT-4o)" as OAI
+cloud "SMTP server\n(optional)" as Smtp
 
-Dash --> Client
-RepP --> Client
-AdmP --> Client
-TickP --> Client
-Bell --> Client
-Client --> RAssign : HTTP/JSON
-Client --> RRep
-Client --> RAi
-Client --> RAuth
-RAuth ..> SAuth
-RAssign ..> SAssign
-RAssign ..> SAudit
-RRep ..> SAudit
-RRisk ..> SAlert
-RRisk ..> Pred
-RAi ..> SRate
-RAi ..> Rag
-RAi ..> Agent
-SAssign ..> SMail
-RRep --> Up
-Pred --> Model
-RAi --> OAI
-SMail --> Smtp
-RAssign --> DB
-RRep --> DB
-RWsa --> DB
-RAlert --> DB
-RAudit --> DB
-RUsers --> DB
-RRisk --> DB
-RAuth --> DB
-note right of Client : also calls routes/wsa, risk,\nalerts, audit, users
+Pages --> Client
+Client --> Routers : HTTP/JSON, Bearer JWT
+Routers --> Services : use
+Routers --> AI : predict, retrieve, ask
+Services --> Routers : scheduler calls record_score
+Routers --> Models
+Services --> Models
+Models --> DB : SQLAlchemy
+Routers --> Up : photos
+AI --> Model : load at startup
+Routers --> OAI : HTTPS, key from .env
+Services --> Smtp : only if SMTP_HOST is set
 @enduml

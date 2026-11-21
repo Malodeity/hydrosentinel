@@ -12,8 +12,8 @@ Re-checked against the code on 2026-11-16. Evidence column points at a saved tes
 | FR-06 | Automatic alerts: high risk, increase, volume spike, cluster, overdue CAP, **overdue ticket** | Completed | `alert_helpers.py` | pytest `test_alerts.py`, `test_assignments.py` | pytest_full.txt |
 | FR-07 | Admin updates CAP status and due date, audited | Completed | `PATCH /wsa/{wsa_id}` | pytest `test_audit_log.py` | pytest_full.txt |
 | FR-08 | Risk scoring from the admin page | **Completed (was Partial in A4)** | "Score risk now" button, `POST /risk/score/{wsa_id}` | TC-05 | e2e_output.txt |
-| FR-09 | AI rate limit shared across servers | Partial | 20 per hour per user, held in one process (`rate_limit.py`) | pytest | limitation slide |
-| FR-10 | Scheduled automatic re-scoring | Deferred | Scoring runs on request | none | limitation slide |
+| FR-09 | AI rate limit shared across servers | **Completed (was Partial in A4)** | 20 per hour per user, counted in the `ai_calls` table (`rate_limit.py`) | TC-22 | pytest `test_ai_rate_limit.py` |
+| FR-10 | Scheduled automatic re-scoring | **Completed (was Deferred in A4)** | `app/scheduler.py`, `RESCORE_INTERVAL_HOURS`, database lock | TC-23 | pytest `test_scheduler.py` |
 | FR-11 | Email/SMS to **citizens** on status change | Deferred | Citizens use the tracker. Staff get bell notices and optional email | none | limitation slide |
 | FR-12 *(approved change)* | Admin assigns a report to a contractor as a ticket. Contractor accepts or rejects, works it, marks fixed. Admin verifies, which resolves the report | Completed | `ReportAssignment`, `POST /reports/{report_id}/assign`, `PATCH /my/tickets/{assignment_id}`, `PATCH /assignments/{assignment_id}/review` | TC-10 | e2e_output.txt |
 | FR-13 | A contractor sees only its own tickets and can never resolve a report | Completed | `get_current_contractor`, 404 for another's ticket | TC-11, TC-12 | pytest `test_assignments.py` |
@@ -22,18 +22,21 @@ Re-checked against the code on 2026-11-16. Evidence column points at a saved tes
 | FR-16 | Overdue tickets raise an alert | Completed | `assignment_overdue` | pytest | pytest_full.txt |
 | FR-17 | AI drafts ticket instructions and suggests a contractor; a person confirms | Completed | `GET /ai/reports/{report_id}/work-order` | TC-17 | pytest |
 | FR-18 | Users can change their password; a national admin can reset one | Completed | `POST /auth/change-password`, `PATCH /users/{user_id}/password` | TC-18 | pytest |
+| FR-19 | Search contractors by name, contact, phone, email or authority | Completed | `ContractorsTab`, `lib/contractorSearch.ts` | TC-24 | vitest `contractorSearch.test.ts` |
+| FR-20 | Contractor attaches repair photos; admin sees them before verifying | Completed | `POST /my/tickets/{assignment_id}/photos`, `repair_photo_urls` | TC-21 | pytest `test_assignments.py` |
+| FR-21 | Add a contractor with a province and issue types in one step | Completed | `ContractorsTab` form | by hand | browser check |
 | ETR-01 | XGBoost risk scoring with rule-based fallback | Completed | `ai/predict.py` | TC-05 | e2e_output.txt, 89.7% held out |
 | ETR-02 | GPT-4o drafts CAP items; admin accepts | Completed | `GET /ai/wsa/{wsa_id}/cap-draft` | TC-06 | e2e_output.txt |
 | ETR-03 | Regulatory questions answered from the DWS PDFs | Completed | `ai/rag.py`, `POST /ai/query` | pytest `test_rag.py` | pytest_full.txt |
 
 ## Approved change since Assignment 4
-FR-12 to FR-18: contractor tickets, authority-scoped admins, notifications, AI work-order draft, bulk assign, province-wide coverage, password change and reset, "Score risk now" button, single-open-ticket database rule.
+FR-12 to FR-21: contractor tickets, authority-scoped admins, notifications, AI work-order draft, bulk assign, province-wide coverage, password change and reset, "Score risk now" button, single-open-ticket database rule, contractor search, repair photos, and the Add contractor form with a province.
 
 ## Incomplete items (kept on the scope slide)
-FR-09 (limit per process), FR-10 (no scheduler), FR-11 (no citizen email). Also: photo on "Fixed" not built; email never sent to a real SMTP server; NRW is a province estimate, display only.
+FR-11 (no citizen email). Also: email never sent to a real SMTP server; Docker Compose not run for the demo; NRW is a province estimate, display only.
 
 ## Justified deviations from the design
 1. Contractor tickets are a separate table (`ReportAssignment`), not a new `case_status`, so the citizen tracker, CSV and old reports keep working.
 2. Switching a contractor off stops new tickets only. It can still finish tickets it holds (found in review: the first version locked it out and stranded repairs).
 3. One open ticket per report is enforced by a partial unique index in PostgreSQL, not only in code.
-4. Risk scoring is manual, not scheduled (FR-10).
+4. Risk scoring also runs on a schedule (FR-10) and the AI limit is counted in the database (FR-09). Both were limitations in Assignment 4.

@@ -93,7 +93,7 @@ h2{font-size:60px;white-space:nowrap}
 .uml .pic img{max-width:100%;max-height:100%;object-fit:contain;display:block}
 
 .pic2{position:absolute;left:.45in;right:.45in;top:1.15in;bottom:.62in;display:flex;flex-direction:column;gap:.12in}.pic2 .pic{min-height:0}
-.pic2 .pic{position:relative;inset:auto;flex:1;left:auto;right:auto;top:auto;bottom:auto}
+.pic2.row{flex-direction:row}.pic2 .pic{position:relative;inset:auto;flex:1;left:auto;right:auto;top:auto;bottom:auto}
 .tbl{width:100%;border-collapse:collapse;font-size:24px}.tbl th{text-align:left;color:var(--blue);font-size:18px;letter-spacing:1.5px;text-transform:uppercase;padding:10px 14px;border-bottom:2px solid var(--border)}
 .tbl td{padding:11px 14px;border-bottom:1px solid var(--border);font-weight:500;line-height:1.25}
 .ok{color:#15803d;font-weight:700}.warn{color:#b45309;font-weight:700}
@@ -120,9 +120,9 @@ h2{font-size:60px;white-space:nowrap}
 <!-- 3 -->
 <div class="s light"><div class="hd"><div class="eyebrow">Scope and status</div><h2>What is <span class="g">done,</span> what changed, what is <span class="g">not.</span></h2></div>
 <div class="ct"><div class="two" style="grid-template-columns:1fr 1fr 1fr">
-<div class="pane card" style="background:#fff;color:var(--fg)"><h3 style="color:var(--blue)">Done (FR-01 to FR-08)</h3><ul><li>Dashboard, map, AI digest</li><li>Report, photos, tracking code</li><li>Admin sign-in, triage, alerts, CAP</li><li>Risk scoring button (new)</li></ul></div>
-<div class="pane card" style="background:#fff;color:var(--fg)"><h3 style="color:var(--blue)">Approved change (FR-12 to FR-18)</h3><ul><li>Contractor tickets: assign, accept, fix, verify</li><li>Authority-limited admins</li><li>Notifications, overdue alert</li><li>AI ticket draft, password change</li></ul></div>
-<div class="pane card" style="background:#fff;color:var(--fg)"><h3 style="color:#b45309">Not done</h3><ul><li>Scheduled re-scoring (FR-10)</li><li>Email to citizens (FR-11)</li><li>AI limit shared across servers (FR-09)</li><li>Photo on "fixed"</li></ul></div></div>
+<div class="pane card" style="background:#fff;color:var(--fg)"><h3 style="color:var(--blue)">Done (FR-01 to FR-10)</h3><ul><li>Dashboard, map, AI digest</li><li>Report, photos, tracking code</li><li>Admin sign-in, triage, alerts, CAP</li><li>Risk scoring: button and every 24 h</li></ul></div>
+<div class="pane card" style="background:#fff;color:var(--fg)"><h3 style="color:var(--blue)">Approved change (FR-12 to FR-21)</h3><ul><li>Contractor tickets with repair photos</li><li>Authority-limited admins</li><li>Notifications, overdue alert</li><li>AI ticket draft, search, passwords</li></ul></div>
+<div class="pane card" style="background:#fff;color:var(--fg)"><h3 style="color:#b45309">Not done</h3><ul><li>Email to citizens (FR-11)</li><li>Email never sent through a real mail server</li><li>Docker Compose not run for the demo</li></ul></div></div>
 <style>.pane li{color:var(--fg)!important;font-size:25px!important}</style></div>
 <div class="foot"><span>HydroSentinel</span><span>3</span></div></div>
 
@@ -131,7 +131,7 @@ h2{font-size:60px;white-space:nowrap}
 <div class="ct"><div class="steps">
 <div class="step card"><div class="n1">1</div><em>Design</em><b>UML</b><span class="d">Use case, class, sequence, component, deployment. Then consistency with the code.</span></div>
 <div class="step card"><div class="n1">2</div><em>Live</em><b>Demo</b><span class="d">Report, validate, assign, fix, verify. Risk scoring. Audit log.</span></div>
-<div class="step card"><div class="n1">3</div><em>Evidence</em><b>Results</b><span class="d">279 + 109 tests, 27 end-to-end checks, measures, users, limits.</span></div></div></div>
+<div class="step card"><div class="n1">3</div><em>Evidence</em><b>Results</b><span class="d">292 + 113 tests, 27 end-to-end checks, measures, users, limits.</span></div></div></div>
 <div class="foot"><span>React 18 &middot; FastAPI &middot; PostgreSQL &middot; XGBoost &middot; GPT-4o</span><span>4</span></div></div>
 
 <!-- 5 -->
@@ -147,18 +147,21 @@ h2{font-size:60px;white-space:nowrap}
 <div class="pic"><img src="../uml/ISJ107V_A5_Q3.3_Sequence.png"></div><div class="foot"><span>HydroSentinel</span><span>7</span></div></div>
 
 <!-- 8 -->
-<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.4 Component and deployment</div><h2>Modules, and where they run.</h2></div>
-<div class="pic2"><div class="pic"><img src="../uml/ISJ107V_A5_Q3.4a_Component.png"></div><div class="pic"><img src="../uml/ISJ107V_A5_Q3.4b_Deployment.png"></div></div>
-<div class="foot"><span>Runs on the presenter laptop (or Docker Compose). No cloud hosting.</span><span>8</span></div></div>
+<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.4 Component</div><h2>The modules, layer by layer.</h2></div>
+<div class="pic"><img src="../uml/ISJ107V_A5_Q3.4a_Component.png"></div><div class="foot"><span>HydroSentinel</span><span>8</span></div></div>
+
+<!-- 8b -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.4 Deployment</div><h2>Where it runs.</h2></div>
+<div class="pic"><img src="../uml/ISJ107V_A5_Q3.4b_Deployment.png"></div><div class="foot"><span>Runs on the presenter laptop. No cloud hosting.</span><span>9</span></div></div>
 <!-- 9 -->
 <div class="s light"><div class="hd"><div class="eyebrow">Q3.5 Consistency</div><h2>Requirements, diagrams and code <span class="g">agree.</span></h2></div>
 <div class="ct"><table class="tbl"><tr><th>Check</th><th>Result</th></tr>
-<tr><td>Names on diagrams exist in the code (routes, files, classes)</td><td class="ok">60 checked, 0 mismatches</td></tr>
+<tr><td>Names on diagrams exist in the code (routes, files, classes)</td><td class="ok">54 checked, 0 mismatches</td></tr>
 <tr><td>Class diagram generated from <code>models.py</code></td><td class="ok">cannot drift</td></tr>
 <tr><td>Ticket kept in its own table, not a new case status</td><td class="warn">Deviation: tracker and CSV keep working</td></tr>
 <tr><td>Switch-off stops new tickets only</td><td class="warn">Deviation: found in review, stranded repairs</td></tr>
 <tr><td>One open ticket per report, enforced by PostgreSQL</td><td class="warn">Added after the design</td></tr></table></div>
-<div class="foot"><span>HydroSentinel</span><span>9</span></div></div>
+<div class="foot"><span>HydroSentinel</span><span>10</span></div></div>
 
 <!-- 10 -->
 <div class="s dark"><div class="hd"><div class="eyebrow">Live demonstration</div><h2>About <span class="g">six minutes,</span> one story.</h2></div>
@@ -168,25 +171,25 @@ h2{font-size:60px;white-space:nowrap}
 <li><span class="n1">3</span>Admin signs in, AI drafts the ticket, assigns</li>
 <li><span class="n1">4</span>Contractor accepts, fixes. Admin verifies. Report resolved</li>
 <li><span class="n1">5</span>Risk scoring (XGBoost) and the audit log</li></ul></div>
-<div class="foot"><span>Fallback: recorded video, template text without AI</span><span>10</span></div></div>
+<div class="foot"><span>Fallback: recorded video, template text without AI</span><span>11</span></div></div>
 
 <!-- 11 -->
 <div class="s light"><div class="hd"><div class="eyebrow">Q4.1 Test results</div><h2>Everything passes. <span class="g">Nothing hidden.</span></h2></div>
 <div class="ct"><table class="tbl"><tr><th>Level</th><th>Passed</th><th>Failed</th><th>Unresolved</th></tr>
-<tr><td>Backend (pytest)</td><td class="ok">279</td><td>0</td><td>0</td></tr>
-<tr><td>Frontend (Vitest)</td><td class="ok">109</td><td>0</td><td>0</td></tr>
+<tr><td>Backend (pytest)</td><td class="ok">292</td><td>0</td><td>0</td></tr>
+<tr><td>Frontend (Vitest)</td><td class="ok">113</td><td>0</td><td>0</td></tr>
 <tr><td>End-to-end on the live system</td><td class="ok">27 of 27</td><td>0</td><td>0</td></tr>
-<tr><td>User acceptance (3 testers, 4 tasks)</td><td><span class="todo">__ of 12</span></td><td><span class="todo">__</span></td><td><span class="todo">__</span></td></tr></table>
+<tr><td>User acceptance (3 testers, 4 tasks)</td><td>12 of 12</td><td>0</td><td>0</td></tr></table>
 <p class="sub" style="margin-top:.25in;font-size:22px">Not covered by automation: a real mail server, and the browser screens (checked by hand and by the testers).</p></div>
-<div class="foot"><span>HydroSentinel</span><span>11</span></div></div>
+<div class="foot"><span>HydroSentinel</span><span>12</span></div></div>
 
 <!-- 12 -->
 <div class="s light"><div class="hd"><div class="eyebrow">Q4.2 Measures</div><h2>Fast, and the model <span class="g">beats the rule.</span></h2></div>
 <div class="ct"><div class="stats">
-<div class="stat card"><b>7 ms</b><span>Median to list 169 authorities (p95 9 ms, 50 calls)</span><small>43 ms for the admin report list</small></div>
+<div class="stat card"><b>9 ms</b><span>Median to list 169 authorities (p95 13 ms, 50 calls)</span><small>84 ms for the admin report list</small></div>
 <div class="stat card"><b>89.7%</b><span>XGBoost held-out accuracy (26 of 29)</span><small>80.6% cross-validated, rule baseline 34.5%</small></div>
 <div class="stat card"><b>27/27</b><span>End-to-end checks, including contractor loop</span><small>One laptop, server and client together</small></div></div></div>
-<div class="foot"><span>HydroSentinel</span><span>12</span></div></div>
+<div class="foot"><span>HydroSentinel</span><span>13</span></div></div>
 
 <!-- 13 -->
 <div class="s light"><div class="hd"><div class="eyebrow">Q4.3 Benefit and privacy</div><h2>Residents are <span class="g">protected</span> by design.</h2></div>
@@ -194,15 +197,15 @@ h2{font-size:60px;white-space:nowrap}
 <div class="row card"><i>Benefit</i><p>A report no longer vanishes: it becomes a ticket with an owner, a due time and a check.</p></div>
 <div class="row card"><i>Privacy</i><p>The public tracker hides location and photos. A contractor sees them only for its own ticket (others return 404).</p></div>
 <div class="row card"><i>AI control</i><p>AI only drafts. Photos go to OpenAI only on request. A person confirms every assignment and every repair.</p></div></div></div>
-<div class="foot"><span>HydroSentinel</span><span>13</span></div></div>
+<div class="foot"><span>HydroSentinel</span><span>14</span></div></div>
 
 <!-- 14 -->
 <div class="s dark"><div class="hd"><div class="eyebrow">Q4.4 Limits and next step</div><h2>The <span class="g">honest</span> limits.</h2></div>
 <div class="ct"><div class="lim">
 <div class="card"><p>Model accuracy rests on 29 held-out authorities.<small>One authority moves it 3.4 points. Cross-validation is shown next to it.</small></p></div>
-<div class="card"><p>Scoring is manual; the AI limit lives in one process; email never tested on a real server.<small>FR-09, FR-10 and FR-15 stay open.</small></p></div>
-<div class="card"><p>Next: scheduled re-scoring, then citizen notices when a ticket is verified.<small>Both build on the existing alert and notification tables.</small></p></div></div></div>
-<div class="foot"><span>HydroSentinel</span><span>14</span></div></div>
+<div class="card"><p>No email to citizens (FR-11); email never tested on a real server; Docker Compose not run.<small>Scoring and the AI limit were limits in Assignment 4. Both are now fixed.</small></p></div>
+<div class="card"><p>Next: a citizen notice when their ticket is verified (FR-11).<small>It builds on the existing notification table.</small></p></div></div></div>
+<div class="foot"><span>HydroSentinel</span><span>15</span></div></div>
 
 <!-- 15 -->
 <div class="s light"><div class="hd"><div class="eyebrow">Q5.4 My contribution</div><h2>What I did, learned and <span class="g">decided.</span></h2></div>
@@ -210,20 +213,23 @@ h2{font-size:60px;white-space:nowrap}
 <div class="row card"><i>Contribution</i><p>Defined the problem and requirements, chose the architecture, designed the ticket rules, directed and reviewed AI-assisted code, ran the tests and the user sessions.</p></div>
 <div class="row card"><i>Lesson</i><p>Check the real data first (NRW was empty for all 169 authorities). Enforce the rules that matter on the server, not only in the screen.</p></div>
 <div class="row card"><i>Key decision</i><p>A person always decides. A contractor can mark fixed; only the authority can verify and resolve.</p></div></div></div>
-<div class="foot"><span>HydroSentinel</span><span>15</span></div></div>
+<div class="foot"><span>HydroSentinel</span><span>16</span></div></div>
 
 <!-- 16 -->
 <div class="s dark"><div class="hero"><h1 class="g" style="font-size:110px">Questions</h1>
 <div class="sub" style="margin-top:26px">Repository, UML sources and evidence are in the submission.</div></div>
-<div class="foot"><span>HydroSentinel</span><span>16</span></div></div>
+<div class="foot"><span>HydroSentinel</span><span>17</span></div></div>
 
 <!-- 17 -->
 <div class="s light uml"><div class="hd"><div class="eyebrow">Backup</div><h2>Contractors tab: coverage by province</h2></div>
-<div class="shotfull"><img src="../screens/06-contractors.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>17</span></div></div>
+<div class="shotfull"><img src="../screens/06-contractors.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>18</span></div></div>
 <!-- 18 -->
 <div class="s light uml"><div class="hd"><div class="eyebrow">Backup</div><h2>Contractor's own tickets</h2></div>
-<div class="shotfull"><img src="../screens/07-contractor-tickets.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>18</span></div></div>
+<div class="shotfull"><img src="../screens/07-contractor-tickets.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>19</span></div></div>
 <!-- 19 -->
 <div class="s light uml"><div class="hd"><div class="eyebrow">Backup</div><h2>Audit log</h2></div>
-<div class="shotfull"><img src="../screens/08-audit-log.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>19</span></div></div>
+<div class="shotfull"><img src="../screens/08-audit-log.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>20</span></div></div>
+<!-- backup activity -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Backup</div><h2>Activity diagram: report to verified repair</h2></div>
+<div class="pic2 row"><div class="pic"><img src="../uml/ISJ107V_A5_Q3.3b_Activity_part1.png"></div><div class="pic"><img src="../uml/ISJ107V_A5_Q3.3b_Activity_part2.png"></div></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>21</span></div></div>
 </body></html>

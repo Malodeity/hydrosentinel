@@ -1,6 +1,6 @@
-GET /wsa (169 rows): median 7 ms, p95 9 ms (n=50)
-POST /reports (multipart, one photo): median 6 ms, p95 9 ms (n=50)
-GET /reports (admin): median 43 ms, p95 65 ms (n=50)
-GET /assignments (admin): median 14 ms, p95 20 ms (n=50)
-POST /risk/score (XGBoost, one WSA): median 7 ms, p95 9 ms (n=20)
+GET /wsa (169 rows): median 9 ms, p95 13 ms (n=50)
+POST /reports (multipart, one photo): median 10 ms, p95 24 ms (n=50)
+GET /reports (admin): median 84 ms, p95 140 ms (n=50)
+GET /assignments (admin): median 25 ms, p95 39 ms (n=50)
+POST /risk/score (XGBoost, one WSA): median 11 ms, p95 22 ms (n=20)
 labelled WSAs in DB: 159

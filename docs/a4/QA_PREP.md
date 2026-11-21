@@ -202,7 +202,7 @@ Validation errors return 422 with the field that failed, missing records return 
 ## 8. Testing
 
 **Q49. How did you test it?**
-Four layers. 279 automated back-end tests (pytest, in database transactions that roll back so real data is never changed). 109 front-end tests (Vitest) for the pure logic. An end-to-end script that runs the whole workflow, including the contractor ticket loop, against the live system: 27 checks. And I checked the interface in a real browser. **Show:** `backend/tests/`, `backend/scripts/e2e_workflow.py`.
+Four layers. 292 automated back-end tests (pytest, in database transactions that roll back so real data is never changed). 113 front-end tests (Vitest) for the pure logic. An end-to-end script that runs the whole workflow, including the contractor ticket loop, against the live system: 27 checks. And I checked the interface in a real browser. **Show:** `backend/tests/`, `backend/scripts/e2e_workflow.py`.
 
 **Q50. What did the tests actually catch?**
 Real bugs. The model silently not loading. A fresh database crashing on start-up because migrations ran before the tables existed. A map that showed nothing for old alerts because the time window was measured from now, not from when the alert was raised. And an admin being able to deactivate their own account. While preparing this presentation I also found that the "risk increased" alert was in the report and the interface labels but nothing actually raised it, so I implemented it and wrote tests that force each outcome.
@@ -221,7 +221,7 @@ The tests check what's sent (the prompt contents, word limits, and failure behav
 ## 9. UML and the report
 
 **Q54. Where does your design differ from the prototype?**
-Scoring: the design assumed it refreshes when new data arrives; the prototype scores on request. The rate limiter: designed as shared, built in-memory. And deployment: designed around Docker Compose, demonstrated by running the services directly. They're in section 3.5 of my report.
+Scoring: the design assumed it refreshes when new data arrives; it now also scores on a schedule (every 24 hours). The rate limiter: designed as shared, first built in memory, now counted in the database. And deployment: designed around Docker Compose, demonstrated by running the services directly. They're in section 3.5 of my report.
 
 **Q55. Explain your use-case diagram.**
 Two human actors and one system actor: a resident reports and tracks, an admin signs in then triages, scores, drafts and accepts a CAP, and OpenAI is an external actor for the four functions that call GPT-4o. Sign-in is included by every admin function, and accepting a CAP item extends drafting.
@@ -234,7 +234,7 @@ The admin interface calls the API with a token. The API checks it, reads the aut
 ## 10. Limitations, ethics and next steps
 
 **Q57. What are the main limitations?**
-Three, each with a fix. The model can fail silently (now it warns and falls back; next, show the scoring source in the interface). The AI limit is in one process's memory (next, a shared store). And scoring is manual (next, a scheduled job).
+The limits, each with a fix. The model can fail silently (now it warns and falls back; next, show the scoring source in the interface). The AI limit and manual scoring were two limits in Assignment 4, and both are now fixed (database-backed limit, scheduled re-scoring). What is left: citizens get no email on a status change, email was never tested on a real mail server, and Docker Compose was not run.
 
 **Q58. What are the ethical risks?**
 A wrong "high risk" rating can wrongly label a municipality, and an AI summary can be wrong. My mitigations are human approval before any change, showing which method scored an authority, and citing numbers from the data. I'd also want an appeal or review route for rated authorities before real use.

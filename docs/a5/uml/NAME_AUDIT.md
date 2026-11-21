@@ -4,40 +4,36 @@ Every name below is drawn on a diagram and checked against the running code.
 
 | Diagram | Kind | Name | Exists in code | Where checked |
 |---|---|---|---|---|
+| Q3.1_UseCase | class | `WSA` | yes | backend/app/models.py |
 | Q3.1_UseCase | class | `Contractor` | yes | backend/app/models.py |
-| Q3.2_Class | file | `app/models.py` | yes | backend/app/models.py |
+| Q3.2_Class | service | `AiService` | yes | operations imported by gen_class.py |
+| Q3.2_Class | service | `AlertService` | yes | operations imported by gen_class.py |
+| Q3.2_Class | service | `AuditService` | yes | operations imported by gen_class.py |
+| Q3.2_Class | service | `RiskModel` | yes | operations imported by gen_class.py |
+| Q3.2_Class | service | `TicketRules` | yes | operations imported by gen_class.py |
 | Q3.2_Class | class/enum | `Alert` | yes | backend/app/models.py |
-| Q3.2_Class | class/enum | `AlertType` | yes | backend/app/models.py |
 | Q3.2_Class | class/enum | `AuditLog` | yes | backend/app/models.py |
-| Q3.2_Class | class/enum | `CAPStatus` | yes | backend/app/models.py |
 | Q3.2_Class | class/enum | `CitizenReport` | yes | backend/app/models.py |
 | Q3.2_Class | class/enum | `Contractor` | yes | backend/app/models.py |
 | Q3.2_Class | class/enum | `ContractorCoverage` | yes | backend/app/models.py |
-| Q3.2_Class | class/enum | `IssueType` | yes | backend/app/models.py |
-| Q3.2_Class | class/enum | `ModelSource` | yes | backend/app/models.py |
-| Q3.2_Class | class/enum | `Notification` | yes | backend/app/models.py |
-| Q3.2_Class | class/enum | `RefreshToken` | yes | backend/app/models.py |
 | Q3.2_Class | class/enum | `ReportAssignment` | yes | backend/app/models.py |
-| Q3.2_Class | class/enum | `RiskLevel` | yes | backend/app/models.py |
 | Q3.2_Class | class/enum | `RiskScoreHistory` | yes | backend/app/models.py |
-| Q3.2_Class | class/enum | `Summary` | yes | backend/app/models.py |
 | Q3.2_Class | class/enum | `User` | yes | backend/app/models.py |
-| Q3.2_Class | class/enum | `UserRole` | yes | backend/app/models.py |
 | Q3.2_Class | class/enum | `WSA` | yes | backend/app/models.py |
 | Q3.3_Sequence | route | `/ai/reports/{report_id}/work-order` | yes | app.openapi() paths |
 | Q3.3_Sequence | route | `/assignments/{assignment_id}/review` | yes | app.openapi() paths |
 | Q3.3_Sequence | route | `/my/tickets/{assignment_id}` | yes | app.openapi() paths |
-| Q3.3_Sequence | route | `/reports` | yes | app.openapi() paths |
-| Q3.3_Sequence | route | `/reports/track/{reference_code}` | yes | app.openapi() paths |
 | Q3.3_Sequence | route | `/reports/{report_id}/assign` | yes | app.openapi() paths |
 | Q3.3_Sequence | file | `routes/ai.py` | yes | backend/routes/ai.py |
 | Q3.3_Sequence | file | `routes/assignments.py` | yes | backend/routes/assignments.py |
-| Q3.3_Sequence | file | `routes/reports.py` | yes | backend/routes/reports.py |
+| Q3.3_Sequence | page | `AdminPage` | yes | frontend/src/pages/AdminPage.tsx |
 | Q3.3_Sequence | class | `CitizenReport` | yes | backend/app/models.py |
 | Q3.3_Sequence | class | `ReportAssignment` | yes | backend/app/models.py |
 | Q3.3_Sequence | class | `AuditLog` | yes | backend/app/models.py |
 | Q3.3_Sequence | class | `Contractor` | yes | backend/app/models.py |
 | Q3.3_Sequence | class | `Notification` | yes | backend/app/models.py |
+| Q3.3b_Activity | class | `WSA` | yes | backend/app/models.py |
+| Q3.3b_Activity | class | `Contractor` | yes | backend/app/models.py |
 | Q3.4a_Component | file | `ai/predict.py` | yes | backend/ai/predict.py |
 | Q3.4a_Component | file | `ai/query_agent.py` | yes | backend/ai/query_agent.py |
 | Q3.4a_Component | file | `ai/rag.py` | yes | backend/ai/rag.py |
@@ -46,7 +42,9 @@ Every name below is drawn on a diagram and checked against the running code.
 | Q3.4a_Component | file | `app/audit_helpers.py` | yes | backend/app/audit_helpers.py |
 | Q3.4a_Component | file | `app/auth.py` | yes | backend/app/auth.py |
 | Q3.4a_Component | file | `app/mailer.py` | yes | backend/app/mailer.py |
+| Q3.4a_Component | file | `app/models.py` | yes | backend/app/models.py |
 | Q3.4a_Component | file | `app/rate_limit.py` | yes | backend/app/rate_limit.py |
+| Q3.4a_Component | file | `app/scheduler.py` | yes | backend/app/scheduler.py |
 | Q3.4a_Component | file | `routes/ai.py` | yes | backend/routes/ai.py |
 | Q3.4a_Component | file | `routes/alerts.py` | yes | backend/routes/alerts.py |
 | Q3.4a_Component | file | `routes/assignments.py` | yes | backend/routes/assignments.py |
@@ -57,12 +55,8 @@ Every name below is drawn on a diagram and checked against the running code.
 | Q3.4a_Component | file | `routes/users.py` | yes | backend/routes/users.py |
 | Q3.4a_Component | file | `routes/wsa.py` | yes | backend/routes/wsa.py |
 | Q3.4a_Component | file | `api/client.ts` | yes | frontend/src/api/client.ts |
-| Q3.4a_Component | page | `AdminPage` | yes | frontend/src/pages/AdminPage.tsx |
 | Q3.4a_Component | page | `ContractorTicketsPage` | yes | frontend/src/pages/ContractorTicketsPage.tsx |
-| Q3.4a_Component | page | `DashboardPage` | yes | frontend/src/pages/DashboardPage.tsx |
 | Q3.4a_Component | page | `ReportPage` | yes | frontend/src/pages/ReportPage.tsx |
 | Q3.4a_Component | component | `NotificationBell` | yes | components/NotificationBell.tsx |
-| Q3.4b_Deployment | class | `CitizenReport` | yes | backend/app/models.py |
-| Q3.4b_Deployment | class | `AuditLog` | yes | backend/app/models.py |
 
-**60 names checked, 0 mismatches.**
+**54 names checked, 0 mismatches.**

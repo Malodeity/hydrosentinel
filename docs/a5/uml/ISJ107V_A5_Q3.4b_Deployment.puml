@@ -2,37 +2,37 @@
 skinparam shadowing false
 skinparam dpi 200
 skinparam defaultFontName Helvetica
-title HydroSentinel: Deployment Diagram (presenter laptop, no cloud hosting)
+title HydroSentinel: Deployment Diagram (presentation machine)
 
 node "Presenter laptop (macOS)" {
   node "Web browser" {
-    artifact "React SPA\nVite :5173" as SPA
+    artifact "React + Vite SPA\n(:5173)" as SPA
   }
-  node "Python 3.12 virtual environment" {
-    artifact "FastAPI app\nuvicorn :8000" as API
+  node "Python 3 virtual environment" {
+    artifact "FastAPI app (uvicorn :8000)\nroutes, auth, alerts, audit,\nscheduled re-scoring" as API
     artifact "ai/model.pkl\n(XGBoost)" as MODEL
-    artifact "regulatory PDFs\n(TF-IDF index)" as RAG
-    artifact "data/uploads/\n(report photos)" as UP
+    artifact "TF-IDF index over\nregulatory PDFs" as RAG
+    artifact "data/uploads/\n(report and repair photos)" as UP
   }
-  database "PostgreSQL 16 :5432\nWSA, CitizenReport,\nReportAssignment, AuditLog" as DB
+  database "PostgreSQL 16 (:5432)\n169 WSAs, reports, tickets,\nalerts, audit log, AI call log" as DB
 }
-node "Docker Compose alternative" {
+node "Docker Compose (alternative, not used for the demo)" {
   node "db (postgres:15)" as CDB
   node "backend (uvicorn)" as CAPI
   node "frontend (node:20-alpine)" as CFE
 }
-cloud "OpenAI API (GPT-4o)" as OAI
-cloud "SMTP server (optional)" as SMTP
-cloud "OpenStreetMap (map tiles)" as OSM
+cloud "OpenAI API\n(GPT-4o)" as OAI
+cloud "OpenStreetMap\n(tiles + Nominatim)" as OSM
+cloud "SMTP server\n(optional)" as SMTP
 
-SPA --> API : HTTP/JSON, Bearer JWT
+SPA --> API : HTTPS/JSON, Bearer JWT
 API --> DB : SQLAlchemy
-API --> MODEL : joblib load at start
-API --> RAG : in memory
+API --> MODEL : joblib load at startup
+API --> RAG : in-memory
 API --> UP : file write
-API --> OAI : HTTPS, key from .env
-API ..> SMTP : only if SMTP_HOST set
-SPA --> OSM : map tiles
+API --> OAI : HTTPS, API key from .env
+API ..> SMTP : only if SMTP_HOST is set
+SPA --> OSM : map tiles, address search
 CFE --> CAPI
 CAPI --> CDB
 @enduml
