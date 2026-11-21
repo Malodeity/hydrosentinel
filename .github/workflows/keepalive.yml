@@ -11,8 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Wake the API and show how long it took
+      - name: Wake the API and the front end and show how long each took
         run: |
-          curl -fsS --max-time 90 --retry 3 --retry-delay 10 -o /dev/null \
-            -w "status %{http_code} in %{time_total}s\n" \
-            https://hydrosentinel-api-5h3u.onrender.com/
+          for url in https://hydrosentinel-api-5h3u.onrender.com/ https://hydrosentinel.onrender.com/; do
+            curl -fsS --max-time 90 --retry 3 --retry-delay 10 -o /dev/null \
+              -w "$url status %{http_code} in %{time_total}s\n" "$url"
+          done
