@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     smtp_from: str = "no-reply@hydrosentinel.co.za"
     # demo contractors and logins are created at start only when this is true. leave it off outside a demo
     seed_demo_data: bool = False
+    # scores every authority again when its latest score is older than this many hours. 0 turns the schedule off
+    rescore_interval_hours: float = 24
     # password for the demo contractor logins (demo data only)
     demo_contractor_password: str = "contractor123"
 

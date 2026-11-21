@@ -38,6 +38,14 @@ def photo_urls_for(report: models.CitizenReport) -> list[str]:
     return [f"/uploads/{report.id}/{path.name}" for path in sorted(report_directory.iterdir()) if path.is_file()]
 
 
+# the contractor's "after" photos for one repair ticket live in their own folder under the report, so they never mix with the citizen's photos
+def repair_photo_urls_for(ticket: models.ReportAssignment) -> list[str]:
+    folder = UPLOAD_ROOT / str(ticket.report_id) / "repair" / str(ticket.id)
+    if not folder.exists():
+        return []
+    return [f"/uploads/{ticket.report_id}/repair/{ticket.id}/{path.name}" for path in sorted(folder.iterdir()) if path.is_file()]
+
+
 def build_report_response(report: models.CitizenReport, db: Session | None = None) -> schemas.CitizenReportRead:
     photo_urls = photo_urls_for(report)
     # the newest ticket on the report (active or finished), so the admin table can show who has it and what happened

@@ -522,3 +522,62 @@ def test_work_order_draft_suggests_least_loaded_contractor_and_falls_back_withou
     body = resp.json()
     assert body["suggested_contractor_name"] == "ZZZ Free"  # name order would pick AAA; load must win
     assert "Attend to the reported leak" in body["instructions"]  # plain template when AI is unavailable
+
+
+# ---- repair photos ("after" photos the contractor attaches; the authority sees them when it checks the work) ----
+
+PNG = bytes.fromhex("89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360000002000001e221bc330000000049454e44ae426082")
+
+
+@pytest.fixture
+def uploads(tmp_path, monkeypatch):
+    from app.routes import reports as reports_routes
+
+    monkeypatch.setattr(reports_routes, "UPLOAD_ROOT", tmp_path)  # tests must never write into the real uploads folder
+    return tmp_path
+
+
+def _accepted_ticket(client, auth_headers, report, c, c_user):
+    tid = _ticket_id(client, auth_headers, report, c)
+    ch = _login(client, c_user, "contractor1")
+    assert client.patch(f"/my/tickets/{tid}", json={"action": "accept"}, headers=ch).status_code == 200
+    return tid, ch
+
+
+def test_contractor_photos_reach_the_authority_but_stay_apart_from_the_citizens_photos(client, auth_headers, report, contractor, uploads):
+    # the authority verifies a repair by looking at the "after" photo, so it must see it on the ticket and not mixed into the citizen's photos
+    c, c_user = contractor
+    tid, ch = _accepted_ticket(client, auth_headers, report, c, c_user)
+    files = [("photos", ("after.png", PNG, "image/png")), ("photos", ("notes.txt", b"not an image", "text/plain"))]
+    r = client.post(f"/my/tickets/{tid}/photos", files=files, headers=ch)
+    assert r.status_code == 200, r.text
+    assert len(r.json()["repair_photo_urls"]) == 1  # the text file was ignored
+    assert r.json()["photo_urls"] == []  # the citizen's own photos are untouched
+    seen = client.get(f"/reports/{report.id}/assignments", headers=auth_headers).json()[0]
+    assert seen["repair_photo_urls"] == r.json()["repair_photo_urls"]
+    assert len(list((uploads / str(report.id) / "repair" / tid).iterdir())) == 1
+
+
+def test_photos_cannot_be_added_before_the_ticket_is_accepted(client, auth_headers, report, contractor, uploads):
+    c, c_user = contractor
+    tid = _ticket_id(client, auth_headers, report, c)
+    ch = _login(client, c_user, "contractor1")
+    r = client.post(f"/my/tickets/{tid}/photos", files=[("photos", ("a.png", PNG, "image/png"))], headers=ch)
+    assert r.status_code == 409
+
+
+def test_another_contractor_cannot_add_photos_to_a_ticket_that_is_not_theirs(client, auth_headers, report, contractor, db, sample_wsa, uploads):
+    c, c_user = contractor
+    tid, _ = _accepted_ticket(client, auth_headers, report, c, c_user)
+    _, other_user = _contractor(db, sample_wsa)
+    other_headers = _login(client, other_user, "contractor1")
+    r = client.post(f"/my/tickets/{tid}/photos", files=[("photos", ("a.png", PNG, "image/png"))], headers=other_headers)
+    assert r.status_code == 404  # looks the same as a ticket that does not exist, so ids cannot be probed
+
+
+def test_only_image_files_count_and_the_number_is_capped(client, auth_headers, report, contractor, uploads):
+    c, c_user = contractor
+    tid, ch = _accepted_ticket(client, auth_headers, report, c, c_user)
+    assert client.post(f"/my/tickets/{tid}/photos", files=[("photos", ("a.txt", b"x", "text/plain"))], headers=ch).status_code == 422
+    nine = [("photos", (f"{i}.png", PNG, "image/png")) for i in range(9)]
+    assert client.post(f"/my/tickets/{tid}/photos", files=nine, headers=ch).status_code == 422  # the ninth is over the limit of 8

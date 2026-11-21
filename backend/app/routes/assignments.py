@@ -4,7 +4,10 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+import uuid
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -12,7 +15,8 @@ from app import assignment_helpers as helpers
 from app import auth, models, schemas
 from app.audit_helpers import write_audit
 from app.database import get_db
-from app.routes.reports import photo_urls_for
+from app.routes import reports as reports_routes
+from app.routes.reports import photo_urls_for, repair_photo_urls_for
 
 router = APIRouter(tags=["assignments"])
 
@@ -38,6 +42,7 @@ def _assignment_read(ticket: models.ReportAssignment) -> schemas.AssignmentRead:
         lat=report.lat,
         lng=report.lng,
         photo_urls=photo_urls_for(report),
+        repair_photo_urls=repair_photo_urls_for(ticket),
         instructions=ticket.instructions,
         admin_note=ticket.admin_note,
         created_at=ticket.created_at,
@@ -532,6 +537,46 @@ def update_my_ticket(
     db.add(ticket)
     db.commit()
     db.refresh(ticket)
+    return _assignment_read(ticket)
+
+
+# the contractor can attach "after" photos while the job is still theirs or waiting for the check. at most 8 per ticket, 5 MB each, images only
+_PHOTO_TYPES = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+_MAX_REPAIR_PHOTOS = 8
+_MAX_PHOTO_BYTES = 5 * 1024 * 1024
+
+
+# POST /my/tickets/{id}/photos: adds the contractor's repair photos to the ticket. the authority sees them when it checks the work
+@router.post("/my/tickets/{assignment_id}/photos", response_model=schemas.AssignmentRead)
+async def add_repair_photos(
+    assignment_id: UUID,
+    request: Request,
+    photos: list[UploadFile] = File(default=[]),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_contractor),
+) -> schemas.AssignmentRead:
+    ticket = _own_ticket(db, assignment_id, current_user)
+    if ticket.status not in ("accepted", "in_progress", "sent_back", "fixed"):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Accept the ticket before adding photos")
+    folder = reports_routes.UPLOAD_ROOT / str(ticket.report_id) / "repair" / str(ticket.id)
+    existing = len(repair_photo_urls_for(ticket))
+    saved = 0
+    for photo in photos:
+        if Path(photo.filename or "").suffix.lower() not in _PHOTO_TYPES:
+            continue
+        data = await photo.read()
+        if len(data) > _MAX_PHOTO_BYTES:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="A photo is larger than 5 MB")
+        if existing + saved >= _MAX_REPAIR_PHOTOS:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"At most {_MAX_REPAIR_PHOTOS} photos per ticket")
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / f"{uuid.uuid4()}{Path(photo.filename).suffix.lower()}").write_bytes(data)
+        saved += 1
+    if saved == 0:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Attach at least one image (jpg, png, webp or gif)")
+    write_audit(db, current_user.id, models.AuditAction.assignment_updated, "report_assignments", ticket.id,
+                None, {"action": "repair_photos_added", "count": saved}, _ip(request))
+    db.commit()
     return _assignment_read(ticket)
 
 

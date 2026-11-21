@@ -269,9 +269,9 @@ def get_trend_explanation(
 
 # ADMIN   GET /ai/usage: how many of the 20 hourly AI calls are used. Does not use a call itself. Shown as the meter on the AI assistant tab.
 @router.get("/usage", response_model=schemas.AIUsage)
-def get_ai_usage(current_user: models.User = Depends(auth.get_current_admin_user)) -> dict:
+def get_ai_usage(current_user: models.User = Depends(auth.get_current_admin_user), db: Session = Depends(get_db)) -> dict:
     # how many of this admin's 20 hourly AI calls are used. does not itself use a call
-    return ai_usage(current_user)
+    return ai_usage(current_user, db)
 
 
 # ADMIN + allowance  GET /ai/admin-briefing: the start-of-day note on the AI assistant tab.

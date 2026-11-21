@@ -284,6 +284,22 @@ class Summary(Base):
 
 
 # append-only record of admin changes: rows are only ever added, never edited or deleted
+# one row per AI call, so the hourly limit survives a restart and is shared by every server using this database (see app/rate_limit.py).
+# key is "user:<id>" for an admin or "ip:<address>" for a public visitor
+class AiCall(Base):
+    __tablename__ = "ai_calls"
+    __table_args__ = (Index("ix_ai_calls_key_created", "key", "created_at"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        server_default=text("uuid_generate_v4()"),
+    )
+    key: Mapped[str] = mapped_column(String(80), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
 class AuditLog(Base):
     __tablename__ = "audit_log"
 

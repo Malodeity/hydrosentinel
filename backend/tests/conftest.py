@@ -112,16 +112,6 @@ def sample_wsa(db):
     return wsa
 
 
-# the AI limiter keeps its counts in memory for the whole test run, so reset it around every test or one test's calls would block the next
-@pytest.fixture(autouse=True)
-def _reset_ai_rate_limits():
-    from app.rate_limit import _call_log
-
-    _call_log.clear()
-    yield
-    _call_log.clear()
-
-
 # the saved regulatory index sits next to the real PDFs; tests must never read or overwrite it, so point it at a throwaway folder
 @pytest.fixture(autouse=True)
 def _isolate_rag_index_file(tmp_path, monkeypatch):

@@ -202,12 +202,13 @@ def test_cap_overdue_alert_closes_itself_once_the_plan_is_completed(client, auth
     sample_wsa.cap_due_date = date.today() - timedelta(days=3)
     sample_wsa.cap_status = models.CAPStatus.in_progress
     db.flush()
-    still_open = [a for a in client.get("/alerts", headers=auth_headers).json() if a["alert_type"] == "cap_overdue" and not a["acknowledged_at"]]
+    mine = lambda: [a for a in client.get("/alerts", headers=auth_headers).json() if a["alert_type"] == "cap_overdue" and a["wsa_id"] == str(sample_wsa.id)]  # other authorities in the database may be overdue too
+    still_open = [a for a in mine() if not a["acknowledged_at"]]
     assert len(still_open) == 1  # genuinely overdue: stays open
 
     sample_wsa.cap_status = models.CAPStatus.completed
     db.flush()
-    alerts = [a for a in client.get("/alerts", headers=auth_headers).json() if a["alert_type"] == "cap_overdue"]
+    alerts = mine()
     assert alerts and all(a["acknowledged_at"] for a in alerts)
 
 
@@ -218,7 +219,7 @@ def test_cap_overdue_alert_closes_when_the_deadline_moves_into_the_future(client
     client.get("/alerts", headers=auth_headers)
     sample_wsa.cap_due_date = date.today() + timedelta(days=30)
     db.flush()
-    alerts = [a for a in client.get("/alerts", headers=auth_headers).json() if a["alert_type"] == "cap_overdue"]
+    alerts = [a for a in client.get("/alerts", headers=auth_headers).json() if a["alert_type"] == "cap_overdue" and a["wsa_id"] == str(sample_wsa.id)]
     assert alerts and all(a["acknowledged_at"] for a in alerts)
 
 

@@ -3,6 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ai.predict import predict_wsa_risk
@@ -13,6 +14,29 @@ from app.audit_helpers import write_audit
 from app.database import get_db
 
 router = APIRouter(prefix="/risk", tags=["risk"])
+
+
+# scores one authority and stages everything that follows from it: the new level on the authority, a history row (scored_by is None for the
+# automatic run), and the 'high risk' / 'risk increased' alerts. the caller writes any audit entry and commits.
+# used by the Score risk now button below and by the scheduled re-scoring in app/scheduler.py, so both behave the same
+def record_score(wsa: models.WSA, model, db: Session, scored_by) -> dict:
+    prediction = predict_wsa_risk(wsa, model)
+    model_source = prediction["model_source"]
+    old_level = wsa.risk_level
+    wsa.risk_level = prediction["risk_level"]
+    db.add(wsa)
+    db.add(models.RiskScoreHistory(
+        wsa_id=wsa.id,
+        risk_level=prediction["risk_level"],
+        probability=prediction["probability"],
+        model_source=model_source,
+        model_version="xgboost_v1" if model_source == models.ModelSource.xgboost else "heuristic_v1",
+        scored_by=scored_by,
+    ))
+    if prediction["risk_level"] == models.RiskLevel.high:
+        raise_high_risk_alert(wsa, db)
+    raise_risk_increased_alert(wsa, old_level, db)
+    return prediction
 
 
 # POST /risk/score/{id} (admin): scores one authority with the XGBoost model (or the fallback rule), saves the result to its history,
@@ -29,24 +53,9 @@ def score_wsa_risk(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="WSA not found")
     auth.require_wsa_access(current_user, wsa.id)
 
-    model = getattr(request.app.state, "risk_model", None)
-    prediction = predict_wsa_risk(wsa, model)
-
-    model_source = prediction["model_source"]
-    model_version = "xgboost_v1" if model_source == models.ModelSource.xgboost else "heuristic_v1"
-
     old_level = wsa.risk_level
-    wsa.risk_level = prediction["risk_level"]
-    db.add(wsa)
-
-    db.add(models.RiskScoreHistory(
-        wsa_id=wsa.id,
-        risk_level=prediction["risk_level"],
-        probability=prediction["probability"],
-        model_source=model_source,
-        model_version=model_version,
-        scored_by=current_user.id,
-    ))
+    prediction = record_score(wsa, getattr(request.app.state, "risk_model", None), db, current_user.id)
+    model_source = prediction["model_source"]
 
     write_audit(
         db=db,
@@ -59,10 +68,6 @@ def score_wsa_risk(
         ip_address=request.client.host if request.client else None,
     )
 
-    if prediction["risk_level"] == models.RiskLevel.high:
-        raise_high_risk_alert(wsa, db)
-    raise_risk_increased_alert(wsa, old_level, db)
-
     db.commit()
     db.refresh(wsa)
 
@@ -73,6 +78,15 @@ def score_wsa_risk(
         probability=prediction["probability"],
         model_source=model_source,
     )
+
+
+# admin: how the automatic re-scoring is set up and when it last ran, shown beside the Score risk now button
+@router.get("/schedule", response_model=schemas.RiskSchedule)
+def get_risk_schedule(db: Session = Depends(get_db), _: models.User = Depends(auth.get_current_admin_user)) -> dict:
+    from app.config import settings
+
+    last = db.query(func.max(models.RiskScoreHistory.scored_at)).filter(models.RiskScoreHistory.scored_by.is_(None)).scalar()
+    return {"interval_hours": settings.rescore_interval_hours, "last_automatic_run": last}
 
 
 # public: the current risk level of every authority (the colours on the map come from this)

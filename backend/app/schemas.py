@@ -408,6 +408,7 @@ class AssignmentRead(AssignmentSummary):
     lat: float
     lng: float
     photo_urls: list[str] = []
+    repair_photo_urls: list[str] = []  # the contractor's "after" photos for this ticket
     instructions: str | None = None
     admin_note: str | None = None
     created_at: datetime
@@ -472,3 +473,9 @@ class WorkOrderDraft(BaseModel):
     due_at: datetime
 
 CitizenReportRead.model_rebuild()
+
+
+# GET /risk/schedule: whether automatic re-scoring is on (interval_hours > 0) and when it last ran
+class RiskSchedule(BaseModel):
+    interval_hours: float
+    last_automatic_run: datetime | None = None

@@ -1,6 +1,7 @@
 # The FastAPI application. Start here: it wires the routers (one file per area in app/routes/), runs start-up setup in lifespan(),
 # and applies column additions to an existing database in apply_ai_schema_changes(). Run with: uvicorn main:app --port 8000
 
+import asyncio
 from contextlib import asynccontextmanager
 
 from pathlib import Path
@@ -351,6 +352,7 @@ async def lifespan(app: FastAPI):
     seed_default_admin()
     seed_wsas()
     app.state.risk_model = load_serialized_model(settings.model_path)
+    rescore_task = None
     if not _os.getenv("TESTING"):
         if settings.seed_demo_data:
             seed_demo_contractors()
@@ -360,7 +362,13 @@ async def lifespan(app: FastAPI):
         from ai.rag import get_index
 
         threading.Thread(target=get_index, daemon=True, name="rag-warmup").start()
+        if settings.rescore_interval_hours > 0:
+            from app.scheduler import run_forever
+
+            rescore_task = asyncio.create_task(run_forever(app, settings.rescore_interval_hours))
     yield
+    if rescore_task:
+        rescore_task.cancel()
 
 
 app = FastAPI(title=settings.project_name, lifespan=lifespan)

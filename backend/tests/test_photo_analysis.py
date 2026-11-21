@@ -14,7 +14,6 @@ from unittest.mock import patch
 import pytest
 
 from app import models
-from app.rate_limit import _call_log
 from app.routes import ai as ai_routes
 
 PNG = bytes.fromhex("89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360000002000001e221bc330000000049454e44ae426082")
@@ -22,10 +21,8 @@ PNG = bytes.fromhex("89504e470d0a1a0a0000000d49484452000000010000000108060000001
 
 @pytest.fixture(autouse=True)
 def _isolate(tmp_path, monkeypatch):
-    _call_log.clear()
     monkeypatch.setattr(ai_routes, "UPLOAD_ROOT", tmp_path)
     yield
-    _call_log.clear()
 
 
 def _report(db, wsa, issue=models.IssueType.leak, code="HS-PH000001"):
