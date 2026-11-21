@@ -381,16 +381,15 @@ Reports can contain a home address and photos of private property. The public tr
 
 ### 5.1 Narrative, slides and delivery
 
-The deck has 18 slides plus four backup slides: title, problem and users, what changed since Assignment 4, roadmap and stack, five UML slides (use case, class, sequence, component, deployment), consistency, the live demonstration, test results, measures, the Assignment 4 limitations then and now, benefit and privacy, the principal limitation, my contribution, and questions. Each slide carries one idea and the same names as the application, the diagrams and this report. The target is 14 minutes with a limit of 15, followed by about 5 minutes of questions.
+The deck has 20 slides plus five backup slides and follows the order of the brief, with the question number on every slide: Q1 (project and problem, scope and requirements, what changed since Assignment 4, roadmap and stack), Q2 (the demonstration plan and the evidence table), Q3 (use case, class, sequence, component, deployment, consistency), Q4 (tests run live, measures, benefit and privacy, the Assignment 4 limitations then and now, the principal limitation), Q5 (contribution and questions). As in Assignment 4, the footer of every slide says what its terms mean, and a backup slide lists them all. Each slide carries one idea and the same names as the application, the diagrams and this report. The target is 14 minutes with a limit of 15, followed by about 5 minutes of questions.
 
 | Time | Content |
 |---|---|
-| 0:00 to 1:45 | Problem, users, scope, roadmap, stack, emerging technology |
-| 1:45 to 4:15 | UML: use case, class, sequence, component and deployment, consistency |
-| 4:15 to 10:00 | Live demonstration (about five minutes) |
-| 10:00 to 11:15 | Tests run live (about one minute) |
-| 11:15 to 13:00 | Measures, limitations then and now, privacy, the principal limitation |
-| 13:00 to 14:00 | Contribution, lesson and key decision |
+| 0:00 to 2:20 | Q1: project, scope and requirements, changes since Assignment 4, roadmap, stack, emerging technology |
+| 2:20 to 8:10 | Q2: live demonstration (about five and a half minutes) |
+| 8:10 to 10:10 | Q3: the six UML slides and the consistency check |
+| 10:10 to 13:30 | Q4: tests run live (one minute), measures, privacy, limitations then and now, the principal limitation |
+| 13:30 to 14:15 | Q5: contribution, lesson and key decision |
 
 *Table 12. Presentation timing.*
 

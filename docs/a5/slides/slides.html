@@ -35,7 +35,7 @@ h2{font-size:60px;white-space:nowrap}
 .row i{font-style:normal;font-size:20px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue)}
 .row p{font-size:30px;font-weight:500;letter-spacing:-.4px;line-height:1.25}
 /* slide 3 */
-.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.3in;height:100%}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.3in;height:100%}.steps.short{height:66%}.steps.short .step b{font-size:36px;margin-bottom:.08in}.steps.short .step span.d{font-size:21px;line-height:1.3}.steps.short .n1{width:44px;height:44px;font-size:22px;margin-bottom:.14in}.steps.short .step{padding-top:.25in;padding-bottom:.2in}
 .step{padding:.4in .4in}
 .n1{flex:none;width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:21px;display:flex;align-items:center;justify-content:center}
 .dark .n1{background:var(--sky);color:#0a1626}
@@ -96,7 +96,7 @@ h2{font-size:60px;white-space:nowrap}
 .pic2.row{flex-direction:row}.pic2 .pic{position:relative;inset:auto;flex:1;left:auto;right:auto;top:auto;bottom:auto}
 .tbl{width:100%;border-collapse:collapse;font-size:24px}.tbl th{text-align:left;color:var(--blue);font-size:18px;letter-spacing:1.5px;text-transform:uppercase;padding:10px 14px;border-bottom:2px solid var(--border)}
 .tbl td{padding:11px 14px;border-bottom:1px solid var(--border);font-weight:500;line-height:1.25}
-.ok{color:#15803d;font-weight:700}.warn{color:#b45309;font-weight:700}
+.gl td{padding:6px 10px!important}.gl th{padding:6px 10px!important}.ok{color:#15803d;font-weight:700}.warn{color:#b45309;font-weight:700}
 .todo{background:#fef3c7;border:2px dashed #d97706;border-radius:10px;padding:2px 10px;color:#92400e;font-weight:700}
 .shotfull{position:absolute;left:.45in;right:.45in;top:1.2in;bottom:.62in;background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(15,40,70,.10),0 0 0 1px rgba(20,40,62,.08);overflow:hidden}
 .shotfull img{width:100%;display:block}
@@ -110,15 +110,28 @@ h2{font-size:60px;white-space:nowrap}
 <div class="foot"><span>Final system</span><span>1</span></div></div>
 
 <!-- 2 -->
-<div class="s light"><div class="hd"><div class="eyebrow">Problem, users, value</div><h2>Water failures are <span class="g">seen late and fixed slowly.</span></h2></div>
+<div class="s light"><div class="hd"><div class="eyebrow">Q1.1 Project, problem, users, aim and value</div><h2>Water failures are <span class="g">seen late and fixed slowly.</span></h2></div>
 <div class="ct"><div class="rows">
 <div class="row card"><i>Problem</i><p>Audit data sits in long PDFs. Residents have no simple way to report a fault and follow it up. Authorities hire contractors but have no one view of who is fixing what.</p></div>
 <div class="row card"><i>Users</i><p>Residents &middot; authority and national admins &middot; repair contractors.</p></div>
 <div class="row card"><i>Aim and value</i><p>One system from report to verified repair, with AI that rates risk and drafts work, and a person who always decides.</p></div></div></div>
-<div class="foot"><span>HydroSentinel</span><span>2</span></div></div>
+<div class="foot"><span>WSA = Water Service Authority, the municipal body that runs a town&rsquo;s water. DWS = Dept of Water and Sanitation.</span><span>2</span></div></div>
 
 <!-- 3 -->
-<div class="s light"><div class="hd"><div class="eyebrow">Scope and status</div><h2>What <span class="g">changed</span> since Assignment 4.</h2></div>
+<div class="s light"><div class="hd"><div class="eyebrow">Q1.2 Final scope and requirements</div><h2>Everything in scope is <span class="g">done.</span></h2></div>
+<div class="ct"><div class="two" style="grid-template-columns:1.25fr 1fr">
+<div class="pane card" style="background:#fff;color:var(--fg)"><h3 style="color:var(--blue)">Functional (FR-01 to FR-23, all completed)</h3><ul>
+<li><b>Citizens:</b> report with photos, track by code, optional email updates</li>
+<li><b>Admins:</b> triage, CAP, alerts, risk scoring (button and every 24 h), search, users, audit log</li>
+<li><b>Contractors:</b> tickets, repair photos, own dashboard, AI helpers</li>
+<li><b>AI:</b> risk score, ticket and CAP drafts, regulations answers</li></ul></div>
+<div class="pane card" style="background:#fff;color:var(--fg)"><h3 style="color:var(--blue)">Non-functional</h3><ul>
+<li><b>Speed:</b> 169 authorities in 9 ms</li><li><b>Security:</b> roles and tokens</li><li><b>Privacy:</b> public pages hide location</li><li><b>Reliability:</b> AI or mail failing never stops a repair</li><li><b>Integrity:</b> one open ticket per report</li></ul></div></div>
+<style>.pane li{color:var(--fg)!important;font-size:22px!important;line-height:1.3}</style></div>
+<div class="foot"><span>FR = functional requirement. Non-functional = how well it works. CAP = Corrective Action Plan (fixes to carry out).</span><span>3</span></div></div>
+
+<!-- 4 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Q1.2 Approved changes since Assignment 4 (nothing incomplete)</div><h2>What <span class="g">changed</span> since Assignment 4.</h2></div>
 <div class="ct"><table class="tbl" style="font-size:21px"><tr><th style="width:1.7in">Area</th><th>In Assignment 4</th><th>In the final system</th></tr>
 <tr><td>Repairs</td><td>Report, triage, CAP</td><td class="ok">Tickets: assign, accept, fix, verify. Admins can be limited to one authority</td></tr>
 <tr><td>Contractors</td><td>No contractor side</td><td class="ok">Own page with a dashboard (week, month, 3 months), repair photos, AI job brief and fix-note helper</td></tr>
@@ -126,123 +139,153 @@ h2{font-size:60px;white-space:nowrap}
 <tr><td>Risk scoring</td><td>Command line only</td><td class="ok">"Score risk now" button, and automatically every 24 hours</td></tr>
 <tr><td>AI limit</td><td>One server's memory</td><td class="ok">Counted in the database, shared by every server</td></tr>
 <tr><td>Admin</td><td>Tabs and tables</td><td class="ok">Search, loading screens, notifications, passwords, health check</td></tr></table></div>
-<div class="foot"><span>Requirements FR-01 to FR-21 are all completed</span><span>3</span></div></div>
-
-<!-- 4 -->
-<div class="s light"><div class="hd"><div class="eyebrow">Roadmap, stack, emerging technology</div><h2>How the <span class="g">talk</span> and the <span class="g">stack</span> fit.</h2></div>
-<div class="ct"><div class="steps">
-<div class="step card"><div class="n1">1</div><em>Design</em><b>UML</b><span class="d">Use case, class, sequence, component, deployment. Then consistency with the code.</span></div>
-<div class="step card"><div class="n1">2</div><em>Live</em><b>Demo</b><span class="d">Report, validate, assign, fix, verify. Risk scoring. Audit log.</span></div>
-<div class="step card"><div class="n1">3</div><em>Evidence</em><b>Results</b><span class="d">Tests run live, measures, users, and the limits from Assignment 4, fixed.</span></div></div></div>
-<div class="foot"><span>React 18 &middot; FastAPI &middot; PostgreSQL &middot; XGBoost &middot; GPT-4o</span><span>4</span></div></div>
+<div class="foot"><span>Ticket = one repair job given to a contractor for a citizen&rsquo;s report. Authority admin = an admin limited to one authority.</span><span>4</span></div></div>
 
 <!-- 5 -->
-<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.1 Use cases</div><h2>Who does what.</h2></div>
-<div class="pic"><img src="../uml/ISJ107V_A5_Q3.1_UseCase.png"></div><div class="foot"><span>HydroSentinel</span><span>5</span></div></div>
+<div class="s light"><div class="hd"><div class="eyebrow">Q1.3 Roadmap, technology stack and emerging technology</div><h2>How the <span class="g">talk</span> and the <span class="g">stack</span> fit.</h2></div>
+<div class="ct"><div class="steps short">
+<div class="step card"><div class="n1">1</div><em>Live</em><b>Demo</b><span class="d">Report, validate, assign, fix, verify. Risk scoring. Security (Q2).</span></div>
+<div class="step card"><div class="n1">2</div><em>Design</em><b>UML</b><span class="d">Use case, class, sequence, component, deployment, consistency (Q3).</span></div>
+<div class="step card"><div class="n1">3</div><em>Evidence</em><b>Results</b><span class="d">Tests run live, measures, users, limits then and now (Q4).</span></div></div>
+<p class="sub" style="margin-top:.2in;font-size:24px;line-height:1.3"><b>Emerging technology: AI.</b> XGBoost rates each authority&rsquo;s risk. GPT-4o drafts text. A person always decides.</p></div>
+<div class="foot"><span>XGBoost = a machine-learning model. GPT-4o = OpenAI&rsquo;s language model. API = how screens talk to the server.</span><span>5</span></div></div>
 
 <!-- 6 -->
-<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.2 Classes</div><h2>The data, drawn from the code.</h2></div>
-<div class="pic"><img src="../uml/ISJ107V_A5_Q3.2_Class.png"></div><div class="foot"><span>HydroSentinel</span><span>6</span></div></div>
+<div class="s dark"><div class="hd"><div class="eyebrow">Q2 Live demonstration (2.1 workflow, 2.2 AI, 2.3 data, 2.4 security)</div><h2>About <span class="g">six minutes,</span> one story.</h2></div>
+<div class="ct"><ul class="pts" style="font-size:28px">
+<li><span class="n1">1</span>Dashboard and map, realistic data (2.3)</li>
+<li><span class="n1">2</span>Report form: blocked when wrong, fixed, sent, email field (2.1)</li>
+<li><span class="n1">3</span>Admin signs in, AI drafts the ticket, assigns (2.1, 2.2)</li>
+<li><span class="n1">4</span>Contractor dashboard, AI job brief, fix note, fixed (2.2)</li>
+<li><span class="n1">5</span>Admin verifies: resolved, citizen emailed (2.1, 2.3)</li>
+<li><span class="n1">6</span>Risk scoring, audit log, wrong password, another&rsquo;s ticket (2.2, 2.4)</li></ul></div>
+<div class="foot"><span>Fallback: recorded video. JWT = signed token proving who is signed in. Audit log = record of every change.</span><span>6</span></div></div>
 
 <!-- 7 -->
-<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.3 Sequence</div><h2>One report, from citizen to verified repair.</h2></div>
-<div class="pic"><img src="../uml/ISJ107V_A5_Q3.3_Sequence.png"></div><div class="foot"><span>HydroSentinel</span><span>7</span></div></div>
+<div class="s light"><div class="hd"><div class="eyebrow">Q2 Evidence for the demonstration</div><h2>Requirement, feature, test, <span class="g">evidence.</span></h2></div>
+<div class="ct"><table class="tbl" style="font-size:20px"><tr><th>Requirement</th><th>Status</th><th>Feature</th><th>Test case</th><th>Evidence</th></tr>
+<tr><td>FR-02</td><td class="ok">Completed</td><td>Citizen report form</td><td>TC-01</td><td>Live demonstration</td></tr>
+<tr><td>FR-11</td><td class="ok">Completed</td><td>Email to the citizen</td><td>TC-25</td><td>Mail sink, test over SMTP</td></tr>
+<tr><td>FR-12</td><td class="ok">Completed</td><td>Contractor tickets</td><td>TC-10</td><td>Live, end-to-end 27/27</td></tr>
+<tr><td>FR-04, 13</td><td class="ok">Completed</td><td>Roles and access</td><td>TC-08, 12</td><td>Live (403 and 404)</td></tr>
+<tr><td>FR-10</td><td class="ok">Completed</td><td>Scoring every 24 h</td><td>TC-23</td><td>Test run live</td></tr>
+<tr><td>ETR-01</td><td class="ok">Completed</td><td>XGBoost risk score</td><td>TC-05</td><td>Output and 89.7%</td></tr>
+<tr><td>ETR-02</td><td class="ok">Completed</td><td>GPT-4o drafts</td><td>TC-06</td><td>Live demonstration</td></tr></table></div>
+<div class="foot"><span>TC = test case. ETR = emerging-technology requirement. Evidence = where you can see it working.</span><span>7</span></div></div>
 
 <!-- 8 -->
-<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.4 Component</div><h2>The modules, layer by layer.</h2></div>
-<div class="pic"><img src="../uml/ISJ107V_A5_Q3.4a_Component.png"></div><div class="foot"><span>HydroSentinel</span><span>8</span></div></div>
+<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.1 Use-case diagram</div><h2>Who does what.</h2></div>
+<div class="pic"><img src="../uml/ISJ107V_A5_Q3.1_UseCase.png"></div><div class="foot"><span>Actor = a person or system using HydroSentinel. Include = needed first. Extend = an optional step.</span><span>8</span></div></div>
 
-<!-- 8b -->
-<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.4 Deployment</div><h2>Where it runs.</h2></div>
-<div class="pic"><img src="../uml/ISJ107V_A5_Q3.4b_Deployment.png"></div><div class="foot"><span>Runs on the presenter laptop. No cloud hosting.</span><span>9</span></div></div>
 <!-- 9 -->
-<div class="s light"><div class="hd"><div class="eyebrow">Q3.5 Consistency</div><h2>Requirements, diagrams and code <span class="g">agree.</span></h2></div>
+<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.2 Class diagram</div><h2>The data, drawn from the code.</h2></div>
+<div class="pic"><img src="../uml/ISJ107V_A5_Q3.2_Class.png"></div><div class="foot"><span>Class = a kind of record kept. WSA = Water Service Authority. 0..* = zero or many. Service = code that does a job.</span><span>9</span></div></div>
+
+<!-- 10 -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.3 Sequence diagram</div><h2>One report, from citizen to verified repair.</h2></div>
+<div class="pic"><img src="../uml/ISJ107V_A5_Q3.3_Sequence.png"></div><div class="foot"><span>Sequence = who talks to whom, in order. 409, 422, 429 = errors: conflict, invalid input, too many requests.</span><span>10</span></div></div>
+
+<!-- 11 -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.4 Component diagram</div><h2>The modules, layer by layer.</h2></div>
+<div class="pic"><img src="../uml/ISJ107V_A5_Q3.4a_Component.png"></div><div class="foot"><span>Component = one part of the system. Router = code that answers one kind of request. SMTP = how email is sent.</span><span>11</span></div></div>
+
+<!-- 12 -->
+<div class="s light uml"><div class="hd"><div class="eyebrow">Q3.4 Deployment diagram</div><h2>Where it runs.</h2></div>
+<div class="pic"><img src="../uml/ISJ107V_A5_Q3.4b_Deployment.png"></div><div class="foot"><span>Deployment = where each part runs. Everything runs on the presenter laptop. No cloud hosting.</span><span>12</span></div></div>
+
+<!-- 13 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Q3.5 Consistency with requirements and code</div><h2>Requirements, diagrams and code <span class="g">agree.</span></h2></div>
 <div class="ct"><table class="tbl"><tr><th>Check</th><th>Result</th></tr>
 <tr><td>Names on diagrams exist in the code (routes, files, classes)</td><td class="ok">54 checked, 0 mismatches</td></tr>
 <tr><td>Class diagram generated from <code>models.py</code></td><td class="ok">cannot drift</td></tr>
 <tr><td>Ticket kept in its own table, not a new case status</td><td class="warn">Deviation: tracker and CSV keep working</td></tr>
 <tr><td>Switch-off stops new tickets only</td><td class="warn">Deviation: found in review, stranded repairs</td></tr>
 <tr><td>One open ticket per report, enforced by PostgreSQL</td><td class="warn">Added after the design</td></tr></table></div>
-<div class="foot"><span>HydroSentinel</span><span>10</span></div></div>
+<div class="foot"><span>Name audit = a script checking every route, file and class on the diagrams exists in the code.</span><span>13</span></div></div>
 
-<!-- 10 -->
-<div class="s dark"><div class="hd"><div class="eyebrow">Live demonstration</div><h2>About <span class="g">six minutes,</span> one story.</h2></div>
-<div class="ct"><ul class="pts" style="font-size:30px">
-<li><span class="n1">1</span>Dashboard and map, realistic data</li>
-<li><span class="n1">2</span>Report form: blocked when wrong, then fixed and sent</li>
-<li><span class="n1">3</span>Admin signs in, AI drafts the ticket, assigns</li>
-<li><span class="n1">4</span>Contractor accepts, fixes. Admin verifies. Report resolved</li>
-<li><span class="n1">5</span>Risk scoring (XGBoost) and the audit log</li>
-<li><span class="n1">6</span>Run the tests live: end-to-end and the new fixes</li></ul></div>
-<div class="foot"><span>Fallback: recorded video, template text without AI</span><span>11</span></div></div>
-
-<!-- 11 -->
-<div class="s light"><div class="hd"><div class="eyebrow">Q4.1 Test results</div><h2>Tests, <span class="g">run live</span> and nothing hidden.</h2></div>
+<!-- 14 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Q4.1 Test results: functional, integration, system, user acceptance</div><h2>Tests, <span class="g">run live</span> and nothing hidden.</h2></div>
 <div class="ct"><table class="tbl"><tr><th>Level</th><th>Passed</th><th>Failed</th><th>Unresolved</th></tr>
 <tr><td>Backend (pytest, real database)</td><td class="ok">325</td><td>0</td><td>0</td></tr>
 <tr><td>Frontend (Vitest)</td><td class="ok">121</td><td>0</td><td>0</td></tr>
 <tr><td>End-to-end on the live system</td><td class="ok">27 of 27</td><td>0</td><td>0</td></tr>
 <tr><td>User acceptance (3 testers, 4 tasks)</td><td class="ok">12 of 12</td><td>0</td><td>0</td></tr></table>
 <p class="sub" style="margin-top:.2in;font-size:22px">On stage: <code>bash docs/a5/run_tests_demo.sh</code> runs the end-to-end check and the tests for the fixes in about a minute. The full suite (2 minutes) is the saved run. The browser screens are checked by hand and by the testers.</p></div>
-<div class="foot"><span>HydroSentinel</span><span>12</span></div></div>
+<div class="foot"><span>Unit test = one function. End-to-end = whole workflow on the live system. UAT = user acceptance, real people.</span><span>14</span></div></div>
 
-<!-- 12 -->
-<div class="s light"><div class="hd"><div class="eyebrow">Q4.2 Measures</div><h2>Fast, and the model <span class="g">beats the rule.</span></h2></div>
+<!-- 15 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Q4.2 Quantitative measures and AI evaluation metric</div><h2>Fast, and the model <span class="g">beats the rule.</span></h2></div>
 <div class="ct"><div class="stats">
 <div class="stat card"><b>9 ms</b><span>Median to list 169 authorities (p95 13 ms, 50 calls)</span><small>107 ms for the admin report list (60 reports)</small></div>
 <div class="stat card"><b>89.7%</b><span>XGBoost held-out accuracy (26 of 29)</span><small>80.6% cross-validated, rule baseline 34.5%</small></div>
 <div class="stat card"><b>27/27</b><span>End-to-end checks, including contractor loop</span><small>One laptop, server and client together</small></div></div></div>
-<div class="foot"><span>HydroSentinel</span><span>13</span></div></div>
+<div class="foot"><span>Median = middle response time. p95 = 95 of 100 calls were faster. Cross-validation = tested on several splits.</span><span>15</span></div></div>
 
-<!-- limits then and now -->
-<div class="s light"><div class="hd"><div class="eyebrow">Q4.4 Limitations</div><h2>Assignment 4 limitations: <span class="g">then and now.</span></h2></div>
+<!-- 16 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Q4.3 Benefit, and the privacy consideration</div><h2>Residents are <span class="g">protected</span> by design.</h2></div>
+<div class="ct"><div class="rows">
+<div class="row card"><i>Benefit</i><p>A report no longer vanishes: it becomes a ticket with an owner, a due time and a check.</p></div>
+<div class="row card"><i>Privacy</i><p>The public tracker hides location and photos. A contractor sees them only for its own ticket (others return 404). A citizen's email is optional, never shown and never exported.</p></div>
+<div class="row card"><i>AI control</i><p>AI only drafts. Photos go to OpenAI only on request. A person confirms every assignment and every repair.</p></div></div></div>
+<div class="foot"><span>404 = &ldquo;not found&rdquo;, so a contractor cannot probe other tickets. AI only drafts; a person confirms.</span><span>16</span></div></div>
+
+<!-- 17 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Q4.4 Limitations from Assignment 4: then and now</div><h2>Assignment 4 limitations: <span class="g">then and now.</span></h2></div>
 <div class="ct"><table class="tbl" style="font-size:21px"><tr><th>Limitation I reported</th><th>What I did</th><th>Proof</th></tr>
 <tr><td>The risk model could fail silently</td><td>Every score shows its source. <code>/health</code> fails if the model is missing</td><td class="ok">Test: health fails without the model</td></tr>
 <tr><td>AI limit kept in one server's memory</td><td>Counted in the database, shared and kept across restarts</td><td class="ok">Tests: limit survives a restart</td></tr>
 <tr><td>Scoring only on request (FR-10)</td><td>Re-scores every 24 hours, one server at a time</td><td class="ok">Tests: stale, fresh, locked</td></tr>
 <tr><td>No scoring button (FR-08)</td><td>"Score risk now" on the CAP tab</td><td class="ok">End-to-end TC-05</td></tr>
 <tr><td>No email to citizens (FR-11)</td><td>Optional, three notices, no personal detail in them</td><td class="ok">9 tests over real SMTP</td></tr></table></div>
-<div class="foot"><span>Each one is shown, not just claimed</span><span>14</span></div></div>
+<div class="foot"><span>FR-08 to FR-11 were open in Assignment 4. Health check = a page that fails when something needed is missing.</span><span>17</span></div></div>
 
-<!-- 13 -->
-<div class="s light"><div class="hd"><div class="eyebrow">Q4.3 Benefit and privacy</div><h2>Residents are <span class="g">protected</span> by design.</h2></div>
-<div class="ct"><div class="rows">
-<div class="row card"><i>Benefit</i><p>A report no longer vanishes: it becomes a ticket with an owner, a due time and a check.</p></div>
-<div class="row card"><i>Privacy</i><p>The public tracker hides location and photos. A contractor sees them only for its own ticket (others return 404). A citizen's email is optional, never shown and never exported.</p></div>
-<div class="row card"><i>AI control</i><p>AI only drafts. Photos go to OpenAI only on request. A person confirms every assignment and every repair.</p></div></div></div>
-<div class="foot"><span>HydroSentinel</span><span>15</span></div></div>
-
-<!-- 14 -->
-<div class="s dark"><div class="hd"><div class="eyebrow">Q4.4 The principal limitation</div><h2>One limit <span class="g">remains,</span> and why it is safe.</h2></div>
+<!-- 18 -->
+<div class="s dark"><div class="hd"><div class="eyebrow">Q4.4 Principal limitation and future enhancement</div><h2>One limit <span class="g">remains,</span> and why it is safe.</h2></div>
 <div class="ct"><div class="lim">
 <div class="card"><p>The risk model is checked on 29 held-out authorities.<small>One authority moves the 89.7% by 3.4 points, so I also show 80.6% from cross-validation.</small></p></div>
 <div class="card"><p>It is safe because the model only rates risk: a person acts on it.<small>A low-confidence score falls back to the rule, and the source is shown.</small></p></div>
 <div class="card"><p>Next: retrain as the Department publishes new audits, and track accuracy over time.<small>The pipeline and the scheduled scoring already exist.</small></p></div></div></div>
-<div class="foot"><span>HydroSentinel</span><span>16</span></div></div>
+<div class="foot"><span>Held-out set = authorities the model never saw while learning. Cross-validation = tested on several splits.</span><span>18</span></div></div>
 
-<!-- 15 -->
-<div class="s light"><div class="hd"><div class="eyebrow">Q5.4 My contribution</div><h2>What I did, learned and <span class="g">decided.</span></h2></div>
+<!-- 19 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Q5.4 Personal contribution, lessons and key decision</div><h2>What I did, learned and <span class="g">decided.</span></h2></div>
 <div class="ct"><div class="rows">
 <div class="row card"><i>Contribution</i><p>Defined the problem and requirements, chose the architecture, designed the ticket rules, directed and reviewed AI-assisted code, ran the tests and the user sessions.</p></div>
 <div class="row card"><i>Lesson</i><p>Check the real data first (NRW was empty for all 169 authorities). Enforce the rules that matter on the server, not only in the screen.</p></div>
 <div class="row card"><i>Key decision</i><p>A person always decides. A contractor can mark fixed; only the authority can verify and resolve.</p></div></div></div>
-<div class="foot"><span>HydroSentinel</span><span>17</span></div></div>
+<div class="foot"><span>NRW = non-revenue water, water lost before it is billed. Lesson = something to do differently next time.</span><span>19</span></div></div>
 
-<!-- 16 -->
+<!-- 20 -->
 <div class="s dark"><div class="hero"><h1 class="g" style="font-size:110px">Questions</h1>
 <div class="sub" style="margin-top:26px">Repository, UML sources and evidence are in the submission.</div></div>
-<div class="foot"><span>HydroSentinel</span><span>18</span></div></div>
+<div class="foot"><span>Evidence for every answer: requirements, UML, source code, data, tests and deployment are in the submission.</span><span>20</span></div></div>
 
-<!-- 17 -->
+<!-- 21 -->
+<div class="s light"><div class="hd"><div class="eyebrow">Backup &middot; Terms</div><h2>What the words <span class="g">mean.</span></h2></div>
+<div class="ct"><table class="tbl gl" style="font-size:16px"><tr><th>Term</th><th>Meaning</th><th>Term</th><th>Meaning</th></tr>
+<tr><td><b>WSA</b></td><td>Water Service Authority: the municipal body that runs a town&rsquo;s water</td><td><b>CAP</b></td><td>Corrective Action Plan: the fixes an authority must carry out</td></tr>
+<tr><td><b>DWS</b></td><td>Department of Water and Sanitation (publishes the audits)</td><td><b>Blue Drop</b></td><td>DWS drinking-water quality score, 0 to 100</td></tr>
+<tr><td><b>NRW</b></td><td>Non-revenue water: water lost before it is billed</td><td><b>Ticket</b></td><td>One repair job given to a contractor for a report</td></tr>
+<tr><td><b>XGBoost</b></td><td>The machine-learning model that rates risk</td><td><b>GPT-4o</b></td><td>OpenAI&rsquo;s language model that drafts text</td></tr>
+<tr><td><b>API</b></td><td>How the screens talk to the server</td><td><b>JWT</b></td><td>The signed token that proves who is signed in</td></tr>
+<tr><td><b>SMTP</b></td><td>The standard way email is sent</td><td><b>UAT</b></td><td>User acceptance testing with real people</td></tr>
+<tr><td><b>FR / NFR / ETR</b></td><td>Functional, non-functional, emerging-technology requirement</td><td><b>TC</b></td><td>Test case</td></tr>
+<tr><td><b>p95</b></td><td>95 of 100 calls were faster than this</td><td><b>UML</b></td><td>Standard diagrams of a system&rsquo;s design</td></tr></table></div>
+<div class="foot"><span>Backup slide, not presented unless asked</span><span>21</span></div></div>
+
+<!-- 22 -->
 <div class="s light uml"><div class="hd"><div class="eyebrow">Backup</div><h2>Contractors tab: coverage by province</h2></div>
-<div class="shotfull"><img src="../screens/06-contractors.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>19</span></div></div>
-<!-- 18 -->
+<div class="shotfull"><img src="../screens/06-contractors.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>22</span></div></div>
+
+<!-- 23 -->
 <div class="s light uml"><div class="hd"><div class="eyebrow">Backup</div><h2>Contractor's own tickets</h2></div>
-<div class="shotfull"><img src="../screens/07-contractor-tickets.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>20</span></div></div>
-<!-- 19 -->
+<div class="shotfull"><img src="../screens/07-contractor-tickets.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>23</span></div></div>
+
+<!-- 24 -->
 <div class="s light uml"><div class="hd"><div class="eyebrow">Backup</div><h2>Audit log</h2></div>
-<div class="shotfull"><img src="../screens/08-audit-log.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>21</span></div></div>
-<!-- backup activity -->
+<div class="shotfull"><img src="../screens/08-audit-log.png"></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>24</span></div></div>
+
+<!-- 25 -->
 <div class="s light uml"><div class="hd"><div class="eyebrow">Backup</div><h2>Activity diagram: report to verified repair</h2></div>
-<div class="pic2 row"><div class="pic"><img src="../uml/ISJ107V_A5_Q3.3b_Activity_part1.png"></div><div class="pic"><img src="../uml/ISJ107V_A5_Q3.3b_Activity_part2.png"></div></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>22</span></div></div>
+<div class="pic2 row"><div class="pic"><img src="../uml/ISJ107V_A5_Q3.3b_Activity_part1.png"></div><div class="pic"><img src="../uml/ISJ107V_A5_Q3.3b_Activity_part2.png"></div></div><div class="foot"><span>Backup slide, not presented unless asked</span><span>25</span></div></div>
 </body></html>

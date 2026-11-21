@@ -23,23 +23,26 @@ The brief asks for 12 to 15 minutes, then about 5 minutes of questions. Ask the 
 6. Slides PDF open on the first slide. Wi-Fi on (for GPT-4o). Fallback videos ready.
 7. Optional: `bash docs/a5/start_public.sh` only if the lecturer needs the link. Change the admin password first.
 
-## Timing (target 14:00, limit 15:00). Slide numbers match the deck
+## Timing (target 14:30, limit 15:00). The slides follow the brief's own order: Q1, Q2, Q3, Q4, Q5
 
-| Time | Slide | Say (one idea each) |
-|---|---|---|
-| 0:00 | 1 to 2 | HydroSentinel closes the loop from a resident's report to a verified repair. Problem, users, aim. |
-| 0:45 | 3 | **What changed since Assignment 4.** Say it as a story: contractors, tickets, their own dashboard and AI helpers, citizen email, scoring by itself, the AI limit in the database. Everything in scope is done. |
-| 1:45 | 4 | Talk order, the stack, and the emerging technology: XGBoost rates risk, GPT-4o drafts text, a person always decides. |
-| 2:00 | 5 to 9 | About 18 seconds each: use case, class, sequence, component, deployment. For the sequence say the six steps and name the AI call. |
-| 3:30 | 10 | 55 names checked against the code, 0 mismatches. Three deviations and why. |
-| 4:00 | 11 | **Live demo, about 5:30** (script below). |
-| 9:30 | 12 | **Testing, live.** Switch to terminal tab 3 and run `bash docs/a5/run_tests_demo.sh` (about one minute). Talk over it: levels (unit, integration, system, user acceptance), 325 and 121 tests, 27 end-to-end checks, UAT 12 of 12. |
-| 10:45 | 13 | Measures: 9 ms to list 169 authorities, 89.7% accuracy against 34.5% for the rule. |
-| 11:15 | 14 | **Limitations then and now.** Read the five rows. For each one say what I reported in Assignment 4, what I did, and point at the proof. |
-| 12:15 | 15 | Privacy and benefit. The citizen's email is optional, never shown, never exported. |
-| 12:45 | 16 | The one limit that remains (29 held-out authorities), why it is safe, and the next step. The brief requires one stated limitation. |
-| 13:15 | 17 | Contribution, lesson, decision (three sentences each, out loud). |
-| 14:00 | 18 | Questions. |
+| Time | Slide | Brief | Say (one idea each) |
+|---|---|---|---|
+| 0:00 | 1 to 2 | Q1.1 | HydroSentinel closes the loop from a resident's report to a verified repair. Project, problem, users, aim, value. Point at the footer: what WSA means. |
+| 0:45 | 3 | Q1.2 | Final scope: all 23 functional requirements are done, plus the non-functional ones (speed, security, privacy, reliability, integrity). |
+| 1:20 | 4 | Q1.2 | **What changed since Assignment 4.** Tell it as a story: contractors and tickets, their dashboard and AI helpers, citizen email, scoring by itself, the AI limit in the database. Nothing is incomplete. |
+| 2:00 | 5 | Q1.3 | Talk order (demo, design, evidence), the stack, and the emerging technology: XGBoost rates risk, GPT-4o drafts text, a person decides. |
+| 2:20 | 6 to 7 | Q2 | The demo plan, tagged 2.1 to 2.4, and the requirement to test to evidence table. Then switch to the running system. |
+| 2:40 | (live) | Q2.1 to 2.4 | **Live demo, about 5:30** (script below). Return to the slides when done. |
+| 8:10 | 8 to 13 | Q3.1 to 3.5 | About 20 seconds each: use case, class, sequence, component, deployment, consistency. For the sequence say the steps and name the AI call. Slide 13: 55 names checked, 0 mismatches, three deviations and why. |
+| 10:10 | 14 | Q4.1 | **Tests, live.** Switch to terminal tab 3 and run `bash docs/a5/run_tests_demo.sh` (about one minute). Talk over it: levels, 325 and 121 tests, 27 end-to-end checks, UAT 12 of 12. |
+| 11:10 | 15 | Q4.2 | Two measures (9 ms to list 169 authorities; 27 of 27 end-to-end) and the AI metric: 89.7% against 34.5% for the rule. |
+| 11:40 | 16 | Q4.3 | Benefit, and the privacy consideration: location hidden, 404 not 403, the citizen's email never shown. |
+| 12:10 | 17 | Q4.4 | **Limitations then and now.** For each of the five rows: what I reported in Assignment 4, what I did, the proof. |
+| 13:00 | 18 | Q4.4 | The one limit that remains (29 held-out authorities), why it is safe, and the next step. |
+| 13:30 | 19 | Q5.4 | Contribution, lesson, decision (three sentences each, out loud). |
+| 14:15 | 20 | Q5.3 | Questions. Slide 21 is the list of terms, if anyone asks what a word means. |
+
+Every slide has the meaning of its terms in the footer, as in Assignment 4 (WSA, CAP, JWT, p95 and so on). Slide 21 holds all of them.
 
 ## Demo script (reset first)
 | Min | Do | Say | Rubric |
