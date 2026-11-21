@@ -64,7 +64,7 @@ DX0, DX1 = 370, 1470
 box("user", DX0, 80, DX1 - DX0, "User", attrs("User", ["id", "email", "hashed_password", "role", "is_active", "wsa_id", "contractor_id", "last_login_at", "created_at"]), cols=2, head="#dbeafe")
 my = 420
 box("hist", DX0, my, 320, "RiskScoreHistory", attrs("RiskScoreHistory", ["id", "risk_level", "probability", "model_source", "model_version", "scored_by", "scored_at"]))
-box("rep", DX0 + 360, my, 340, "CitizenReport", attrs("CitizenReport", ["id", "issue_type", "description", "reference_code", "case_status", "admin_comment", "lat", "lng", "photo_analysis", "reviewed_at", "resolved_at", "created_at"]))
+box("rep", DX0 + 360, my, 340, "CitizenReport", attrs("CitizenReport", ["id", "issue_type", "description", "reference_code", "case_status", "admin_comment", "contact_email", "lat", "lng", "photo_analysis", "reviewed_at", "resolved_at", "created_at"]))
 box("tic", DX0 + 790, my, DX1 - DX0 - 790, "ReportAssignment", attrs("ReportAssignment", ["id", "status", "instructions", "due_at", "contractor_note", "rejected_reason", "admin_note", "accepted_at", "fixed_at", "closed_at"]))
 box("wsa", DX0, 860, 700, "WSA", attrs("WSA", ["id", "name", "province", "blue_drop_score", "nrw_percent", "maint_pct", "cap_status", "cap_due_date", "risk_level", "lat", "lng", "updated_at"]), cols=2, head="#dbeafe")
 box("cov", 730, 1140, 270, "ContractorCoverage", attrs("ContractorCoverage", ["id", "issue_types"]))

@@ -3,13 +3,13 @@ Run:  python3 gen_usecase.py   then render the PNG with headless Chrome (see bui
 import html, math, os
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-PUBLIC = [("map", ["View risk map and", "AI summaries"]), ("sub", ["Submit report", "with photos"]), ("trk", ["Track report by", "reference code"])]
-SIGNED = [("work", ["Work my tickets", "(accept, reject, start, fix)"]), ("rph", ["Add repair photos"])]
+PUBLIC = [("map", ["View risk map and", "AI summaries"]), ("sub", ["Submit report", "with photos"]), ("trk", ["Track report by", "reference code"]), ("eml", ["Get email updates", "(if asked for)"])]
+SIGNED = [("work", ["Work my tickets", "(accept, reject, start, fix)"]), ("rph", ["Add repair photos"]), ("brf2", ["Get AI job brief"]), ("fxn", ["Write fix note with AI"]), ("dsh", ["View my dashboard", "and AI summary"])]
 ADMIN = [("tri", ["Triage report"]), ("note", ["Draft AI case note"]), ("asg", ["Assign report to contractor"]), ("tkt", ["Draft ticket with AI"]),
          ("ver", ["Verify or send back repair"]), ("scr", ["Score WSA risk (XGBoost)"]), ("cap", ["Update CAP status and deadline"]),
          ("dft", ["Draft CAP with AI"]), ("acc", ["Accept CAP item"]), ("con", ["Manage contractors"]), ("ask", ["Ask AI about data or regulations"]),
          ("alr", ["Review and acknowledge alerts"]), ("aud", ["View audit log"]), ("usr", ["Manage admin users"])]
-GPT = ("map", "sub", "note", "tkt", "dft", "ask")
+GPT = ("map", "sub", "note", "tkt", "dft", "ask", "brf2", "fxn", "dsh")
 EXTENDS = (("note", "tri"), ("tkt", "asg"), ("acc", "dft"), ("rph", "work"))
 
 W = 1700
@@ -20,7 +20,7 @@ o = []; a = o.append
 
 # ---- layout: three bands, top to bottom
 BY = 80
-y_pub = 120; pub_h = 330
+y_pub = 120; pub_h = 420
 y_sig = y_pub + pub_h + 20; sig_h = 50 + len(SIGNED) * STEP + 14
 y_adm = y_sig + sig_h + 20; adm_h = 50 + len(ADMIN) * STEP + 14
 BH = y_adm + adm_h + 20 - BY

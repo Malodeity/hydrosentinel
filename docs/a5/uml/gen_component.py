@@ -43,7 +43,7 @@ comp(380, 104, 480, 100, "Pages", ["DashboardPage, ReportPage, AdminPage,", "Con
 comp(1000, 104, 420, 100, "api/client.ts", ["axios client: attaches the JWT,", "refreshes it on 401"])
 ln([(860, 154), (1000, 154)])
 # ---- routers
-comp(380, 275, 1100, 150, "Routers (one file per area)", ["routes/reports.py", "routes/assignments.py", "routes/risk.py", "routes/ai.py", "routes/auth.py", "routes/wsa.py", "routes/alerts.py", "routes/audit.py", "routes/users.py"], cols=3)
+comp(380, 275, 1100, 150, "Routers (one file per area)", ["routes/reports.py", "routes/assignments.py", "routes/risk.py", "routes/ai.py", "routes/contractor_ai.py", "routes/auth.py", "routes/wsa.py", "routes/alerts.py", "routes/audit.py", "routes/users.py"], cols=3)
 ln([(1210, 204), (1210, 275)]); label(1210, 244, "HTTP/JSON, Bearer JWT", "start")
 # ---- services and AI
 comp(380, 520, 450, 190, "Services", ["app/auth.py", "app/assignment_helpers.py", "app/alert_helpers.py", "app/audit_helpers.py", "app/rate_limit.py", "app/mailer.py", "app/scheduler.py"], cols=2)

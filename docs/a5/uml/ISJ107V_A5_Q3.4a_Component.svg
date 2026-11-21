@@ -28,12 +28,13 @@
 <text x="396.0" y="337" font-size="14.5" fill="#0f172a">routes/reports.py</text>
 <text x="396.0" y="360" font-size="14.5" fill="#0f172a">routes/assignments.py</text>
 <text x="396.0" y="383" font-size="14.5" fill="#0f172a">routes/risk.py</text>
-<text x="756.0" y="337" font-size="14.5" fill="#0f172a">routes/ai.py</text>
+<text x="396.0" y="406" font-size="14.5" fill="#0f172a">routes/ai.py</text>
+<text x="756.0" y="337" font-size="14.5" fill="#0f172a">routes/contractor_ai.py</text>
 <text x="756.0" y="360" font-size="14.5" fill="#0f172a">routes/auth.py</text>
 <text x="756.0" y="383" font-size="14.5" fill="#0f172a">routes/wsa.py</text>
-<text x="1116.0" y="337" font-size="14.5" fill="#0f172a">routes/alerts.py</text>
-<text x="1116.0" y="360" font-size="14.5" fill="#0f172a">routes/audit.py</text>
-<text x="1116.0" y="383" font-size="14.5" fill="#0f172a">routes/users.py</text>
+<text x="756.0" y="406" font-size="14.5" fill="#0f172a">routes/alerts.py</text>
+<text x="1116.0" y="337" font-size="14.5" fill="#0f172a">routes/audit.py</text>
+<text x="1116.0" y="360" font-size="14.5" fill="#0f172a">routes/users.py</text>
 <polyline points="1210,204 1210,275" fill="none" stroke="#334155" stroke-width="1.9" marker-end="url(#op)"/>
 <rect x="1206" y="231" width="163.4" height="19" fill="#fff"/><text x="1210" y="244" text-anchor="start" font-size="13.5" fill="#334155">HTTP/JSON, Bearer JWT</text>
 <rect x="380" y="520" width="450" height="190" rx="6" fill="#fff" stroke="#334155" stroke-width="2"/>

@@ -39,7 +39,7 @@ psql "$DATABASE_URL" -c "TRUNCATE wsa CASCADE" -f backend/data/sample/wsa_sample
 cd frontend && npm ci && npm run dev       # http://localhost:5173
 ```
 
-Or with Docker: `docker compose up --build` (set `POSTGRES_PORT` in `.env` if 5432 is taken on your machine).
+`docker-compose.yml` is included for convenience but it is not part of the set-up that was tested. Use the steps above.
 
 ### Demo data
 `SEED_DEMO_DATA=true` in `.env` creates the demo contractors and logins at start (21 invented companies split by province, plus one authority-limited admin).

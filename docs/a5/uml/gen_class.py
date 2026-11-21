@@ -10,7 +10,7 @@ from app.database import Base
 # class -> attributes worth showing (a subset; the check below proves each one exists in the model, and its type is read from the model)
 SHOW = {
     "WSA": ["id", "name", "province", "blue_drop_score", "nrw_percent", "maint_pct", "cap_status", "cap_due_date", "risk_level", "lat", "lng"],
-    "CitizenReport": ["id", "issue_type", "description", "reference_code", "case_status", "admin_comment", "lat", "lng", "resolved_at"],
+    "CitizenReport": ["id", "issue_type", "description", "reference_code", "case_status", "admin_comment", "contact_email", "lat", "lng", "resolved_at"],
     "ReportAssignment": ["id", "status", "instructions", "due_at", "contractor_note", "admin_note", "fixed_at", "closed_at"],
     "Contractor": ["id", "name", "contact_name", "phone", "email", "is_active"],
     "ContractorCoverage": ["issue_types"],

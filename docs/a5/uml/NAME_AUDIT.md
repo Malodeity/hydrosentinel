@@ -50,6 +50,7 @@ Every name below is drawn on a diagram and checked against the running code.
 | Q3.4a_Component | file | `routes/assignments.py` | yes | backend/routes/assignments.py |
 | Q3.4a_Component | file | `routes/audit.py` | yes | backend/routes/audit.py |
 | Q3.4a_Component | file | `routes/auth.py` | yes | backend/routes/auth.py |
+| Q3.4a_Component | file | `routes/contractor_ai.py` | yes | backend/routes/contractor_ai.py |
 | Q3.4a_Component | file | `routes/reports.py` | yes | backend/routes/reports.py |
 | Q3.4a_Component | file | `routes/risk.py` | yes | backend/routes/risk.py |
 | Q3.4a_Component | file | `routes/users.py` | yes | backend/routes/users.py |
@@ -59,4 +60,4 @@ Every name below is drawn on a diagram and checked against the running code.
 | Q3.4a_Component | page | `ReportPage` | yes | frontend/src/pages/ReportPage.tsx |
 | Q3.4a_Component | component | `NotificationBell` | yes | components/NotificationBell.tsx |
 
-**54 names checked, 0 mismatches.**
+**55 names checked, 0 mismatches.**

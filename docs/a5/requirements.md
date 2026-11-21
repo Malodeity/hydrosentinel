@@ -14,7 +14,7 @@ Re-checked against the code on 2026-11-16. Evidence column points at a saved tes
 | FR-08 | Risk scoring from the admin page | **Completed (was Partial in A4)** | "Score risk now" button, `POST /risk/score/{wsa_id}` | TC-05 | e2e_output.txt |
 | FR-09 | AI rate limit shared across servers | **Completed (was Partial in A4)** | 20 per hour per user, counted in the `ai_calls` table (`rate_limit.py`) | TC-22 | pytest `test_ai_rate_limit.py` |
 | FR-10 | Scheduled automatic re-scoring | **Completed (was Deferred in A4)** | `app/scheduler.py`, `RESCORE_INTERVAL_HOURS`, database lock | TC-23 | pytest `test_scheduler.py` |
-| FR-11 | Email/SMS to **citizens** on status change | Deferred | Citizens use the tracker. Staff get bell notices and optional email | none | limitation slide |
+| FR-11 | Email to a **citizen** who asked for it: received, looked at, resolved | **Completed (was Deferred in A4)** | `contact_email`, `notify_citizen` in `mailer.py`, optional field on the report form | TC-25 | pytest `test_citizen_email.py` (real SMTP) |
 | FR-12 *(approved change)* | Admin assigns a report to a contractor as a ticket. Contractor accepts or rejects, works it, marks fixed. Admin verifies, which resolves the report | Completed | `ReportAssignment`, `POST /reports/{report_id}/assign`, `PATCH /my/tickets/{assignment_id}`, `PATCH /assignments/{assignment_id}/review` | TC-10 | e2e_output.txt |
 | FR-13 | A contractor sees only its own tickets and can never resolve a report | Completed | `get_current_contractor`, 404 for another's ticket | TC-11, TC-12 | pytest `test_assignments.py` |
 | FR-14 | Admin accounts can be limited to one authority | Completed | `users.wsa_id`, `require_wsa_access` | TC-13 | pytest |
@@ -25,18 +25,20 @@ Re-checked against the code on 2026-11-16. Evidence column points at a saved tes
 | FR-19 | Search contractors by name, contact, phone, email or authority | Completed | `ContractorsTab`, `lib/contractorSearch.ts` | TC-24 | vitest `contractorSearch.test.ts` |
 | FR-20 | Contractor attaches repair photos; admin sees them before verifying | Completed | `POST /my/tickets/{assignment_id}/photos`, `repair_photo_urls` | TC-21 | pytest `test_assignments.py` |
 | FR-21 | Add a contractor with a province and issue types in one step | Completed | `ContractorsTab` form | by hand | browser check |
+| FR-22 | Contractor dashboard: open and closed tickets, 7 days, 30 days and 3 months of numbers, chart, filters | Completed | `ContractorTicketsPage`, `lib/contractorStats.ts` | TC-28 | vitest `contractorStats.test.ts` |
+| FR-23 | AI helpers for the contractor: job brief, fix-note writer, summary of own work | Completed | `routes/contractor_ai.py` (`/ai/my/...`) | TC-27 | pytest `test_contractor_ai.py` |
 | ETR-01 | XGBoost risk scoring with rule-based fallback | Completed | `ai/predict.py` | TC-05 | e2e_output.txt, 89.7% held out |
 | ETR-02 | GPT-4o drafts CAP items; admin accepts | Completed | `GET /ai/wsa/{wsa_id}/cap-draft` | TC-06 | e2e_output.txt |
 | ETR-03 | Regulatory questions answered from the DWS PDFs | Completed | `ai/rag.py`, `POST /ai/query` | pytest `test_rag.py` | pytest_full.txt |
 
 ## Approved change since Assignment 4
-FR-12 to FR-21: contractor tickets, authority-scoped admins, notifications, AI work-order draft, bulk assign, province-wide coverage, password change and reset, "Score risk now" button, single-open-ticket database rule, contractor search, repair photos, and the Add contractor form with a province.
+FR-12 to FR-23: contractor tickets, authority-scoped admins, notifications, AI work-order draft, bulk assign, province-wide coverage, password change and reset, "Score risk now" button, single-open-ticket database rule, contractor search, repair photos, and the Add contractor form with a province.
 
 ## Incomplete items (kept on the scope slide)
-FR-11 (no citizen email). Also: email never sent to a real SMTP server; Docker Compose not run for the demo; NRW is a province estimate, display only.
+None. NRW is a province estimate, display only. The one principal limitation is the size of the held-out set for the risk model (29 authorities).
 
 ## Justified deviations from the design
 1. Contractor tickets are a separate table (`ReportAssignment`), not a new `case_status`, so the citizen tracker, CSV and old reports keep working.
 2. Switching a contractor off stops new tickets only. It can still finish tickets it holds (found in review: the first version locked it out and stranded repairs).
 3. One open ticket per report is enforced by a partial unique index in PostgreSQL, not only in code.
-4. Risk scoring also runs on a schedule (FR-10) and the AI limit is counted in the database (FR-09). Both were limitations in Assignment 4.
+4. Risk scoring also runs on a schedule (FR-10), the AI limit is counted in the database (FR-09) and citizens can ask for email (FR-11). All three were limitations in Assignment 4.

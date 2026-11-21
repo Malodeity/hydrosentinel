@@ -234,7 +234,7 @@ The admin interface calls the API with a token. The API checks it, reads the aut
 ## 10. Limitations, ethics and next steps
 
 **Q57. What are the main limitations?**
-The limits, each with a fix. The model can fail silently (now it warns and falls back; next, show the scoring source in the interface). The AI limit and manual scoring were two limits in Assignment 4, and both are now fixed (database-backed limit, scheduled re-scoring). What is left: citizens get no email on a status change, email was never tested on a real mail server, and Docker Compose was not run.
+The limits, each with a fix. The model can fail silently (now it warns and falls back; next, show the scoring source in the interface). The AI limit and manual scoring were two limits in Assignment 4, and both are now fixed (database-backed limit, scheduled re-scoring). Citizen email (FR-11) is now built and tested over real SMTP, and the scoring source is shown with a health check that fails if the model is missing. The one limit that remains is the size of the held-out set for the model (29 authorities).
 
 **Q58. What are the ethical risks?**
 A wrong "high risk" rating can wrongly label a municipality, and an AI summary can be wrong. My mitigations are human approval before any change, showing which method scored an authority, and citing numbers from the data. I'd also want an appeal or review route for rated authorities before real use.

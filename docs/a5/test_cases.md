@@ -4,8 +4,8 @@ Run on 2026-11-16 on the presenter laptop. Source files are in `docs/a5/evidence
 
 | Level | What | Result |
 |---|---|---|
-| Unit / functional | `pytest tests/` (backend, transaction rollback on the real database) | **292 passed, 0 failed** (`pytest_full.txt`) |
-| Unit | `vitest run` (frontend logic) | **113 passed, 0 failed** (`vitest_full.txt`) |
+| Unit / functional | `pytest tests/` (backend, transaction rollback on the real database) | **325 passed, 0 failed** (`pytest_full.txt`) |
+| Unit | `vitest run` (frontend logic) | **121 passed, 0 failed** (`vitest_full.txt`) |
 | Static | `tsc --noEmit` | 0 errors (`tsc.txt`) |
 | Integration + system | `scripts/e2e_workflow.py` against the live backend, database and GPT-4o | **27 of 27 checks** (`e2e_output.txt`) |
 | User acceptance | 3 testers, 4 tasks each (`uat_form.md`) | see `uat_results.md` (filled in after the sessions) |
@@ -38,16 +38,20 @@ Run on 2026-11-16 on the presenter laptop. Source files are in `docs/a5/evidence
 | TC-22 | AI limit | 20 calls recorded in the database, then one more | 429, also after a restart | 429 (pytest) | Pass |
 | TC-23 | Re-scoring | Stale score, fresh score, another server holding the lock | stale re-scored, fresh left, nothing scored while locked | as expected (pytest) | Pass |
 | TC-24 | Search | Contractors searched by authority, several words, none | matches narrow as words are added | as expected (vitest) | Pass |
+| TC-25 | Citizen email | Receipt, looked-at, resolved over real SMTP; no address; bad address; mail server down | one mail each, none without an address, 422, report still saved | as expected (pytest) | Pass |
+| TC-26 | Health | Health check with and without the risk model | 200, then 503 | as expected (pytest) | Pass |
+| TC-27 | Contractor AI | Invented number, invented claim, OpenAI down, another contractor, hourly limit | rejected or plain fallback; 404; 429 | as expected (pytest) | Pass |
+| TC-28 | Contractor dashboard | 7 days, 30 days, 3 months: counts, average time, on time | match the tickets | as expected (vitest) | Pass |
 
 ## Unresolved
-None failing. Known and stated: real email not tested against a real SMTP server; browser UI is checked by hand and by the UAT, not by automated browser tests; accuracy rests on 29 held-out authorities.
+None failing. Known and stated: browser screens are checked by hand and by the UAT, not by automated browser tests; email is tested through the real SMTP protocol against a mail server inside the test, not against a commercial provider; the risk model accuracy rests on 29 held-out authorities.
 
 ## Quantitative measures (`measurements.txt`, 2026-11-21, one laptop, server and client on the same machine)
 - GET /wsa (169 rows): median 9 ms, p95 13 ms (n=50)
-- POST /reports (multipart, one photo): median 10 ms, p95 24 ms (n=50)
-- GET /reports (admin): median 84 ms, p95 140 ms (n=50)
-- GET /assignments (admin): median 25 ms, p95 39 ms (n=50)
-- POST /risk/score (XGBoost, one WSA): median 11 ms, p95 22 ms (n=20)
+- POST /reports (multipart, one photo): median 7 ms, p95 11 ms (n=50)
+- GET /reports (admin, 60 reports): median 107 ms, p95 169 ms (n=50)
+- GET /assignments (admin): median 41 ms, p95 68 ms (n=50)
+- POST /risk/score (XGBoost, one WSA): median 8 ms, p95 14 ms (n=20)
 - labelled WSAs in DB: 159
 - XGBoost: 89.7% held out (26 of 29), 80.6% five-fold cross-validation, rule baseline 34.5% (A3 evaluation).
 - GPT-4o CAP draft: 2.7 s and 4.1 s in the last two end-to-end runs.

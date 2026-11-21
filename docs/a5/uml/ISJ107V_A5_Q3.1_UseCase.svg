@@ -1,42 +1,49 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1702" viewBox="0 0 1700 1702" font-family="Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1984" viewBox="0 0 1700 1984" font-family="Helvetica, Arial, sans-serif">
 <defs><marker id="op" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="11" markerHeight="11" orient="auto"><path d="M1,1 L11,6 L1,11" fill="none" stroke="#334155" stroke-width="1.6"/></marker></defs>
-<rect width="1700" height="1702" fill="#fff"/>
+<rect width="1700" height="1984" fill="#fff"/>
 <text x="850.0" y="46" text-anchor="middle" font-size="28" font-weight="700" fill="#0f172a">HydroSentinel: Use-Case Diagram (final system)</text>
-<rect x="340" y="80" width="1060" height="1582" rx="14" fill="#f8fafc" stroke="#475569" stroke-width="2.2"/>
+<rect x="340" y="80" width="1060" height="1864" rx="14" fill="#f8fafc" stroke="#475569" stroke-width="2.2"/>
 <text x="870.0" y="114" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">HydroSentinel</text>
-<rect x="354" y="120" width="1032" height="330" rx="10" fill="#e0f2fe" opacity="0.55"/>
+<rect x="354" y="120" width="1032" height="420" rx="10" fill="#e0f2fe" opacity="0.55"/>
 <text x="370" y="144" font-size="14" font-weight="700" letter-spacing="1.5" fill="#475569">PUBLIC FUNCTIONS (NO SIGN-IN)</text>
-<rect x="354" y="470" width="1032" height="192" rx="10" fill="#dcfce7" opacity="0.55"/>
-<text x="370" y="494" font-size="14" font-weight="700" letter-spacing="1.5" fill="#475569">CONTRACTOR FUNCTIONS (SIGN-IN REQUIRED)</text>
-<rect x="354" y="682" width="1032" height="960" rx="10" fill="#fef3c7" opacity="0.55"/>
-<text x="370" y="706" font-size="14" font-weight="700" letter-spacing="1.5" fill="#475569">ADMIN FUNCTIONS (SIGN-IN REQUIRED)</text>
+<rect x="354" y="560" width="1032" height="384" rx="10" fill="#dcfce7" opacity="0.55"/>
+<text x="370" y="584" font-size="14" font-weight="700" letter-spacing="1.5" fill="#475569">CONTRACTOR FUNCTIONS (SIGN-IN REQUIRED)</text>
+<rect x="354" y="964" width="1032" height="960" rx="10" fill="#fef3c7" opacity="0.55"/>
+<text x="370" y="988" font-size="14" font-weight="700" letter-spacing="1.5" fill="#475569">ADMIN FUNCTIONS (SIGN-IN REQUIRED)</text>
 <line x1="165" y1="145" x2="416.0" y2="210" stroke="#334155" stroke-width="1.8"/>
 <line x1="165" y1="325" x2="416.0" y2="210" stroke="#334155" stroke-width="1.8"/>
 <line x1="165" y1="325" x2="416.0" y2="300" stroke="#334155" stroke-width="1.8"/>
 <line x1="165" y1="325" x2="416.0" y2="390" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="595" x2="416.0" y2="528" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="595" x2="416.0" y2="592" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="1197" x2="416.0" y2="740" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="1197" x2="416.0" y2="804" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="1197" x2="416.0" y2="868" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="1197" x2="416.0" y2="932" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="1197" x2="416.0" y2="996" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="1197" x2="416.0" y2="1060" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="1197" x2="416.0" y2="1124" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="1197" x2="416.0" y2="1188" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="1197" x2="416.0" y2="1252" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="1197" x2="416.0" y2="1316" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="1197" x2="416.0" y2="1380" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="1197" x2="416.0" y2="1444" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="1197" x2="416.0" y2="1508" stroke="#334155" stroke-width="1.8"/>
-<line x1="165" y1="1197" x2="416.0" y2="1572" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="325" x2="416.0" y2="480" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="685" x2="416.0" y2="618" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="685" x2="416.0" y2="682" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="685" x2="416.0" y2="746" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="685" x2="416.0" y2="810" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="685" x2="416.0" y2="874" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="1479" x2="416.0" y2="1022" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="1479" x2="416.0" y2="1086" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="1479" x2="416.0" y2="1150" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="1479" x2="416.0" y2="1214" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="1479" x2="416.0" y2="1278" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="1479" x2="416.0" y2="1342" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="1479" x2="416.0" y2="1406" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="1479" x2="416.0" y2="1470" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="1479" x2="416.0" y2="1534" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="1479" x2="416.0" y2="1598" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="1479" x2="416.0" y2="1662" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="1479" x2="416.0" y2="1726" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="1479" x2="416.0" y2="1790" stroke="#334155" stroke-width="1.8"/>
+<line x1="165" y1="1479" x2="416.0" y2="1854" stroke="#334155" stroke-width="1.8"/>
 <path d="M806.0,210 H1370" stroke="#0d9488" stroke-width="1.8" fill="none"/><circle cx="1370" cy="210" r="4" fill="#0d9488"/>
 <path d="M806.0,300 H1370" stroke="#0d9488" stroke-width="1.8" fill="none"/><circle cx="1370" cy="300" r="4" fill="#0d9488"/>
-<path d="M806.0,804 H1370" stroke="#0d9488" stroke-width="1.8" fill="none"/><circle cx="1370" cy="804" r="4" fill="#0d9488"/>
-<path d="M806.0,932 H1370" stroke="#0d9488" stroke-width="1.8" fill="none"/><circle cx="1370" cy="932" r="4" fill="#0d9488"/>
-<path d="M806.0,1188 H1370" stroke="#0d9488" stroke-width="1.8" fill="none"/><circle cx="1370" cy="1188" r="4" fill="#0d9488"/>
-<path d="M806.0,1380 H1370" stroke="#0d9488" stroke-width="1.8" fill="none"/><circle cx="1370" cy="1380" r="4" fill="#0d9488"/>
-<path d="M1370,210 V1380" stroke="#0d9488" stroke-width="1.8" fill="none"/><path d="M1370,1057 H1586" stroke="#0d9488" stroke-width="1.8" fill="none"/>
+<path d="M806.0,1086 H1370" stroke="#0d9488" stroke-width="1.8" fill="none"/><circle cx="1370" cy="1086" r="4" fill="#0d9488"/>
+<path d="M806.0,1214 H1370" stroke="#0d9488" stroke-width="1.8" fill="none"/><circle cx="1370" cy="1214" r="4" fill="#0d9488"/>
+<path d="M806.0,1470 H1370" stroke="#0d9488" stroke-width="1.8" fill="none"/><circle cx="1370" cy="1470" r="4" fill="#0d9488"/>
+<path d="M806.0,1662 H1370" stroke="#0d9488" stroke-width="1.8" fill="none"/><circle cx="1370" cy="1662" r="4" fill="#0d9488"/>
+<path d="M806.0,746 H1370" stroke="#0d9488" stroke-width="1.8" fill="none"/><circle cx="1370" cy="746" r="4" fill="#0d9488"/>
+<path d="M806.0,810 H1370" stroke="#0d9488" stroke-width="1.8" fill="none"/><circle cx="1370" cy="810" r="4" fill="#0d9488"/>
+<path d="M806.0,874 H1370" stroke="#0d9488" stroke-width="1.8" fill="none"/><circle cx="1370" cy="874" r="4" fill="#0d9488"/>
+<path d="M1370,210 V1662" stroke="#0d9488" stroke-width="1.8" fill="none"/><path d="M1370,1339 H1586" stroke="#0d9488" stroke-width="1.8" fill="none"/>
 <ellipse cx="610" cy="210" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
 <text x="610" y="205.5" text-anchor="middle" font-size="16.5" fill="#0f172a">View risk map and</text>
 <text x="610" y="224.5" text-anchor="middle" font-size="16.5" fill="#0f172a">AI summaries</text>
@@ -46,85 +53,101 @@
 <ellipse cx="610" cy="390" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
 <text x="610" y="385.5" text-anchor="middle" font-size="16.5" fill="#0f172a">Track report by</text>
 <text x="610" y="404.5" text-anchor="middle" font-size="16.5" fill="#0f172a">reference code</text>
-<ellipse cx="610" cy="528" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="523.5" text-anchor="middle" font-size="16.5" fill="#0f172a">Work my tickets</text>
-<text x="610" y="542.5" text-anchor="middle" font-size="16.5" fill="#0f172a">(accept, reject, start, fix)</text>
-<ellipse cx="610" cy="592" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="597.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Add repair photos</text>
-<ellipse cx="610" cy="740" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="745.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Triage report</text>
-<ellipse cx="610" cy="804" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="809.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Draft AI case note</text>
-<ellipse cx="610" cy="868" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="873.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Assign report to contractor</text>
-<ellipse cx="610" cy="932" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="937.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Draft ticket with AI</text>
-<ellipse cx="610" cy="996" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="1001.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Verify or send back repair</text>
-<ellipse cx="610" cy="1060" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="1065.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Score WSA risk (XGBoost)</text>
-<ellipse cx="610" cy="1124" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="1129.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Update CAP status and deadline</text>
-<ellipse cx="610" cy="1188" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="1193.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Draft CAP with AI</text>
-<ellipse cx="610" cy="1252" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="1257.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Accept CAP item</text>
-<ellipse cx="610" cy="1316" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="1321.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Manage contractors</text>
-<ellipse cx="610" cy="1380" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="1385.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Ask AI about data or regulations</text>
-<ellipse cx="610" cy="1444" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="1449.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Review and acknowledge alerts</text>
-<ellipse cx="610" cy="1508" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="1513.0" text-anchor="middle" font-size="16.5" fill="#0f172a">View audit log</text>
-<ellipse cx="610" cy="1572" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
-<text x="610" y="1577.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Manage admin users</text>
-<ellipse cx="1140" cy="672" rx="105.0" ry="75.0" fill="#fff" stroke="#334155" stroke-width="2"/><text x="1140" y="678" text-anchor="middle" font-size="18" font-weight="700" fill="#0f172a">Sign in</text>
-<line x1="763.2088886237956" y1="545.28" x2="1100.6663076913292" y2="602.4612109074909" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="831.4461143440557" y="553.4343632722473" width="66" height="17" fill="#fff" opacity="0.9"/><text x="864.4461143440557" y="566.4343632722473" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
-<line x1="763.2088886237956" y1="609.28" x2="1082.3015573025655" y2="609.3384141440298" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="825.9366892274265" y="600.297524243209" width="66" height="17" fill="#fff" opacity="0.9"/><text x="858.9366892274265" y="613.297524243209" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
-<line x1="763.2088886237956" y1="722.72" x2="1066.1869889703055" y2="618.6593570992397" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="821.1023187277485" y="682.5018071297719" width="66" height="17" fill="#fff" opacity="0.9"/><text x="854.1023187277485" y="695.5018071297719" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
-<line x1="763.2088886237956" y1="850.72" x2="1052.9510548817207" y2="630.060532239694" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="817.131538501173" y="775.5221596719082" width="66" height="17" fill="#fff" opacity="0.9"/><text x="850.131538501173" y="788.5221596719082" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
-<line x1="763.2088886237956" y1="978.72" x2="1043.1099433426784" y2="643.0973050393163" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="814.1792050394604" y="869.0331915117949" width="66" height="17" fill="#fff" opacity="0.9"/><text x="847.1792050394604" y="882.0331915117949" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
-<line x1="763.2088886237956" y1="1042.72" x2="1037.0474479456223" y2="657.2612542850377" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="812.3604564203436" y="918.0823762855114" width="66" height="17" fill="#fff" opacity="0.9"/><text x="845.3604564203436" y="931.0823762855114" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
-<line x1="763.2088886237956" y1="1106.72" x2="1035.0" y2="672.0" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="811.746222036657" y="967.3040000000001" width="66" height="17" fill="#fff" opacity="0.9"/><text x="844.746222036657" y="980.3040000000001" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
-<line x1="763.2088886237956" y1="1170.72" x2="1037.0474479456223" y2="686.7387457149623" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="812.3604564203436" y="1016.5256237144888" width="66" height="17" fill="#fff" opacity="0.9"/><text x="845.3604564203436" y="1029.5256237144888" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
-<line x1="763.2088886237956" y1="1298.72" x2="1043.1099433426787" y2="700.9026949606837" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="814.1792050394605" y="1110.3748084882052" width="66" height="17" fill="#fff" opacity="0.9"/><text x="847.1792050394605" y="1123.3748084882052" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
-<line x1="763.2088886237956" y1="1362.72" x2="1052.9510548817207" y2="713.939467760306" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="817.131538501173" y="1159.0858403280918" width="66" height="17" fill="#fff" opacity="0.9"/><text x="850.131538501173" y="1172.0858403280918" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
-<line x1="763.2088886237956" y1="1426.72" x2="1066.1869889703055" y2="725.3406429007603" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="821.1023187277485" y="1207.3061928702282" width="66" height="17" fill="#fff" opacity="0.9"/><text x="854.1023187277485" y="1220.3061928702282" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
-<line x1="763.2088886237956" y1="1490.72" x2="1082.3015573025655" y2="734.6615858559702" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="825.9366892274265" y="1254.902475756791" width="66" height="17" fill="#fff" opacity="0.9"/><text x="858.9366892274265" y="1267.902475756791" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
-<line x1="763.2088886237956" y1="1554.72" x2="1100.6663076913292" y2="741.5387890925091" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="831.4461143440557" y="1301.7656367277527" width="66" height="17" fill="#fff" opacity="0.9"/><text x="864.4461143440557" y="1314.7656367277527" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
-<line x1="500" y1="780.0" x2="500" y2="764.0" stroke="#334155" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="414" y="763.0" width="70" height="17" fill="#fff" opacity="0.85"/><text x="449" y="776.0" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«extend»</text>
-<line x1="500" y1="908.0" x2="500" y2="892.0" stroke="#334155" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="414" y="891.0" width="70" height="17" fill="#fff" opacity="0.85"/><text x="449" y="904.0" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«extend»</text>
-<line x1="500" y1="1228.0" x2="500" y2="1212.0" stroke="#334155" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="414" y="1211.0" width="70" height="17" fill="#fff" opacity="0.85"/><text x="449" y="1224.0" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«extend»</text>
-<line x1="500" y1="568.0" x2="500" y2="552.0" stroke="#334155" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#op)"/>
-<rect x="414" y="551.0" width="70" height="17" fill="#fff" opacity="0.85"/><text x="449" y="564.0" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«extend»</text>
+<ellipse cx="610" cy="480" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="475.5" text-anchor="middle" font-size="16.5" fill="#0f172a">Get email updates</text>
+<text x="610" y="494.5" text-anchor="middle" font-size="16.5" fill="#0f172a">(if asked for)</text>
+<ellipse cx="610" cy="618" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="613.5" text-anchor="middle" font-size="16.5" fill="#0f172a">Work my tickets</text>
+<text x="610" y="632.5" text-anchor="middle" font-size="16.5" fill="#0f172a">(accept, reject, start, fix)</text>
+<ellipse cx="610" cy="682" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="687.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Add repair photos</text>
+<ellipse cx="610" cy="746" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="751.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Get AI job brief</text>
+<ellipse cx="610" cy="810" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="815.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Write fix note with AI</text>
+<ellipse cx="610" cy="874" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="869.5" text-anchor="middle" font-size="16.5" fill="#0f172a">View my dashboard</text>
+<text x="610" y="888.5" text-anchor="middle" font-size="16.5" fill="#0f172a">and AI summary</text>
+<ellipse cx="610" cy="1022" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="1027.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Triage report</text>
+<ellipse cx="610" cy="1086" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="1091.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Draft AI case note</text>
+<ellipse cx="610" cy="1150" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="1155.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Assign report to contractor</text>
+<ellipse cx="610" cy="1214" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="1219.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Draft ticket with AI</text>
+<ellipse cx="610" cy="1278" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="1283.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Verify or send back repair</text>
+<ellipse cx="610" cy="1342" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="1347.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Score WSA risk (XGBoost)</text>
+<ellipse cx="610" cy="1406" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="1411.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Update CAP status and deadline</text>
+<ellipse cx="610" cy="1470" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="1475.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Draft CAP with AI</text>
+<ellipse cx="610" cy="1534" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="1539.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Accept CAP item</text>
+<ellipse cx="610" cy="1598" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="1603.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Manage contractors</text>
+<ellipse cx="610" cy="1662" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="1667.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Ask AI about data or regulations</text>
+<ellipse cx="610" cy="1726" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="1731.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Review and acknowledge alerts</text>
+<ellipse cx="610" cy="1790" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="1795.0" text-anchor="middle" font-size="16.5" fill="#0f172a">View audit log</text>
+<ellipse cx="610" cy="1854" rx="200.0" ry="27.0" fill="#fff" stroke="#334155" stroke-width="2"/>
+<text x="610" y="1859.0" text-anchor="middle" font-size="16.5" fill="#0f172a">Manage admin users</text>
+<ellipse cx="1140" cy="954" rx="105.0" ry="75.0" fill="#fff" stroke="#334155" stroke-width="2"/><text x="1140" y="960" text-anchor="middle" font-size="18" font-weight="700" fill="#0f172a">Sign in</text>
+<line x1="763.2088886237956" y1="635.28" x2="1100.6663076913292" y2="884.4612109074909" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="831.4461143440557" y="701.0343632722472" width="66" height="17" fill="#fff" opacity="0.9"/><text x="864.4461143440557" y="714.0343632722472" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="699.28" x2="1085.8163160241725" y2="889.7574415061118" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="826.9911168439087" y="747.4232324518335" width="66" height="17" fill="#fff" opacity="0.9"/><text x="859.9911168439087" y="760.4232324518335" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="763.28" x2="1072.3203039339703" y2="896.6590098335377" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="822.942313216848" y="794.2937029500613" width="66" height="17" fill="#fff" opacity="0.9"/><text x="855.942313216848" y="807.2937029500613" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="827.28" x2="1060.5155191565655" y2="904.9934547007421" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="819.4008777836266" y="841.5940364102225" width="66" height="17" fill="#fff" opacity="0.9"/><text x="852.4008777836266" y="854.5940364102225" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="891.28" x2="1050.6969478635533" y2="914.5525092032364" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="816.4553063957229" y="889.2617527609709" width="66" height="17" fill="#fff" opacity="0.9"/><text x="849.4553063957229" y="902.2617527609709" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="1004.72" x2="1043.1099433426784" y2="925.0973050393163" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="814.1792050394604" y="971.8331915117949" width="66" height="17" fill="#fff" opacity="0.9"/><text x="847.1792050394604" y="984.8331915117949" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="1132.72" x2="1037.9440949392526" y2="936.3643415173058" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="812.6294505184327" y="1064.8133024551917" width="66" height="17" fill="#fff" opacity="0.9"/><text x="845.6294505184327" y="1077.8133024551917" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="1260.72" x2="1035.3284904657432" y2="948.0720700940894" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="811.8447691763799" y="1157.925621028227" width="66" height="17" fill="#fff" opacity="0.9"/><text x="844.8447691763799" y="1170.925621028227" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="1324.72" x2="1035.3284904657432" y2="959.9279299059106" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="811.8447691763799" y="1206.2823789717731" width="66" height="17" fill="#fff" opacity="0.9"/><text x="844.8447691763799" y="1219.2823789717731" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="1388.72" x2="1037.9440949392526" y2="971.6356584826942" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="812.6294505184327" y="1254.5946975448082" width="66" height="17" fill="#fff" opacity="0.9"/><text x="845.6294505184327" y="1267.5946975448082" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="1452.72" x2="1043.1099433426787" y2="982.9026949606837" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="814.1792050394605" y="1302.774808488205" width="66" height="17" fill="#fff" opacity="0.9"/><text x="847.1792050394605" y="1315.774808488205" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="1580.72" x2="1050.6969478635533" y2="993.4474907967636" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="816.4553063957229" y="1395.538247239029" width="66" height="17" fill="#fff" opacity="0.9"/><text x="849.4553063957229" y="1408.538247239029" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="1644.72" x2="1060.5155191565655" y2="1003.0065452992579" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="819.4008777836266" y="1443.2059635897774" width="66" height="17" fill="#fff" opacity="0.9"/><text x="852.4008777836266" y="1456.2059635897774" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="1708.72" x2="1072.3203039339703" y2="1011.3409901664623" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="822.942313216848" y="1490.5062970499387" width="66" height="17" fill="#fff" opacity="0.9"/><text x="855.942313216848" y="1503.5062970499387" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="1772.72" x2="1085.8163160241725" y2="1018.2425584938882" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="826.9911168439087" y="1537.3767675481665" width="66" height="17" fill="#fff" opacity="0.9"/><text x="859.9911168439087" y="1550.3767675481665" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="763.2088886237956" y1="1836.72" x2="1100.6663076913292" y2="1023.5387890925091" stroke="#334155" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="831.4461143440557" y="1583.7656367277527" width="66" height="17" fill="#fff" opacity="0.9"/><text x="864.4461143440557" y="1596.7656367277527" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«include»</text>
+<line x1="500" y1="1062.0" x2="500" y2="1046.0" stroke="#334155" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="414" y="1045.0" width="70" height="17" fill="#fff" opacity="0.85"/><text x="449" y="1058.0" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«extend»</text>
+<line x1="500" y1="1190.0" x2="500" y2="1174.0" stroke="#334155" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="414" y="1173.0" width="70" height="17" fill="#fff" opacity="0.85"/><text x="449" y="1186.0" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«extend»</text>
+<line x1="500" y1="1510.0" x2="500" y2="1494.0" stroke="#334155" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="414" y="1493.0" width="70" height="17" fill="#fff" opacity="0.85"/><text x="449" y="1506.0" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«extend»</text>
+<line x1="500" y1="658.0" x2="500" y2="642.0" stroke="#334155" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#op)"/>
+<rect x="414" y="641.0" width="70" height="17" fill="#fff" opacity="0.85"/><text x="449" y="654.0" text-anchor="middle" font-size="12" font-style="italic" fill="#334155">«extend»</text>
 <circle cx="135" cy="114" r="15" fill="#fff" stroke="#334155" stroke-width="2.2"/><path d="M135,129 V174 M107,142 H163 M135,174 L111,208 M135,174 L159,208" stroke="#334155" stroke-width="2.2" fill="none"/><text x="135" y="232" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">Regulator</text><text x="135" y="253" text-anchor="middle" font-size="13.5" fill="#475569">reads the public dashboard</text>
 <circle cx="135" cy="294" r="15" fill="#fff" stroke="#334155" stroke-width="2.2"/><path d="M135,309 V354 M107,322 H163 M135,354 L111,388 M135,354 L159,388" stroke="#334155" stroke-width="2.2" fill="none"/><text x="135" y="412" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">Citizen</text><text x="135" y="433" text-anchor="middle" font-size="13.5" fill="#475569">no account</text>
-<circle cx="135" cy="564" r="15" fill="#fff" stroke="#334155" stroke-width="2.2"/><path d="M135,579 V624 M107,592 H163 M135,624 L111,658 M135,624 L159,658" stroke="#334155" stroke-width="2.2" fill="none"/><text x="135" y="682" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">Contractor</text><text x="135" y="703" text-anchor="middle" font-size="13.5" fill="#475569">sees only its own tickets</text>
-<circle cx="135" cy="1166" r="15" fill="#fff" stroke="#334155" stroke-width="2.2"/><path d="M135,1181 V1226 M107,1194 H163 M135,1226 L111,1260 M135,1226 L159,1260" stroke="#334155" stroke-width="2.2" fill="none"/><text x="135" y="1284" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">Admin</text><text x="135" y="1305" text-anchor="middle" font-size="13.5" fill="#475569">national admin, or limited</text><text x="135" y="1322" text-anchor="middle" font-size="13.5" fill="#475569">to one authority</text>
-<text x="1620" y="1000" text-anchor="middle" font-size="15" font-style="italic" fill="#334155">«system»</text><circle cx="1620" cy="1026" r="15" fill="#fff" stroke="#334155" stroke-width="2.2"/><path d="M1620,1041 V1086 M1592,1054 H1648 M1620,1086 L1596,1120 M1620,1086 L1644,1120" stroke="#334155" stroke-width="2.2" fill="none"/><text x="1620" y="1144" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">OpenAI API</text><text x="1620" y="1165" text-anchor="middle" font-size="13.5" fill="#475569">(GPT-4o)</text>
-<rect x="1420" y="1467" width="320" height="205" rx="10" fill="#fff" stroke="#cbd5e1"/><text x="1435" y="1491" font-size="14" font-weight="700" letter-spacing="1.5" fill="#475569">LEGEND</text>
-<line x1="1437" y1="1517" x2="1495" y2="1517" stroke="#334155" stroke-width="1.8"/><text x="1507" y="1522" font-size="14" fill="#0f172a">actor uses function</text>
-<line x1="1437" y1="1545" x2="1495" y2="1545" stroke="#0d9488" stroke-width="1.8"/><text x="1507" y="1550" font-size="14" fill="#0f172a">function calls GPT-4o</text>
-<line x1="1437" y1="1573" x2="1495" y2="1573" stroke="#334155" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#op)"/><text x="1507" y="1578" font-size="14" fill="#0f172a">include / extend</text>
-<text x="1435" y="1605" font-size="12.5" fill="#475569">Include: the function needs Sign in first.</text>
-<text x="1435" y="1623" font-size="12.5" fill="#475569">Extend: optional step added to a function.</text>
-<text x="1435" y="1641" font-size="12.5" fill="#475569">Risk scoring runs the XGBoost model on this</text>
-<text x="1435" y="1659" font-size="12.5" fill="#475569">server; it also runs on a schedule.</text>
+<circle cx="135" cy="654" r="15" fill="#fff" stroke="#334155" stroke-width="2.2"/><path d="M135,669 V714 M107,682 H163 M135,714 L111,748 M135,714 L159,748" stroke="#334155" stroke-width="2.2" fill="none"/><text x="135" y="772" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">Contractor</text><text x="135" y="793" text-anchor="middle" font-size="13.5" fill="#475569">sees only its own tickets</text>
+<circle cx="135" cy="1448" r="15" fill="#fff" stroke="#334155" stroke-width="2.2"/><path d="M135,1463 V1508 M107,1476 H163 M135,1508 L111,1542 M135,1508 L159,1542" stroke="#334155" stroke-width="2.2" fill="none"/><text x="135" y="1566" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">Admin</text><text x="135" y="1587" text-anchor="middle" font-size="13.5" fill="#475569">national admin, or limited</text><text x="135" y="1604" text-anchor="middle" font-size="13.5" fill="#475569">to one authority</text>
+<text x="1620" y="1282" text-anchor="middle" font-size="15" font-style="italic" fill="#334155">«system»</text><circle cx="1620" cy="1308" r="15" fill="#fff" stroke="#334155" stroke-width="2.2"/><path d="M1620,1323 V1368 M1592,1336 H1648 M1620,1368 L1596,1402 M1620,1368 L1644,1402" stroke="#334155" stroke-width="2.2" fill="none"/><text x="1620" y="1426" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">OpenAI API</text><text x="1620" y="1447" text-anchor="middle" font-size="13.5" fill="#475569">(GPT-4o)</text>
+<rect x="1420" y="1749" width="320" height="205" rx="10" fill="#fff" stroke="#cbd5e1"/><text x="1435" y="1773" font-size="14" font-weight="700" letter-spacing="1.5" fill="#475569">LEGEND</text>
+<line x1="1437" y1="1799" x2="1495" y2="1799" stroke="#334155" stroke-width="1.8"/><text x="1507" y="1804" font-size="14" fill="#0f172a">actor uses function</text>
+<line x1="1437" y1="1827" x2="1495" y2="1827" stroke="#0d9488" stroke-width="1.8"/><text x="1507" y="1832" font-size="14" fill="#0f172a">function calls GPT-4o</text>
+<line x1="1437" y1="1855" x2="1495" y2="1855" stroke="#334155" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#op)"/><text x="1507" y="1860" font-size="14" fill="#0f172a">include / extend</text>
+<text x="1435" y="1887" font-size="12.5" fill="#475569">Include: the function needs Sign in first.</text>
+<text x="1435" y="1905" font-size="12.5" fill="#475569">Extend: optional step added to a function.</text>
+<text x="1435" y="1923" font-size="12.5" fill="#475569">Risk scoring runs the XGBoost model on this</text>
+<text x="1435" y="1941" font-size="12.5" fill="#475569">server; it also runs on a schedule.</text>
 </svg>

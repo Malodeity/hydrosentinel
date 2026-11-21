@@ -13,7 +13,7 @@ package "Front end (React 18, Vite)" {
   component "api/client.ts\n(axios, JWT, refresh)" as Client
 }
 package "Back end (FastAPI)" {
-  component "Routers\nroutes/reports.py, routes/assignments.py,\nroutes/risk.py, routes/ai.py, routes/auth.py,\nroutes/wsa.py, routes/alerts.py,\nroutes/audit.py, routes/users.py" as Routers
+  component "Routers\nroutes/reports.py, routes/assignments.py,\nroutes/risk.py, routes/ai.py, routes/contractor_ai.py, routes/auth.py,\nroutes/wsa.py, routes/alerts.py,\nroutes/audit.py, routes/users.py" as Routers
   component "Services\napp/auth.py, app/assignment_helpers.py,\napp/alert_helpers.py, app/audit_helpers.py,\napp/rate_limit.py, app/mailer.py,\napp/scheduler.py" as Services
   component "AI modules\nai/predict.py (XGBoost + heuristic),\nai/rag.py, ai/query_agent.py" as AI
   component "app/models.py\n(SQLAlchemy)" as Models

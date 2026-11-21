@@ -10,11 +10,11 @@ PASS  wrong password rejected  401
 PASS  admin login  
 PASS  TC-04 admin triage  200
 PASS  invalid case status rejected  422
-PASS  TC-05 XGBoost risk score  !Kai! Garib LM medium p=0.8263 13 ms
-PASS  TC-06 GPT-4o CAP draft  200 5 items 4154 ms
+PASS  TC-05 XGBoost risk score  !Kai! Garib LM medium p=0.8263 16 ms
+PASS  TC-06 GPT-4o CAP draft  200 4 items 2044 ms
 PASS  resolve report  
 PASS  tracking shows resolved  
-PASS  audit log records the actions  187 rows
+PASS  audit log records the actions  200 rows
 PASS  TC-10 admin assigns report to contractor  201
 PASS  tracker shows repair progress, not the company  
 PASS  contractor sees its ticket  

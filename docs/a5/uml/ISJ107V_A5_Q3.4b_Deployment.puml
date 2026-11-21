@@ -16,11 +16,6 @@ node "Presenter laptop (macOS)" {
   }
   database "PostgreSQL 16 (:5432)\n169 WSAs, reports, tickets,\nalerts, audit log, AI call log" as DB
 }
-node "Docker Compose (alternative, not used for the demo)" {
-  node "db (postgres:15)" as CDB
-  node "backend (uvicorn)" as CAPI
-  node "frontend (node:20-alpine)" as CFE
-}
 cloud "OpenAI API\n(GPT-4o)" as OAI
 cloud "OpenStreetMap\n(tiles + Nominatim)" as OSM
 cloud "SMTP server\n(optional)" as SMTP
@@ -33,6 +28,4 @@ API --> UP : file write
 API --> OAI : HTTPS, API key from .env
 API ..> SMTP : only if SMTP_HOST is set
 SPA --> OSM : map tiles, address search
-CFE --> CAPI
-CAPI --> CDB
 @enduml

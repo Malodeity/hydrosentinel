@@ -29,6 +29,7 @@ class CitizenReport {
   reference_code : String
   case_status : String
   admin_comment : String
+  contact_email : String
   lat : Float
   lng : Float
   resolved_at : DateTime

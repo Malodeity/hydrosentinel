@@ -18,12 +18,16 @@ rectangle "HydroSentinel" {
     usecase "View risk map and AI summaries" as U1
     usecase "Submit report with photos" as U2
     usecase "Track report by reference code" as U3
+    usecase "Get email updates (if asked for)" as U8
   }
   rectangle "Any signed-in user" {
     usecase "Work my tickets (accept, reject, start, fix)" as U4
     usecase "Add repair photos" as U5
     usecase "Read notifications" as U6
     usecase "Change own password" as U7
+    usecase "Get AI job brief" as U9
+    usecase "Write fix note with AI" as U10
+    usecase "View my dashboard and AI summary" as U11
   }
   rectangle "Admin functions" {
     usecase "Triage report" as A1
@@ -51,10 +55,14 @@ Reg --> U1
 Cit --> U1
 Cit --> U2
 Cit --> U3
+Cit --> U8
 Con --> U4
 Con --> U5
 Con --> U6
 Con --> U7
+Con --> U9
+Con --> U10
+Con --> U11
 Adm --> U6
 Adm --> U7
 Adm --> A1
@@ -79,6 +87,9 @@ U5 ..> U4 : <<extend>>
 U4 ..> SI : <<include>>
 U6 ..> SI : <<include>>
 U7 ..> SI : <<include>>
+U9 ..> SI : <<include>>
+U10 ..> SI : <<include>>
+U11 ..> SI : <<include>>
 A1 ..> SI : <<include>>
 A3 ..> SI : <<include>>
 A5 ..> SI : <<include>>
@@ -96,6 +107,9 @@ A17 ..> SI : <<include>>
 
 U1 -- GPT
 U2 -- GPT
+U9 -- GPT
+U10 -- GPT
+U11 -- GPT
 A2 -- GPT
 A4 -- GPT
 A6 -- GPT

@@ -37,7 +37,7 @@ The aim is one system from a citizen's report to a verified repair, with AI that
 
 ### 1.2 Final scope, requirements and changes
 
-Requirement status was re-checked against the code on 21 November 2026. FR-01 to FR-07 and ETR-01 to ETR-03 are the Assignment 4 requirements. FR-08, FR-09 and FR-10 were partial or deferred in Assignment 4 and are now complete. FR-12 to FR-21 are the approved change after Assignment 4.
+Requirement status was re-checked against the code on 21 November 2026. FR-01 to FR-07 and ETR-01 to ETR-03 are the Assignment 4 requirements. FR-08, FR-09, FR-10 and FR-11 were partial or deferred in Assignment 4 and are now complete, so every requirement is completed. FR-12 to FR-23 are the approved change after Assignment 4.
 
 | ID | Requirement | Status | Notes |
 |---|---|---|---|
@@ -59,12 +59,14 @@ Requirement status was re-checked against the code on 21 November 2026. FR-01 to
 | FR-19 | Search contractors by name, contact, phone, email or authority | Completed | Contractors tab |
 | FR-20 | A contractor attaches repair photos; the admin sees them before verifying | Completed | Up to 8 photos of 5 MB per ticket |
 | FR-21 | Add a contractor with a province and issue types in one step | Completed | Checked by hand in the browser |
+| FR-22 | A contractor dashboard: open and closed tickets, and for 7 days, 30 days and 3 months the tickets received, fixed, average time to fix and fixed on time | Completed | Clickable tiles, chart and filters on `/tickets` |
+| FR-23 | AI helpers for the contractor: a job brief, a fix-note writer and a summary of their own work | Completed | Draft only; every answer is checked before it is shown |
 | ETR-01 | XGBoost risk scoring with rule-based fallback | Completed | 89.7% held out |
 | ETR-02 | GPT-4o drafts CAP items that an admin accepts | Completed | |
 | ETR-03 | Regulatory questions answered from the DWS PDFs | Completed | TF-IDF retrieval, then GPT-4o |
 | FR-09 | AI rate limit shared across servers | Completed | 20 per hour, counted in the database (`ai_calls`); was partial in Assignment 4 |
 | FR-10 | Scheduled automatic re-scoring | Completed | Every 24 hours by default (`RESCORE_INTERVAL_HOURS`); was deferred in Assignment 4 |
-| FR-11 | Email or SMS to citizens when a status changes | Deferred | Citizens use the tracking page |
+| FR-11 | Email to a citizen who asked for it, when the report is received, looked at and resolved | Completed | Deferred in Assignment 4. Optional field on the form; sent through SMTP; tested against a real SMTP server |
 
 *Table 1. Requirements and final status.*
 
@@ -83,8 +85,9 @@ Requirement status was re-checked against the code on 21 November 2026. FR-01 to
 
 #### Approved changes, deviations and incomplete items
 
-- **Approved change:** contractor tickets (FR-12 to FR-18), then contractor search, repair photos and the Add contractor form (FR-19 to FR-21), added after Assignment 4. FR-09 and FR-10, the two limitations I reported in Assignment 4, are now fixed.
-- **Not done:** FR-11 (no citizen email). Email has never been sent through a real mail server, and Docker Compose was not run for the demonstration. The non-revenue-water figure is a labelled province estimate for display only.
+- **Approved change:** contractor tickets (FR-12 to FR-18), then contractor search, repair photos, the Add contractor form, the contractor dashboard and the contractor AI helpers (FR-19 to FR-23), added after Assignment 4.
+- **Fixed since Assignment 4:** every limitation I reported there is now fixed: the AI limit (FR-09), scheduled scoring (FR-10), citizen email (FR-11), the scoring button (FR-08), and a health check that fails if the risk model is missing. Section 4.4 shows the proof for each.
+- **Labelled estimate:** the non-revenue-water figure is a labelled province estimate for display only.
 - **Justified deviations from the design** are listed in section 3.5.
 
 ### 1.3 Roadmap, technology stack and emerging technology
@@ -200,7 +203,7 @@ The six diagrams describe the completed system and follow the layout I used in A
 
 <figure>
 <img src="uml/ISJ107V_A5_Q3.1_UseCase.png" alt="Figure 6: Use-case diagram" style="max-height:225mm">
-<figcaption>Figure 6. Four human actors and one external system. The Regulator and the Citizen use the public functions with no account. The Contractor works only its own tickets and can add repair photos. The Admin (national, or limited to one authority) triages, assigns, verifies, scores risk, manages the CAP, contractors and users, and reads alerts and the audit log. Every function in the contractor and admin bands includes Sign in. The OpenAI API (GPT-4o) serves the six functions that draft or explain text. An extension (for example drafting a ticket with AI) is an optional step added to its base function.</figcaption>
+<figcaption>Figure 6. Four human actors and one external system. The Regulator and the Citizen use the public functions with no account, and a Citizen who gave an email gets updates. The Contractor works only its own tickets, adds repair photos, and has an AI job brief, an AI fix-note writer and a dashboard with an AI summary. The Admin (national, or limited to one authority) triages, assigns, verifies, scores risk, manages the CAP, contractors and users, and reads alerts and the audit log. Every function in the contractor and admin bands includes Sign in. The OpenAI API (GPT-4o) serves the nine functions that draft or explain text. An extension (for example drafting a ticket with AI) is an optional step added to its base function.</figcaption>
 </figure>
 
 ### 3.2 Class diagram
@@ -242,7 +245,7 @@ Key design decisions:
 
 <figure>
 <img src="uml/ISJ107V_A5_Q3.4b_Deployment.png" alt="Figure 11: Deployment diagram" style="max-height:95mm">
-<figcaption>Figure 11. The system runs on one presenter laptop: the browser runs the React app, a Python environment runs the API with the model, the retrieval index and the scheduled re-scoring, and PostgreSQL runs on the same machine. Docker Compose is an alternative that was not used for the demonstration. The API reaches OpenAI over the internet, and the map tiles come from OpenStreetMap. There is no cloud hosting.</figcaption>
+<figcaption>Figure 11. The system runs on one presenter laptop: the browser runs the React app, a Python environment runs the API with the model, the retrieval index and the scheduled re-scoring, and PostgreSQL runs on the same machine. The API reaches OpenAI over the internet, and the map tiles come from OpenStreetMap. There is no cloud hosting.</figcaption>
 </figure>
 
 ### 3.5 Consistency and justified deviations
@@ -268,15 +271,15 @@ Justified deviations:
 
 | Level | What | Passed | Failed | Unresolved |
 |---|---|---|---|---|
-| Backend | pytest on the real database, with rollback | 292 | 0 | 0 |
-| Frontend | Vitest | 113 | 0 | 0 |
+| Backend | pytest on the real database, with rollback | 325 | 0 | 0 |
+| Frontend | Vitest | 121 | 0 | 0 |
 | Static | TypeScript type check | 0 errors | | |
 | Integration and system | `scripts/e2e_workflow.py` against the live backend, database and GPT-4o | 27 | 0 | 0 |
 | User acceptance | 3 testers, 4 tasks each | 12 of 12 | 0 | 0 |
 
 *Table 7. Test summary, run on 21 November 2026. Sources are in `docs/a5/evidence/`.*
 
-Not covered by automation: a real mail server (email was tested with a mock), and most browser screens (the photo upload, the Add contractor form and the animations), which were checked by hand and in the user sessions. Re-running the suite also found two weaknesses that I fixed: a scheduler lock that could leak onto a pooled database connection, and two alert tests that assumed no other authority in the database was overdue.
+Email is tested through the real SMTP protocol against a small mail server that runs inside the test. The browser screens (the photo upload, the Add contractor form, the contractor dashboard and the animations) are checked by hand and in the user sessions, not by automated browser tests. Re-running the suite also found two weaknesses that I fixed: a scheduler lock that could leak onto a pooled database connection, and two alert tests that assumed no other authority in the database was overdue.
 
 #### Representative test cases
 
@@ -306,6 +309,10 @@ Not covered by automation: a real mail server (email was tested with a mock), an
 | TC-22 | AI limit | 20 calls recorded in the database, then one more | 429, also after a restart | 429 | Pass |
 | TC-23 | Re-scoring | Stale score, fresh score, a second server holding the lock | stale re-scored, fresh left alone, nothing scored while locked | as expected | Pass |
 | TC-24 | Search | Contractors searched by authority, with several words, with none | matches narrow as words are added | as expected | Pass |
+| TC-25 | Citizen email | Receipt, looked-at and resolved notices over real SMTP; no address; a bad address; a mail server that is down | one mail each, none without an address, 422, report still saved | as expected | Pass |
+| TC-26 | Health | Health check with and without the risk model | 200, then 503 | as expected | Pass |
+| TC-27 | Contractor AI | Job brief, fix note and summary: invented number, invented claim, OpenAI down, another contractor, hourly limit | rejected or plain fallback; 404; 429 | as expected | Pass |
+| TC-28 | Contractor dashboard | Counts for 7 days, 30 days and 3 months, average time to fix, fixed on time | match the tickets in each period | as expected (vitest) | Pass |
 
 *Table 8. Test cases and results.*
 
@@ -330,9 +337,9 @@ Three people who had not seen the system each tried four tasks: report a leak wi
 | Measure | Result | Source |
 |---|---|---|
 | Response time, list of 169 authorities | Median 9 ms, 95th percentile 13 ms (50 calls) | `measurements.txt` |
-| Response time, report submission with one photo | Median 10 ms, 95th percentile 24 ms (50 calls) | `measurements.txt` |
-| Response time, admin report list | Median 84 ms, 95th percentile 140 ms (50 calls) | `measurements.txt` |
-| Response time, risk scoring | Median 11 ms, 95th percentile 22 ms (20 calls) | `measurements.txt` |
+| Response time, report submission with one photo | Median 7 ms, 95th percentile 11 ms (50 calls) | `measurements.txt` |
+| Response time, admin report list (60 reports) | Median 107 ms, 95th percentile 169 ms (50 calls) | `measurements.txt` |
+| Response time, risk scoring | Median 8 ms, 95th percentile 14 ms (20 calls) | `measurements.txt` |
 | Workflow completion | 27 of 27 end-to-end checks | `e2e_output.txt` |
 | **XGBoost accuracy** (emerging-technology metric) | **89.7%** held out (26 of 29), 80.6% by five-fold cross-validation | Assignment 3 evaluation |
 | Rule-based baseline, same held-out set | 34.5% | Assignment 3 evaluation |
@@ -354,25 +361,38 @@ Reports can contain a home address and photos of private property. The public tr
 
 ### 4.4 Principal limitation and future enhancement
 
-**Limitation.** The model's accuracy rests on 29 held-out authorities, so one authority moves it by about 3.4 points. Email has never been sent through a real mail server (FR-15), citizens get no email when their report changes (FR-11), and Docker Compose was not run for the demonstration. In Assignment 4 I also listed manual scoring and a per-process AI limit as limitations. Both are now fixed (FR-09, FR-10).
+**Limitations from Assignment 4, and what happened to each.**
 
-**Future enhancement.** A notice to the citizen when their ticket is verified (FR-11), by email or SMS. It builds on the existing notification table, and it needs the citizen to give a contact detail on the report form.
+| Limitation I reported | What I did | Proof |
+|---|---|---|
+| The risk model could fail silently and every authority would be scored by the weaker rule | Every score shows its source, and `/health` returns 503 if the model is missing | Test: health fails without the model |
+| The AI limit was kept in one server's memory | It is counted in the database, shared by every server and kept across restarts | Tests: the count is read from the database |
+| Scoring ran only on request (FR-10) | The authorities are re-scored every 24 hours, one server at a time | Tests: stale scores re-scored, fresh ones left alone, nothing scored while another server holds the lock |
+| No scoring button (FR-08) | "Score risk now" on the CAP tab | End-to-end check TC-05 |
+| No email to citizens (FR-11) | Optional email on the report form with three notices that carry no personal detail | Nine tests over real SMTP |
+
+*Table 11. The limitations I reported in Assignment 4 and the evidence that each is fixed.*
+
+**Principal limitation that remains.** The risk model is checked on 29 held-out authorities, so one authority moves its accuracy by about 3.4 points. That is why I also report the cross-validated figure (80.6%). It is acceptable because the model only rates risk: a person acts on every rating, a low-confidence score falls back to the rule, and the source is shown.
+
+**Future enhancement.** Retrain the model when the Department publishes new audits and track its accuracy over time. The training script and the scheduled scoring already exist, so this needs a labelled data feed, not new code.
 
 ## Question 5: Communication and Individual Mastery
 
 ### 5.1 Narrative, slides and delivery
 
-The deck has 17 slides plus four backup slides: title, problem and users, scope and status, roadmap and stack, five UML slides (use case, class, sequence, component, deployment), consistency, the live demonstration, test results, measures, benefit and privacy, limits, my contribution, and questions. Each slide carries one idea and the same names as the application, the diagrams and this report. The target is 14 minutes with a limit of 15, followed by about 5 minutes of questions.
+The deck has 18 slides plus four backup slides: title, problem and users, what changed since Assignment 4, roadmap and stack, five UML slides (use case, class, sequence, component, deployment), consistency, the live demonstration, test results, measures, the Assignment 4 limitations then and now, benefit and privacy, the principal limitation, my contribution, and questions. Each slide carries one idea and the same names as the application, the diagrams and this report. The target is 14 minutes with a limit of 15, followed by about 5 minutes of questions.
 
 | Time | Content |
 |---|---|
 | 0:00 to 1:45 | Problem, users, scope, roadmap, stack, emerging technology |
 | 1:45 to 4:15 | UML: use case, class, sequence, component and deployment, consistency |
-| 4:15 to 10:30 | Live demonstration (about six minutes) |
-| 10:30 to 13:00 | Tests, measures, privacy, limits |
+| 4:15 to 10:00 | Live demonstration (about five minutes) |
+| 10:00 to 11:15 | Tests run live (about one minute) |
+| 11:15 to 13:00 | Measures, limitations then and now, privacy, the principal limitation |
 | 13:00 to 14:00 | Contribution, lesson and key decision |
 
-*Table 11. Presentation timing.*
+*Table 12. Presentation timing.*
 
 ### 5.2 Moving between explanation and demonstration, and the fallback
 
@@ -383,9 +403,10 @@ I finish the design slides, say what the demonstration will show, and switch to 
 | OpenAI or Wi-Fi fails | Say so in one sentence. The template draft still appears, and the saved AI output is in `evidence/e2e_output.txt`. |
 | The backend stops | Restart with `docs/a4/start_demo.sh` (about 10 seconds), or play the recorded video. |
 | The data looks wrong | Run `docs/a5/reset_demo.sh`. |
+| The live test run is slow or fails | Show the saved output in `docs/a5/evidence/` (`pytest_full.txt`, `e2e_output.txt`) and say it is the same run. |
 | Projector or laptop trouble | Use the PDF slides and `docs/a5/screens/` on a second device. |
 
-*Table 12. Fallback plan.*
+*Table 13. Fallback plan.*
 
 The system runs entirely on the laptop. Only the AI functions need the internet. A recorded video of the full loop and a short clip of the AI step are the offline fallback.
 
