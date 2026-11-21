@@ -56,3 +56,7 @@ backend/data/rag_index.pkl
 
 # Office lock files
 ~$*
+.neon
+
+# Neon settings (secrets)
+.env.neon

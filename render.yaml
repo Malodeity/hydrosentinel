@@ -1,0 +1,49 @@
+# Render Blueprint: one API service (Python) and one static site (the screens). Free plan.
+# Both services are in Ohio on purpose: the Neon database is in AWS us-east-2 (Ohio), so the API and the database are a few milliseconds apart.
+# Secrets (marked sync: false) are typed into Render's dashboard, never stored in this file.
+services:
+  - type: web
+    name: hydrosentinel-api
+    runtime: python
+    region: ohio
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.4
+      - key: DATABASE_URL          # the Neon DIRECT connection string (no "-pooler" in the host name)
+        sync: false
+      - key: OPENAI_API_KEY        # optional: without it the AI buttons use their plain fallbacks
+        sync: false
+      - key: ADMIN_EMAIL
+        value: admin@hydrosentinel.co.za
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: FRONTEND_URL          # the address of the static site below
+        value: https://hydrosentinel.onrender.com
+      - key: SEED_DEMO_DATA
+        value: "true"
+      - key: DEMO_CONTRACTOR_PASSWORD
+        sync: false
+      - key: RESCORE_INTERVAL_HOURS
+        value: "24"
+  - type: web
+    name: hydrosentinel
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: VITE_API_URL          # the address of the API service above
+        value: https://hydrosentinel-api.onrender.com
+    routes:
+      - type: rewrite              # /admin, /tickets and the other screens are pages inside the app, not files
+        source: /*
+        destination: /index.html

@@ -14,7 +14,9 @@ class Base(DeclarativeBase):
 
 
 # this creates the database connection using the url from the environment settings
-engine = create_engine(settings.database_url, future=True)
+# pool_pre_ping tests a connection before using it, and pool_recycle retires old ones. A hosted database such as Neon suspends itself when idle and drops
+# the open connections, so without these the first request after a quiet spell would fail with "SSL connection has been closed unexpectedly"
+engine = create_engine(settings.database_url, future=True, pool_pre_ping=True, pool_recycle=300)
 # this builds a reusable database session factory for every request or script
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, class_=Session, expire_on_commit=False)
 

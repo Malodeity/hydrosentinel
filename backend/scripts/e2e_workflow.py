@@ -26,7 +26,7 @@ def timed(fn):
     return r, round((time.perf_counter() - start) * 1000)
 
 
-with httpx.Client(base_url=BASE, timeout=60) as c:
+with httpx.Client(base_url=BASE, timeout=float(os.environ.get("E2E_TIMEOUT", "60"))) as c:   # a far-away database (hosted Neon from another continent) needs longer
     wsas = c.get("/wsa").json()
     wsa = next(w for w in wsas if w.get("lat") is not None) if wsas else None
     check("WSAs are seeded", bool(wsas), f"{len(wsas)} rows")
